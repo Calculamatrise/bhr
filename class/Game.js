@@ -135,8 +135,6 @@ export default class {
                     }
                     break;
             }
-
-            return;
         } else if (this.track.editor && Math.floor(this.mouse.real.x / 25) > this.canvas.width / 25 - 1.367 &&
         [0, 1, 2, 3, 4, 5, 6, 8, 9, 10, 11, 12, 13, 14, 15, 17].includes(Math.floor(this.mouse.real.y / 25))) {
             this.track.cameraLock = false;
@@ -211,8 +209,6 @@ export default class {
                     this.track.undo()
                     break;
             }
-
-            return;
         } else if (event.button === 2 && tool.selected !== "camera") {
             let y = this.track.erase(this.mouse.position);
             // this.track.pushUndo(() => {
@@ -348,7 +344,7 @@ export default class {
             if ([0, 1, 2, 4, 6, 7].includes(y) || tool.selected == "eraser" && [12, 13, 15, 16, 17].includes(y)) {
                 this.canvas.style.cursor = "default";
             } else {
-                this.canvas.style.cursor = tool.selected == "camera" ? "move" : "none";
+                this.canvas.style.cursor = tool.selected == "camera" ? "move" : ["boost", "gravity"].includes(tool.selected) ? "crosshair" : "none";
             }
         } else if (this.track.editor && x > this.canvas.width / 25 - 1.367) {
             this.track.displayText = [1, y, tool.descriptions.right[y]];
@@ -359,11 +355,11 @@ export default class {
             if ([0, 1, 2, 3, 4, 5, 6, 8, 9, 10, 11, 12, 13, 14, 15, 17].includes(y)) {
                 this.canvas.style.cursor = "default";
             } else {
-                this.canvas.style.cursor = tool.selected == "camera" ? "move" : "none";
+                this.canvas.style.cursor = tool.selected == "camera" ? "move" : ["boost", "gravity"].includes(tool.selected) ? "crosshair" : "none";
             }
         } else {
             this.track.displayText = false;
-            this.canvas.style.cursor = tool.selected == "camera" ? "move" : "none";
+            this.canvas.style.cursor = tool.selected == "camera" ? "move" : ["boost", "gravity"].includes(tool.selected) ? "crosshair" : "none";
         }
     }
     mouseUp(event) {
@@ -387,7 +383,7 @@ export default class {
                     this.track.teleporter.tpb(this.mouse.old.x, this.mouse.old.y);
                     delete this.track.teleporter;
                 }
-            } else if ("boost" === tool.selected || "gravity" === tool.selected) {
+            } else if (this.canvas.style.cursor === "crosshair" && ["boost", "gravity"].includes(tool.selected)) {
                 this.canvas.style.cursor = "none";
                 let d = Math.round(180 * Math.atan2(-(this.mouse.position.x - this.mouse.old.x), this.mouse.position.y - this.mouse.old.y) / Math.PI);
                 let c = "boost" === tool.selected ? new Boost(this.mouse.old.x,this.mouse.old.y,d, this.track) : new Gravity(this.mouse.old.x,this.mouse.old.y,d, this.track);

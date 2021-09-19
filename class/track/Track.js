@@ -74,10 +74,7 @@ export default class Track {
         }
     }
     switchBike() {
-        const vehicle = this.players.shift().vehicle;
-        this.players.unshift(new Player(this, {
-            vehicle: vehicle.name === "BMX" ? "MTB" : "BMX"
-        }));
+        this.firstPlayer.vehicle.name = this.firstPlayer.vehicle.name === "BMX" ? "MTB" : "BMX"
         this.reset();
         this.cameraFocus = this.firstPlayer.vehicle.head;
     }
@@ -266,15 +263,16 @@ export default class Track {
         }
 
         if (tool.selected !== "camera" && !this.cameraFocus) {
+            ctx.save();
             switch (tool.selected) {
                 case "line":
                 case "scenery line":
                 case "brush":
                 case "scenery brush":
-                    ctx.lineWidth = 1;
-                    ctx.strokeStyle = "#000";
                     let w = pos.x;
                     let y = pos.y;
+                    ctx.lineWidth = 1;
+                    ctx.strokeStyle = "#000";
                     ctx.beginPath(),
                     ctx.moveTo(w - 10, y),
                     ctx.lineTo(w + 10, y),
@@ -284,7 +282,10 @@ export default class Track {
                 break;
 
                 case "eraser":
-                    tool.eraser.draw();
+                    ctx.fillStyle = "#ffb6c199";
+                    ctx.beginPath();
+                    ctx.arc(pos.x, pos.y, (tool.eraser.size - 1) * this.zoom, 0, Math.PI * 2, !0);
+                    ctx.fill();
                 break;
 
                 case "goal":
@@ -303,8 +304,7 @@ export default class Track {
                 case "boost":
                 case "gravity":
                     ctx.beginPath(),
-                    ctx.fillStyle = tool.selected == "boost" ? "#ff0" : "#0f0",
-                    ctx.save();
+                    ctx.fillStyle = tool.selected == "boost" ? "#ff0" : "#0f0";
                     if (this.cameraLock) {
                         ctx.translate(old.x, old.y),
                         ctx.rotate(Math.atan2(-(this.parent.mouse.position.x - this.parent.mouse.old.x), this.parent.mouse.position.y - this.parent.mouse.old.y));
@@ -316,12 +316,12 @@ export default class Track {
                     ctx.lineTo(7 * this.zoom, -10 * this.zoom),
                     ctx.lineTo(-7 * this.zoom, -10 * this.zoom),
                     ctx.fill(),
-                    ctx.stroke(),
-                    ctx.restore()
+                    ctx.stroke();
                 break;
             }
-        }
 
+            ctx.restore();
+        }
         ctx.beginPath();
         ctx.fillStyle = "#ff0";
         ctx.lineWidth = 1;

@@ -105,6 +105,7 @@ export default class MountainBike {
         ctx.stroke();
         if (!this.parent.dead) {
             ctx.lineCap = "round";
+            ctx.lineJoin = "round";
             var f = d.sub(b.add(e.scale(0.5)))
             , c = b.add(e.scale(0.3)).add(f.scale(0.25))
             , h = b.add(e.scale(0.4)).add(f.scale(0.05))

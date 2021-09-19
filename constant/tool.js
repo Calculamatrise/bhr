@@ -1,4 +1,3 @@
-import Vector from "../class/Vector.js";
 import { canvas, ctx } from "../bootstrap.js";
 
 export default self = {
@@ -491,21 +490,11 @@ export default self = {
             physics: !0,
             scenery: !0,
             powerups: !0
-        },
-        draw() {
-            ctx.fillStyle = "#ffb6c199";
-            ctx.beginPath();
-            ctx.arc(self.mouse.pos.toPixel().x, self.mouse.pos.toPixel().y, (this.size - 1) * window.game.track.zoom, 0, 2 * Math.PI, !0);
-            ctx.fill();
         }
     },
     brush: {
         length: 20
     },
     grid: 1,
-    powerups: 0,
-    mouse: {
-        pos: new Vector(0, 0),
-        old: new Vector(40, 50)
-    }
+    powerups: 0
 }
