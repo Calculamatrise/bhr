@@ -63,13 +63,14 @@ export default class MountainBike {
         , f = new Vector((c.y - b.y) * this.dir,(b.x - c.x) * this.dir)
         , h = d.sub(b.add(e.scale(0.5)));
         ctx.globalAlpha = this.ghost ? .5 : 1;
-        ctx.strokeStyle = "#000";
+        ctx.strokeStyle = this.parent.track.parent.theme.dark ? "#FBFBFB" : "#000000";
         ctx.lineWidth = 3.5 * this.parent.track.zoom;
         ctx.beginPath(),ctx.arc(b.x, b.y, 12.5 * this.parent.track.zoom, 0, 2 * Math.PI, !0),
         ctx.moveTo(c.x + 12.5 * this.parent.track.zoom, c.y),
         ctx.arc(c.x, c.y, 12.5 * this.parent.track.zoom, 0, 2 * Math.PI, !0),
         ctx.stroke(),
-        ctx.beginPath(),ctx.fillStyle = "grey";
+        ctx.beginPath(),
+        ctx.fillStyle = "grey";
         ctx.moveTo(b.x + 5 * this.parent.track.zoom, b.y),
         ctx.arc(b.x, b.y, 5 * this.parent.track.zoom, 0, 2 * Math.PI, !0),
         ctx.moveTo(c.x + 4 * this.parent.track.zoom, c.y),
@@ -82,7 +83,9 @@ export default class MountainBike {
         ctx.moveTo(b.x + 0.72 * e.x + 0.64 * h.x, b.y + 0.72 * e.y + 0.64 * h.y),
         ctx.lineTo(b.x + 0.46 * e.x + 0.4 * h.x, b.y + 0.46 * e.y + 0.4 * h.y),
         ctx.lineTo(b.x + 0.4 * e.x + 0.05 * f.x, b.y + 0.4 * e.y + 0.05 * f.y),
-        ctx.stroke(),ctx.beginPath(),ctx.lineWidth = 2 * this.parent.track.zoom;
+        ctx.stroke(),
+        ctx.beginPath(),
+        ctx.lineWidth = 2 * this.parent.track.zoom;
         var i = new Vector(6 * Math.cos(this.pedalSpeed) * this.parent.track.zoom,6 * Math.sin(this.pedalSpeed) * this.parent.track.zoom);
         ctx.moveTo(b.x + 0.72 * e.x + 0.64 * h.x, b.y + 0.72 * e.y + 0.64 * h.y),
         ctx.lineTo(b.x + 0.43 * e.x + 0.05 * f.x, b.y + 0.43 * e.y + 0.05 * f.y),
@@ -98,8 +101,10 @@ export default class MountainBike {
         ctx.lineWidth = this.parent.track.zoom;
         ctx.moveTo(b.x + 0.46 * e.x + 0.4 * h.x, b.y + 0.46 * e.y + 0.4 * h.y),
         ctx.lineTo(b.x + 0.28 * e.x + 0.5 * h.x, b.y + 0.28 * e.y + 0.5 * h.y),
-        ctx.stroke(),ctx.beginPath(),ctx.lineWidth = 3 * this.parent.track.zoom;
-        ctx.moveTo(c.x, c.y),ctx.lineTo(b.x + 0.71 * e.x + 0.73 * h.x, b.y + 0.71 * e.y + 0.73 * h.y),
+        ctx.stroke(),
+        ctx.beginPath(),ctx.lineWidth = 3 * this.parent.track.zoom;
+        ctx.moveTo(c.x, c.y),
+        ctx.lineTo(b.x + 0.71 * e.x + 0.73 * h.x, b.y + 0.71 * e.y + 0.73 * h.y),
         ctx.lineTo(b.x + 0.73 * e.x + 0.77 * h.x, b.y + 0.73 * e.y + 0.77 * h.y),
         ctx.lineTo(b.x + 0.7 * e.x + 0.8 * h.x, b.y + 0.7 * e.y + 0.8 * h.y),
         ctx.stroke();
@@ -117,15 +122,15 @@ export default class MountainBike {
             , h = new Vector(m.y * this.dir,-m.x * this.dir).scaleSelf(this.parent.track.zoom * this.parent.track.zoom)
             , n = i.add(m.scale(0.5)).add(h.scale(200 / m.lengthSquared()))
             , m = l.sub(i)
-            , h = i.add(m.scale(0.5)).add(new Vector(m.y * this.dir,-m.x * this.dir).scaleSelf(this.parent.track.zoom * this.parent.track.zoom).scale(200 / m.lengthSquared()));
+            , h = i.add(m.scale(0.5)).add(new Vector(m.y * this.dir, -m.x * this.dir).scaleSelf(this.parent.track.zoom * this.parent.track.zoom).scale(200 / m.lengthSquared()));
             ctx.beginPath(),ctx.lineWidth = 6 * this.parent.track.zoom;
-            ctx.strokeStyle = "rgba(0, 0, 0, 0.5)";
+            ctx.strokeStyle = this.parent.track.parent.theme.dark ? "#FBFBFB80" : "rgba(0, 0, 0, 0.5)";
             ctx.moveTo(l.x, l.y),
             ctx.lineTo(h.x, h.y),
             ctx.lineTo(i.x, i.y),
             ctx.stroke(),
             ctx.beginPath(),
-            ctx.strokeStyle = "#000";
+            ctx.strokeStyle = this.parent.track.parent.theme.dark ? "#FBFBFB" : "#000000";
             ctx.moveTo(d.x, d.y),
             ctx.lineTo(n.x, n.y),
             ctx.lineTo(i.x, i.y),
@@ -157,7 +162,7 @@ export default class MountainBike {
                     c = c.add(e.scale(0.09)).add(f.scale(1.15)),
                     n = d.sub(e.scale(0.1)).addToSelf(f.scale(0.2)),
                     e = i.add(e.scale(0.02)).addToSelf(f.scale(0.2)),
-                    ctx.fillStyle = "#000",
+                    ctx.fillStyle = this.parent.track.parent.theme.dark ? "#FBFBFB" : "#000000",
                     ctx.moveTo(d.x, d.y),
                     ctx.lineTo(l.x, l.y),
                     ctx.lineTo(n.x, n.y),

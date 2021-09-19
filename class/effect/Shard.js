@@ -22,7 +22,7 @@ export default class Shard {
             d = a.x + c * Math.cos(this.rotation),
             c = a.y + c * Math.sin(this.rotation),
             e = 2;
-        for (ctx.beginPath(),ctx.moveTo(d, c),ctx.fillStyle = "#000"; 8 > e; e++)
+        for (ctx.beginPath(),ctx.moveTo(d, c),ctx.fillStyle = this.parent.track.parent.theme.dark ? "#FBFBFB" : "#000000"; 8 > e; e++)
             c = this.shape[e - 1] * b / 2,
             d = a.x + c * Math.cos(this.rotation + 6.283 * e / 8),
             c = a.y + c * Math.sin(this.rotation + 6.283 * e / 8),

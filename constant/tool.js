@@ -5,6 +5,7 @@ export default self = {
         get left() {
             for (var i = 0; i < 200; i += 25) {
                 if (i == 75 || i == 125) continue;
+                ctx.save();
                 ctx.lineWidth = 1;
                 ctx.lineCap = "round";
                 ctx.beginPath();
@@ -12,25 +13,20 @@ export default self = {
                 ctx.lineTo(25, i + 25);
                 ctx.lineTo(0, i + 25);
                 ctx.stroke();
-                if (window.game.track.displayText) {
-                    if (window.game.track.displayText[0] == 0 && window.game.track.displayText[1] == i / 25) {
-                        ctx.fillStyle = "#ddd";
-                    } else {
-                        ctx.fillStyle = "#fff";
-                    }
-                } else {
-                    ctx.fillStyle = "#fff";
+                ctx.fillStyle = window.game.theme.dark ? "#1B1B1B" : "#FFFFFF";
+                if (window.game.track.displayText && window.game.track.displayText[0] == 0 && window.game.track.displayText[1] == i / 25) {
+                    ctx.fillStyle = window.game.theme.dark ? "#333333" : "#DDDDDD";
                 }
                 ctx.fillRect(0, i, 25, 25);
-                ctx.fillStyle = "#000";
-                switch (i / 25) {
+                ctx.fillStyle = window.game.theme.dark ? "#FBFBFB" : "#000000";
+                switch(i / 25) {
                     case 0:
                         if (!window.game.track.paused) {
                             ctx.fillRect(7, 5, 4, 14);
                             ctx.fillRect(14, 5, 4, 14);
                         } else {
                             ctx.lineWidth = 2;
-                            ctx.fillStyle = "#000";
+                            ctx.fillStyle = window.game.theme.dark ? "#FBFBFB" : "#000000";
                             ctx.beginPath();
                             ctx.moveTo(9, 7);
                             ctx.lineTo(9, 18);
@@ -40,6 +36,7 @@ export default self = {
                             ctx.fill();
                         }
                         break;
+
                     case 1:
                         ctx.beginPath();
                         ctx.fillRect(7, i + 5, 2, 16);
@@ -48,6 +45,7 @@ export default self = {
                         ctx.lineTo(18, i + 5);
                         ctx.fill();
                         break;
+
                     case 2:
                         ctx.beginPath();
                         ctx.fillRect(3, i + 5, 2, 16);
@@ -59,54 +57,45 @@ export default self = {
                         ctx.lineTo(21, i + 5);
                         ctx.fill();
                         break;
+
                     case 4:
                         ctx.beginPath();
                         ctx.moveTo(0, i);
                         ctx.lineTo(25, i);
                         ctx.stroke();
-                        if (window.game.track.displayText) {
-                            if (window.game.track.displayText[0] == 0 && window.game.track.displayText[1] == i / 25) {
-                                ctx.fillStyle = "#ddd";
-                            } else {
-                                ctx.fillStyle = "#fff";
-                            }
-                        } else {
-                            ctx.fillStyle = "#fff";
+                        ctx.fillStyle = window.game.theme.dark ? "#1B1B1B" : "#FFFFFF";
+                        if (window.game.track.displayText && window.game.track.displayText[0] == 0 && window.game.track.displayText[1] == i / 25) {
+                            ctx.fillStyle = window.game.theme.dark ? "#333333" : "#DDDDDD";
                         }
                         ctx.fillRect(0, i, 25, 24);
-                        ctx.fillStyle = "#000";
-                        ctx.strokeStyle = "#777";
+                        ctx.fillStyle = "#000000";
+                        ctx.strokeStyle = "#777777";
                         ctx.beginPath();
                         for (var s = 0; s < 360; s+=30) {
                             ctx.moveTo(12.5, i + 12.5);
                             ctx.lineTo(12.5 + 8 * Math.cos(s * Math.PI / 180), i + 12.5 + 8 * Math.sin(s * Math.PI / 180));
                         }
                         ctx.stroke();
-                        ctx.strokeStyle = "#000";
+                        ctx.strokeStyle = window.game.theme.dark ? "#FBFBFB" : "#000000";
                         ctx.lineWidth = 2.5;
                         ctx.beginPath();
                         ctx.arc(12.5, i + 12.5, 8, 0, 2 * Math.PI);
                         ctx.stroke();
-                        ctx.lineWidth = 1;
                         break;
+
                     case 6:
                         ctx.beginPath();
                         ctx.moveTo(0, i);
                         ctx.lineTo(25, i);
                         ctx.stroke();
-                        if (window.game.track.displayText) {
-                            if (window.game.track.displayText[0] == 0 && window.game.track.displayText[1] == i / 25) {
-                                ctx.fillStyle = "#ddd";
-                            } else {
-                                ctx.fillStyle = "#fff";
-                            }
-                        } else {
-                            ctx.fillStyle = "#fff";
+                        ctx.fillStyle = window.game.theme.dark ? "#1B1B1B" : "#FFFFFF";
+                        if (window.game.track.displayText && window.game.track.displayText[0] == 0 && window.game.track.displayText[1] == i / 25) {
+                            ctx.fillStyle = window.game.theme.dark ? "#333333" : "#DDDDDD";
                         }
                         ctx.fillRect(0, i, 25, 24);
-                        ctx.fillStyle = "#000";
+                        ctx.fillStyle = window.game.theme.dark ? "#FBFBFB" : "#000000";
                         ctx.lineWidth = 2;
-                        ctx.shadowColor = "#000";
+                        ctx.shadowColor = window.game.theme.dark ? "#FBFBFB" : "#000000";
                         ctx.shadowOffsetX = 1;
                         ctx.shadowOffsetY = 1;
                         ctx.shadowBlur = 3;
@@ -114,7 +103,6 @@ export default self = {
                         ctx.moveTo(6, i + 19);
                         ctx.lineTo(19, i + 6);
                         ctx.stroke();
-                        ctx.shadowColor = "#ffffff00";
                         break;
                     case 7:
                         ctx.lineWidth = 2;
@@ -133,53 +121,49 @@ export default self = {
                         ctx.lineTo(6, i + 9.5);
                         ctx.stroke();
                 }
+
+                ctx.restore();
             }
-            ctx.strokeStyle = ctx.fillStyle = "#000";
         },
         get right() {
             ctx.lineWidth = 1;
             ctx.globalAlpha = 1;
             for (var i = 0; i < 450; i += 25) {
-                if (i == 175 || i == 400) continue;
+                if (i == 175 || i == 400)
+                    continue;
+
+                ctx.strokeStyle = window.game.theme.dark ? "#FBFBFB" : "#000";
                 ctx.beginPath();
                 ctx.moveTo(canvas.width - 25, i);
                 ctx.lineTo(canvas.width - 25, i + 25);
                 ctx.lineTo(canvas.width, i + 25);
                 ctx.stroke();
-                if (window.game.track.displayText) {
-                    if (window.game.track.displayText[0] == 1 && window.game.track.displayText[1] == i / 25) {
-                        ctx.fillStyle = "#ddd";
-                    } else {
-                        ctx.fillStyle = "#fff";
-                    }
-                } else {
-                    ctx.fillStyle = "#fff";
+                ctx.save();
+                ctx.fillStyle = window.game.theme.dark ? "#1B1B1B" : "#FFFFFF";
+                if (window.game.track.displayText && window.game.track.displayText[0] == 1 && window.game.track.displayText[1] == i / 25) {
+                    ctx.fillStyle = window.game.theme.dark ? "#333333" : "#DDDDDD";
                 }
                 ctx.fillRect(canvas.width - 25, i, 25, 25);
-                ctx.strokeStyle = ctx.fillStyle = "#000";
+                ctx.fillStyle = window.game.theme.dark ? "#FBFBFB" : "#000";
                 switch (i / 25) {
                     case 0:
-                        ctx.fillStyle = "#fff";
-                        ctx.fillRect(canvas.width, i + 1, 25, 24);
-                        ctx.strokeStyle = ctx.fillStyle = "#000";
+                        ctx.strokeStyle = ctx.fillStyle = window.game.theme.dark ? "#FBFBFB" : "#000000";
                         ctx.beginPath();
                         ctx.arc(canvas.width - 12.5, i + 12.5, 2, 0, 2 * Math.PI);
                         ctx.stroke();
                         ctx.fill();
                         break;
+
                     case 1:
-                        ctx.fillStyle = "#fff";
-                        ctx.fillRect(canvas.width, i + 1, 25, 24);
-                        ctx.fillStyle = ctx.strokeStyle = "#CCC"
+                        ctx.fillStyle = ctx.strokeStyle = window.game.theme.dark ? "#999999" : "#AAAAAA"
                         ctx.beginPath();
                         ctx.arc(canvas.width - 12.5, i + 12.5, 2, 0, 2 * Math.PI);
                         ctx.stroke();
                         ctx.fill();
                         break;
+
                     case 2:
-                        ctx.fillStyle = "#fff";
-                        ctx.fillRect(canvas.width, i + 1, 25, 24);
-                        ctx.strokeStyle = ctx.fillStyle = "#000";
+                        ctx.strokeStyle = ctx.fillStyle = window.game.theme.dark ? "#FBFBFB" : "#000000";
                         ctx.lineWidth = 2;
                         ctx.beginPath();
                         ctx.moveTo(canvas.width - 7, i + 8);
@@ -187,15 +171,17 @@ export default self = {
                         ctx.stroke();
                         ctx.fill();
                         break;
+
                     case 3:
                         ctx.lineWidth = 2;
-                        ctx.fillStyle = ctx.strokeStyle = "#CCC";
+                        ctx.fillStyle = ctx.strokeStyle = window.game.theme.dark ? "#999999" : "#AAAAAA";
                         ctx.beginPath();
                         ctx.moveTo(canvas.width - 7, i + 8);
                         ctx.lineTo(canvas.width - 16, i + 17);
                         ctx.stroke();
                         ctx.fill();
                         break;
+
                     case 4:
                         ctx.strokeStyle = ctx.fillStyle = "#FFB6C1";
                         ctx.beginPath();
@@ -203,6 +189,7 @@ export default self = {
                         ctx.stroke();
                         ctx.fill();
                         break;
+
                     case 5:
                         ctx.fillRect(canvas.width - 13, i + 8, 2, 10);
                         ctx.fillRect(canvas.width - 17, i + 12, 10, 2);
@@ -221,6 +208,7 @@ export default self = {
                         ctx.lineTo(canvas.width - 13 + 12 * Math.cos(Math.PI / 6), i + 13);
                         ctx.fill();
                         break;
+
                     case 6:
                         ctx.strokeStyle = "#CCC";
                         ctx.beginPath();
@@ -238,19 +226,15 @@ export default self = {
                         ctx.lineTo(canvas.width - 20, i + 8);
                         ctx.stroke();
                         break;
+
                     case 8:
                         ctx.beginPath();
                         ctx.moveTo(canvas.width, i);
                         ctx.lineTo(canvas.width - 25, i);
                         ctx.stroke();
-                        if (window.game.track.displayText) {
-                            if (window.game.track.displayText[0] == 1 && window.game.track.displayText[1] == i / 25) {
-                                ctx.fillStyle = "#ddd";
-                            } else {
-                                ctx.fillStyle = "#fff";
-                            }
-                        } else {
-                            ctx.fillStyle = "#fff";
+                        ctx.fillStyle = window.game.theme.dark ? "#1B1B1B" : "#FFFFFF";
+                        if (window.game.track.displayText && window.game.track.displayText[0] == 1 && window.game.track.displayText[1] == i / 25) {
+                            ctx.fillStyle = window.game.theme.dark ? "#333333" : "#DDDDDD";
                         }
                         ctx.fillRect(canvas.width - 25, i, 25, 25);
                         ctx.lineWidth = 2;
@@ -259,7 +243,7 @@ export default self = {
                         ctx.arc(canvas.width - 12.5, i + 12.5, 3, 0, 2 * Math.PI);
                         ctx.stroke();
                         ctx.fill();
-                    break;
+                        break;
 
                     case 9:
                         ctx.lineWidth = 2;
@@ -268,7 +252,7 @@ export default self = {
                         ctx.arc(canvas.width - 12.5, i + 12.5, 3, 0, 2 * Math.PI);
                         ctx.stroke();
                         ctx.fill();
-                    break;
+                        break;
                     
                     case 10:
                         ctx.lineWidth = 2;
@@ -281,6 +265,7 @@ export default self = {
                         ctx.stroke();
                         ctx.fill();
                         break;
+
                     case 11:
                         ctx.lineWidth = 2;
                         ctx.fillStyle = "#0f0";
@@ -292,6 +277,7 @@ export default self = {
                         ctx.stroke();
                         ctx.fill();
                         break;
+
                     case 12:
                         ctx.lineWidth = 2;
                         ctx.fillStyle = "#f00";
@@ -300,6 +286,7 @@ export default self = {
                         ctx.stroke();
                         ctx.fill();
                         break;
+
                     case 13:
                         ctx.lineWidth = 2;
                         ctx.fillStyle = "#eee";
@@ -308,6 +295,7 @@ export default self = {
                         ctx.stroke();
                         ctx.fill();
                         break;
+
                     case 14:
                         ctx.lineWidth = 2;
                         ctx.fillStyle = "#0ff";
@@ -316,6 +304,7 @@ export default self = {
                         ctx.stroke();
                         ctx.fill();
                         break;
+
                     case 15:
                         ctx.lineWidth = 2;
                         ctx.fillStyle = "#f0f";
@@ -324,19 +313,15 @@ export default self = {
                         ctx.stroke();
                         ctx.fill();
                         break;
+
                     case 17:
                         ctx.beginPath();
                         ctx.moveTo(canvas.width, i);
                         ctx.lineTo(canvas.width - 25, i);
                         ctx.stroke();
-                        if (window.game.track.displayText) {
-                            if (window.game.track.displayText[0] == 1 && window.game.track.displayText[1] == i / 25) {
-                                ctx.fillStyle = "#ddd";
-                            } else {
-                                ctx.fillStyle = "#fff";
-                            }
-                        } else {
-                            ctx.fillStyle = "#fff";
+                        ctx.fillStyle = window.game.theme.dark ? "#1B1B1B" : "#FFFFFF";
+                        if (window.game.track.displayText && window.game.track.displayText[0] == 1 && window.game.track.displayText[1] == i / 25) {
+                            ctx.fillStyle = window.game.theme.dark ? "#333333" : "#DDDDDD";
                         }
                         ctx.fillRect(canvas.width - 25, i, 25, 25);
                         ctx.lineWidth = 3;
@@ -349,8 +334,8 @@ export default self = {
                         ctx.stroke();
                         break;
                 }
-                ctx.fillStyle = ctx.strokeStyle = "#000";
-                ctx.lineWidth = 1;
+                
+                ctx.restore();
             }
         },
         get bottomLeft() {
@@ -367,79 +352,65 @@ export default self = {
                 ctx.lineTo(25, 450);
                 ctx.lineTo(0, 450);
                 ctx.stroke();
+                ctx.fillStyle = window.game.theme.dark ? "#1B1B1B" : "#FFFFFF";
                 if (window.game.track.displayText) {
                     if (window.game.track.displayText[0] == 0 && [15].includes(window.game.track.displayText[1])) {
-                        ctx.fillStyle = "#ddd";
-                    } else {
-                        ctx.fillStyle = "#fff";
+                        ctx.fillStyle = window.game.theme.dark ? "#333333" : "#ddd";
                     }
-                } else {
-                    ctx.fillStyle = "#fff";
                 }
                 ctx.fillRect(0, 375, 25, 25);
+                ctx.fillStyle = window.game.theme.dark ? "#1B1B1B" : "#FFFFFF";
                 if (window.game.track.displayText) {
                     if (window.game.track.displayText[0] == 0 && [16].includes(window.game.track.displayText[1])) {
-                        ctx.fillStyle = "#ddd";
-                    } else {
-                        ctx.fillStyle = "#fff";
+                        ctx.fillStyle = window.game.theme.dark ? "#333333" : "#ddd";
                     }
-                } else {
-                    ctx.fillStyle = "#fff";
                 }
                 ctx.fillRect(0, 400, 25, 25);
+                ctx.fillStyle = window.game.theme.dark ? "#1B1B1B" : "#FFFFFF";
                 if (window.game.track.displayText) {
                     if (window.game.track.displayText[0] == 0 && [17].includes(window.game.track.displayText[1])) {
-                        ctx.fillStyle = "#ddd";
-                    } else {
-                        ctx.fillStyle = "#fff";
+                        ctx.fillStyle = window.game.theme.dark ? "#333333" : "#ddd";
                     }
-                } else {
-                    ctx.fillStyle = "#fff";
                 }
                 ctx.fillRect(0, 425, 25, 25);
             }
+            ctx.fillStyle = window.game.theme.dark ? "#1B1B1B" : "#FFFFFF";
             if (window.game.track.displayText) {
                 if (window.game.track.displayText[0] == 0 && [12].includes(window.game.track.displayText[1])) {
-                    ctx.fillStyle = "#ddd";
-                } else {
-                    ctx.fillStyle = "#fff";
+                    ctx.fillStyle = window.game.theme.dark ? "#333333" : "#ddd";
                 }
-            } else {
-                ctx.fillStyle = "#fff";
             }
             ctx.fillRect(0, 300, 25, 25);
+            ctx.fillStyle = window.game.theme.dark ? "#1B1B1B" : "#FFFFFF";
             if (window.game.track.displayText) {
                 if (window.game.track.displayText[0] == 0 && [13].includes(window.game.track.displayText[1])) {
-                    ctx.fillStyle = "#ddd";
-                } else {
-                    ctx.fillStyle = "#fff";
+                    ctx.fillStyle = window.game.theme.dark ? "#333333" : "#ddd";
                 }
-            } else {
-                ctx.fillStyle = "#fff";
             }
             ctx.fillRect(0, 325, 25, 25);
-            ctx.fillStyle = "#000";
+            ctx.fillStyle = window.game.theme.dark ? "#FBFBFB" : "#000000";
             ctx.fillRect(11.5, 306, 2, 12.5);
             ctx.fillRect(6, 311.5, 12.5, 2);
             ctx.fillRect(6, 338, 12.5, 2);
             if (self.selected == "eraser") {
+                ctx.save();
                 ctx.beginPath();
                 ctx.arc(12.5, 387.5, 3, 0, 2 * Math.PI);
                 ctx.stroke();
                 ctx.fill();
-                ctx.fillStyle = ctx.strokeStyle = "#aaa";
+                ctx.fillStyle = ctx.strokeStyle = window.game.theme.dark ? "#999999" : "#AAAAAA";
                 ctx.beginPath();
                 ctx.arc(12.5, 412.5, 3, 0, 2 * Math.PI);
                 ctx.stroke();
                 ctx.fill();
                 ctx.lineWidth = 2;
-                ctx.strokeStyle = "#000";
+                ctx.strokeStyle = window.game.theme.dark ? "#FBFBFB" : "#000000";
                 ctx.fillStyle = "#ff0";
                 ctx.beginPath();
                 ctx.arc(12.5, 437.5, 3, 0, 2 * Math.PI);
                 ctx.stroke();
                 ctx.fill();
-                ctx.fillStyle = ctx.strokeStyle = "#000";
+                ctx.restore();
             }
         }
     },

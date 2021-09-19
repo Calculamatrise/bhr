@@ -20,6 +20,7 @@ let Z = false, Hb = false;
 export default class {
     constructor(canvas) {
         this.canvas = canvas;
+        this.canvas.style.backgroundColor = this.theme.dark ? "#1B1B1B" : "white";
         
         window.addEventListener("resize", this.adjust.bind(canvas));
         this.adjust.bind(canvas)();
@@ -33,6 +34,11 @@ export default class {
         this.fps = 25;
         this.lastTime = -1;
         this.lastFrame = null;
+    }
+    get theme() {
+        return {
+            dark: JSON.parse(localStorage.getItem("dark")) ?? window.matchMedia("(prefers-color-scheme: dark)").matches
+        }
     }
     adjust() {
         this.setAttribute("height", +getComputedStyle(this).getPropertyValue("height").slice(0, -2) * window.devicePixelRatio);

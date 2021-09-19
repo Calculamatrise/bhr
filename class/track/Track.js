@@ -272,7 +272,7 @@ export default class Track {
                     let w = pos.x;
                     let y = pos.y;
                     ctx.lineWidth = 1;
-                    ctx.strokeStyle = "#000";
+                    ctx.strokeStyle = this.parent.theme.dark ? "#FBFBFB" : "#000000";
                     ctx.beginPath(),
                     ctx.moveTo(w - 10, y),
                     ctx.lineTo(w + 10, y),
@@ -330,8 +330,8 @@ export default class Track {
         ctx.stroke(),
         ctx.beginPath();
         ctx.lineWidth = 10;
-        ctx.strokeStyle = "#fff";
-        ctx.fillStyle = "#000";
+        ctx.strokeStyle = this.parent.theme.dark ? "#1B1B1B" : "#FFFFFF";
+        ctx.fillStyle = this.parent.theme.dark ? "#FBFBFB" : "#000000";
 
         let e = Math.floor(this.currentTime / 6E4);
         let h = Math.floor(this.currentTime % 6E4 / 1E3);
@@ -366,12 +366,12 @@ export default class Track {
         ctx.fillText(i, 50, 16);
         if (this.players.length > 1) {
             for (i = 1; i < this.players.length; i++) {
-                ctx.fillStyle = "#aaa";
+                ctx.fillStyle = this.parent.theme.dark ? "#999999" : "#AAAAAA";
                 ctx.textAlign = "right";
                 ctx.strokeText(i = (this.players[i].name || "Ghost") + (this.players[i].targetsCollected === this.targets ? " finished!" : ": " + this.players[i].targetsCollected + " / " + this.targets), this.parent.canvas.width - 7, 16);
                 ctx.fillText(i, this.parent.canvas.width - 7, 16);
                 ctx.textAlign = "left";
-                ctx.fillStyle = "#000";
+                ctx.fillStyle = this.parent.theme.dark ? "#FBFBFB" : "#000000";
             }
         }
         if (this.displayText) {
@@ -398,7 +398,7 @@ export default class Track {
             c = (this.parent.canvas.height - 150) / 2;
 
             ctx.lineWidth = 1;
-            ctx.strokeStyle = "#fff";
+            ctx.strokeStyle = this.parent.theme.dark ? "#1B1B1B" : "#FFFFFF";
             ctx.fillStyle = "rgba(0, 0, 0, 0.4)";
             ctx.fillRect(0, 0, this.parent.canvas.width, c);
             ctx.fillRect(0, c + 150, this.parent.canvas.width, c);

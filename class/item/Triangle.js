@@ -11,6 +11,7 @@ export default class Triangle extends Item {
     draw() {
         var a = this.track,
             b = this.pos.toPixel();
+        ctx.strokeStyle = this.track.parent.theme.dark ? "#FBFBFB" : "#000000";
         ctx.fillStyle = this.color;
         ctx.beginPath(),
         ctx.save();

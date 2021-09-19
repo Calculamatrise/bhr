@@ -1,7 +1,8 @@
+import { ctx } from "../../../bootstrap.js";
+
 import Vector from "../../Vector.js";
 import Spring from "../../Spring.js";
 import BodyPart from "./BodyPart.js";
-import { ctx } from "../../../bootstrap.js";
 
 export default class {
     constructor(parent, stickman) {
@@ -35,11 +36,13 @@ export default class {
             this.points[point].size = 3,
             this.points[point].friction = 0.05;
         }
+
         this.head.size = this.hip.size = 8;
         for (var joint in this.joints) {
             this.joints[joint].springConstant = 0.4,
             this.joints[joint].dampConstant= 0.7;
         }
+        
         for (var part in stickman) {
             if (stickman.hasOwnProperty(part)) {
                 this[part].pos.copy(stickman[part])
@@ -49,6 +52,7 @@ export default class {
     update() {
         for (var a = this.joints.length - 1; a >= 0; a--)
             this.joints[a].update();
+            
         for (a = this.points.length - 1; a >= 0; a--)
             this.points[a].update()
     }
@@ -67,7 +71,7 @@ export default class {
         ctx.globalAlpha = this.ghost ? .5 : 1;
         ctx.lineWidth = 5 * a.zoom;
         ctx.lineJoin = "round";
-        ctx.strokeStyle = "rgba(0,0,0,0.5)";
+        ctx.strokeStyle = this.parent.track.parent.theme.dark ? "#FBFBFB80" : "rgba(0,0,0,0.5)";
         ctx.beginPath(),
         ctx.moveTo(head.x, head.y),
         ctx.lineTo(shadowElbow.x, shadowElbow.y),
@@ -76,7 +80,7 @@ export default class {
         ctx.lineTo(shadowKnee.x, shadowKnee.y),
         ctx.lineTo(shadowFoot.x, shadowFoot.y),
         ctx.stroke();
-        ctx.strokeStyle = "#000";
+        ctx.strokeStyle = this.parent.track.parent.theme.dark ? "#FBFBFB" : "#000000";
         ctx.beginPath(),
         ctx.moveTo(head.x, head.y),
         ctx.lineTo(elbow.x, elbow.y),

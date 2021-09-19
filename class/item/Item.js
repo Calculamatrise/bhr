@@ -10,11 +10,11 @@ export default class Item {
     }
     removed = false;
     draw(t = this.color, e = this.pos.toPixel()) {
-        var i = this.track;
+        ctx.strokeStyle = this.track.parent.theme.dark ? "#FBFBFB" : "#000000";
         ctx.fillStyle = t;
         ctx.beginPath();
-        ctx.moveTo(e.x + 7 * i.zoom, e.y);
-        ctx.arc(e.x, e.y, 7 * i.zoom, 0, 2 * Math.PI, !0);
+        ctx.moveTo(e.x + 7 * this.track.zoom, e.y);
+        ctx.arc(e.x, e.y, 7 * this.track.zoom, 0, 2 * Math.PI, !0);
         ctx.fill();
         ctx.stroke();
     }

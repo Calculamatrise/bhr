@@ -62,7 +62,7 @@ export default class BMX {
             h = this.rearWheel.pos.toPixel(),
             i = this.frontWheel.pos.toPixel();
         ctx.globalAlpha = this.parent.ghost ? .5 : 1;
-        ctx.strokeStyle = "#000";
+        ctx.strokeStyle = this.parent.track.parent.theme.dark ? "#FBFBFB" : "#000000";
         ctx.lineWidth = 3.5 * e;
         ctx.beginPath(),
         ctx.arc(h.x, h.y, 10 * e, 0, 2 * Math.PI, !0),
@@ -143,13 +143,13 @@ export default class BMX {
             ya = h + 0.5 * T + 200 * Y * f * e * e / za;
             T = C + 0.5 * Y + 200 * -T * f * e * e / za;
             ctx.lineWidth = 6 * e;
-            ctx.strokeStyle = "rgba(0, 0, 0, 0.5)";
+            ctx.strokeStyle = this.parent.track.parent.theme.dark ? "#FBFBFB80" : "rgba(0, 0, 0, 0.5)";
             ctx.beginPath(),
             ctx.moveTo(c, d),
             ctx.lineTo(ya, T),
             ctx.lineTo(h, C),
             ctx.stroke();
-            ctx.strokeStyle = "#000";
+            ctx.strokeStyle = this.parent.track.parent.theme.dark ? "#FBFBFB" : "#000000";
             ctx.beginPath(),
             ctx.moveTo(n, x),
             ctx.lineTo(M, X),
@@ -193,7 +193,7 @@ export default class BMX {
                     T = d - 0.1 * m + 0.2 * i.y;
                     l = h + 0.02 * l + 0.2 * i.x;
                     m = C + 0.02 * m + 0.2 * i.y;
-                    ctx.fillStyle = "#000";
+                    ctx.fillStyle = this.parent.track.parent.theme.dark ? "#FBFBFB" : "#000000";
                     ctx.moveTo(c, d),
                     ctx.lineTo(M, X),
                     ctx.lineTo(ya, T),
@@ -214,7 +214,11 @@ export default class BMX {
             l = w + 0.4 * l + 130 * i.x / f;
             m = y + 0.4 * m + 130 * i.y / f;
             ctx.lineWidth = 5 * e;
-            ctx.beginPath(),ctx.moveTo(n, x),ctx.lineTo(l, m),ctx.lineTo(w, y),ctx.stroke()
+            ctx.beginPath(),
+            ctx.moveTo(n, x),
+            ctx.lineTo(l, m),
+            ctx.lineTo(w, y),
+            ctx.stroke()
         }
 
         ctx.globalAlpha = 1;
