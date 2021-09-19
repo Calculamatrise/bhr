@@ -2,7 +2,7 @@ export const canvas = document.querySelector("#view");
 export const ctx = canvas.getContext("2d");
 
 import tool from "./constant/tool.js";
-import Game from "./class/game.js";
+import Game from "./class/Game.js";
 
 export default window.game = new Game(document.querySelector("#view"));
 

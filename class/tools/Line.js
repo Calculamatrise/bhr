@@ -5,7 +5,7 @@ export default class {
         
     }
     get description() {
-        return "Camera ( R - Release or press again to switch back, scroll to zoom )";
+        return "Line ( Q - Hold to snap )";
     }
     mouseDown() {
         console.log("down")

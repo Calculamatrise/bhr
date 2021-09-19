@@ -30,7 +30,7 @@ export default class Track {
 
         this.editor = !this.id;
         if (this.editor) {
-            tool.selected = "line";
+            this.toolHandler.selected = "line";
         }
 
         this.code = code;
@@ -57,6 +57,7 @@ export default class Track {
     cameraLock = false;
     cameraFocus = null;
     zoom = 0.6;
+    toolHandler = new ToolHandler(this);
     undoManager = new UndoManager();
     get firstPlayer() {
         return this.players[0];
@@ -204,12 +205,7 @@ export default class Track {
         for (const player of this.players)
             player.draw();
 
-        tool.draw.left;
-        if (["eraser", "brush", "scenery brush"].includes(tool.selected))
-            tool.draw.bottomLeft;
-
-        if (this.editor)
-            tool.draw.right;
+        this.toolHandler.draw();
     }
     draw() {
         const ctx = this.parent.canvas.getContext("2d");
@@ -218,21 +214,21 @@ export default class Track {
 
         let pos = this.parent.mouse.position.toPixel();
         let old = this.parent.mouse.old.toPixel();
-        if (this.cameraLock && ["line", "scenery line", "brush", "scenery brush", "teleporter"].includes(tool.selected)) {
+        if (this.cameraLock && ["line", "scenery line", "brush", "scenery brush", "teleporter"].includes(this.toolHandler.selected)) {
             if (pos.x < 50) {
-                this.camera.x -= 10 / this.zoom;
-                this.parent.mouse.position.x -= 10 / this.zoom;
+                this.camera.x -= 4 / this.zoom;
+                this.parent.mouse.position.x -= 4 / this.zoom;
             } else if (pos.x > this.parent.canvas.width - 50) {
-                this.camera.x += 10 / this.zoom;
-                this.parent.mouse.position.x += 10 / this.zoom;
+                this.camera.x += 4 / this.zoom;
+                this.parent.mouse.position.x += 4 / this.zoom;
             }
 
             if (pos.y < 50) {
-                this.camera.y -= 10 / this.zoom;
-                this.parent.mouse.position.y -= 10;
+                this.camera.y -= 4 / this.zoom;
+                this.parent.mouse.position.y -= 4 / this.zoom;
             } else if (pos.y > this.parent.canvas.height - 50) {
-                this.camera.y += 10 / this.zoom;
-                this.parent.mouse.position.y += 10;
+                this.camera.y += 4 / this.zoom;
+                this.parent.mouse.position.y += 4 / this.zoom;
             }
 
             pos = this.parent.mouse.position.toPixel();
@@ -262,9 +258,9 @@ export default class Track {
             item.draw();
         }
 
-        if (tool.selected !== "camera" && !this.cameraFocus) {
+        if (this.toolHandler.selected !== "camera" && !this.cameraFocus) {
             ctx.save();
-            switch (tool.selected) {
+            switch (this.toolHandler.selected) {
                 case "line":
                 case "scenery line":
                 case "brush":
@@ -294,7 +290,7 @@ export default class Track {
                 case "slow-mo":
                 case "antigravity":
                 case "teleporter":
-                    ctx.fillStyle = tool.selected == "goal" ? "#ff0" : tool.selected == "checkpoint" ? "#00f" : tool.selected == "bomb" ? "#f00" : tool.selected == "slow-mo" ? "#eee" : tool.selected == "antigravity" ? "#0ff" : "#f0f";
+                    ctx.fillStyle = this.toolHandler.selected == "goal" ? "#ff0" : this.toolHandler.selected == "checkpoint" ? "#00f" : this.toolHandler.selected == "bomb" ? "#f00" : this.toolHandler.selected == "slow-mo" ? "#eee" : this.toolHandler.selected == "antigravity" ? "#0ff" : "#f0f";
                     ctx.beginPath(),
                     ctx.arc(pos.x, pos.y, 7 * this.zoom, 0, 2 * Math.PI, true),
                     ctx.fill(),
@@ -304,7 +300,7 @@ export default class Track {
                 case "boost":
                 case "gravity":
                     ctx.beginPath(),
-                    ctx.fillStyle = tool.selected == "boost" ? "#ff0" : "#0f0";
+                    ctx.fillStyle = this.toolHandler.selected == "boost" ? "#ff0" : "#0f0";
                     if (this.cameraLock) {
                         ctx.translate(old.x, old.y),
                         ctx.rotate(Math.atan2(-(this.parent.mouse.position.x - this.parent.mouse.old.x), this.parent.mouse.position.y - this.parent.mouse.old.y));
@@ -349,11 +345,11 @@ export default class Track {
                 i += " or BACKSPACE to cancel Checkpoint"
             }
         } else if (this.id === void 0) {
-            if (tool.grid === 10 && "line\\scenery line\\brush\\scenery brush".split(/\\/).includes(tool.selected)) {
+            if (tool.grid === 10 && "line\\scenery line\\brush\\scenery brush".split(/\\/).includes(this.toolHandler.selected)) {
                 i += " - Grid ";
             }
-            i += " - " + tool.selected;
-            if ("brush\\scenery brush".split(/\\/).includes(tool.selected)) {
+            i += " - " + this.toolHandler.selected;
+            if ("brush\\scenery brush".split(/\\/).includes(this.toolHandler.selected)) {
                 i += " ( size " + tool.brush.length + " )";
             }
         }
@@ -374,6 +370,7 @@ export default class Track {
                 ctx.fillStyle = this.parent.theme.dark ? "#FBFBFB" : "#000000";
             }
         }
+
         if (this.displayText) {
             if (this.displayText[2] !== void 0) {
                 if (this.displayText[0]) {
@@ -497,8 +494,8 @@ export default class Track {
     }
     addLine(a, b, c) {
         a = new (c ? SceneryLine : PhysicsLine)(a.x, a.y, b.x, b.y,this);
-        if (2 <= a.len && 1E5 > a.len && (this.addLineInternal(a), "line\\scenery line\\brush\\scenery brush".split(/\\/).includes(tool.selected))) {
-            if (["line", "scenery line", "brush", "scenery brush"].includes(tool.selected)) {
+        if (2 <= a.len && 1E5 > a.len && (this.addLineInternal(a), "line\\scenery line\\brush\\scenery brush".split(/\\/).includes(this.toolHandler.selected))) {
+            if (["line", "scenery line", "brush", "scenery brush"].includes(this.toolHandler.selected)) {
                 this.parent.mouse.old.copy(this.parent.mouse.position);
             }
         }

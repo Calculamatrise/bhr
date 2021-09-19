@@ -4,8 +4,9 @@ export default class {
 
         
     }
+    length = 20;
     get description() {
-        return "Camera ( R - Release or press again to switch back, scroll to zoom )";
+        return "Scenery brush ( S - Hold to snap, hold & scroll to adjust size )";
     }
     mouseDown() {
         console.log("down")

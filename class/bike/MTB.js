@@ -163,6 +163,7 @@ export default class MountainBike {
                     n = d.sub(e.scale(0.1)).addToSelf(f.scale(0.2)),
                     e = i.add(e.scale(0.02)).addToSelf(f.scale(0.2)),
                     ctx.fillStyle = this.parent.track.parent.theme.dark ? "#FBFBFB" : "#000000",
+                    ctx.lineJoin = "round",
                     ctx.moveTo(d.x, d.y),
                     ctx.lineTo(l.x, l.y),
                     ctx.lineTo(n.x, n.y),

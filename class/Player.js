@@ -137,32 +137,30 @@ export default class Player {
         }
     }
     updateControls(key) {
-        this.track.cameraFocus = this.vehicle.head;
         if (this.dead)
             return;
 
         switch(key) {
             case "a":
             case "ArrowLeft":
-
-            break;
+                //break;
 
             case "d":
             case "ArrowRight":
-
-            break;
+                //break;
 
             case "w":
             case "ArrowUp":
-                
-            break;
+                //break;
 
             case "s":
             case "ArrowDown":
+                this.track.cameraFocus = this.vehicle.head;
                 //this.vehicle.updateControls();
-            break;
+                break;
 
             case "z":
+                this.track.cameraFocus = this.vehicle.head;
                 if (this.gamepad.downKeys.has("z"))
                     this.vehicle.swap();
             break;

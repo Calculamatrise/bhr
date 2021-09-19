@@ -50,7 +50,7 @@ export default class BMX {
     swap() {
         this.dir *= -1;
         this.chasse.swap();
-        var rearSpring = this.rearSpring.leff;
+        let rearSpring = this.rearSpring.leff;
         this.rearSpring.leff = this.frontSpring.leff;
         this.frontSpring.leff = rearSpring;
         this.parent.collide("turn");
@@ -194,6 +194,7 @@ export default class BMX {
                     l = h + 0.02 * l + 0.2 * i.x;
                     m = C + 0.02 * m + 0.2 * i.y;
                     ctx.fillStyle = this.parent.track.parent.theme.dark ? "#FBFBFB" : "#000000";
+                    ctx.lineJoin = "round";
                     ctx.moveTo(c, d),
                     ctx.lineTo(M, X),
                     ctx.lineTo(ya, T),
