@@ -15,13 +15,15 @@ export default class BodyPart extends Mass {
     update(delta) {
         this.vel.addToSelf(this.parent.parent.gravity).scaleSelf(.99);
         this.pos.addToSelf(this.vel);
+        // this.pos.lerpTowards(this.pos.add(this.vel), Math.cos(Math.PI * .5), delta);
         this.touching = !1;
         if (this.collide) {
             this.parent.parent.track.collide(this);
         }
+        
         this.vel = this.pos.sub(this.old);
         this.old.copy(this.pos);
-        // super.update(t);
+        // super.update(delta);
     }
     clone() {
         const bodyPart = new BodyPart(this.pos, this.parent, this.size);

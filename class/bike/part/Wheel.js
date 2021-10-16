@@ -1,41 +1,32 @@
-import Mass from "./Mass.js";
+import Entity from "./Entity.js";
 
-export default class Wheel extends Mass {
-    constructor(t, e, i = 10) {
-        super(t);
-        this.parent = e;
-        this.size = i;
-        this.friction = 0;
-        this.gravity = !0;
-        this.collide = !0;
-        this.motor = 0;
-        this.pedalSpeed = 0;
-    }
+export default class extends Entity {
+    motor = 0;
+    gravity = true;
+    pedalSpeed = 0;
     drive(a) {
-        this.pos.addToSelf(a.scale(this.motor * this.parent.dir));
+        this.position.addToSelf(a.scale(this.motor * this.parent.dir));
         if (this.brake) {
-            this.pos.addToSelf(a.scale(0.3 * -a.dot(this.vel)));
+            this.position.addToSelf(a.scale(-a.dot(this.velocity) * 0.3));
         }
-        this.pedalSpeed = a.dot(this.vel) / this.size;
-        this.touching = !0
+        
+        this.pedalSpeed = a.dot(this.velocity) / this.size;
+        this.touching = true
     }
-    update(delta) {
-        this.vel.addToSelf(this.parent.parent.gravity).scaleSelf(.99);
-        this.pos.addToSelf(this.vel);
-        this.touching = !1;
-        if (this.collide) {
-            this.parent.parent.track.collide(this);
-        }
-        this.vel = this.pos.sub(this.old);
-        this.old.copy(this.pos);
-        // super.update(t);
+    draw(ctx) {
+        ctx.beginPath();
+        ctx.moveTo(this.position.x + 10 * this.parent.track.zoom, this.position.y);
+        ctx.arc(this.position.x, this.position.y, this.parent.parent.track.zoom * 10, 0, 2 * Math.PI, true);
+        ctx.stroke();
     }
     clone() {
-        const wheel = new Wheel(this.pos, this.parent, this.size);
-        wheel.old = this.old.clone();
-        wheel.vel = this.vel.clone();
-        wheel.motor = this.motor;
+        const clone = new this.constructor(this.parent);
+        clone.size = this.size;
+        clone.position = this.position.clone();
+        clone.old = this.old.clone();
+        clone.velocity = this.velocity.clone();
+        clone.motor = this.motor;
         
-        return wheel
+        return clone
     }
 }

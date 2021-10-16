@@ -43,9 +43,11 @@ export default class {
 		event.preventDefault();
 
         this.down = true;
+
+        this.#emit("mousedown", event);
         this.old.copy(this.position);
-		
-		return this.#emit("mousedown", event);
+
+        return this.down;
 	}
     mousemove(event) {
         event.preventDefault();
@@ -56,6 +58,7 @@ export default class {
     }
 	mouseup(event) {
 		event.preventDefault();
+
         this.down = false;
 		
 		return this.#emit("mouseup", event);
@@ -69,11 +72,11 @@ export default class {
         event.preventDefault();
     }
     close() {
-        this.canvas.removeEventListener("click", this.click.bind(this));
-        this.canvas.removeEventListener("mousedown", this.mousedown.bind(this));
-        this.canvas.removeEventListener("mousemove", this.mousemove.bind(this));
-		this.canvas.removeEventListener("mouseup", this.mouseup.bind(this));
-        this.canvas.removeEventListener("mousewheel", this.mousewheel.bind(this));
+        this.canvas.removeEventListener("click", this.click);
+        this.canvas.removeEventListener("mousedown", this.mousedown);
+        this.canvas.removeEventListener("mousemove", this.mousemove);
+		this.canvas.removeEventListener("mouseup", this.mouseup);
+        this.canvas.removeEventListener("mousewheel", this.mousewheel);
         this.canvas.removeEventListener("contextmenu", this.preventDefault);
     }
 }

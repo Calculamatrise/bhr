@@ -61,7 +61,7 @@ document.querySelector("#upload")?.addEventListener("click", () => {
         return c[0]
     }
     let a = window.game.track.toString();
-    if(0 < a.length && window.game.track.targets > 0){
+    if (0 < a.length && window.game.track.targets > 0) {
         window.game.track.paused = true;
         tool = "camera";
         window.game.track.Ab = true;
@@ -161,11 +161,10 @@ document.querySelector("#upload")?.addEventListener("click", () => {
             location.href = "/"
         })
     } else {
-        if(window.game.track.targets < 1){
-            return alert("Sorry, but your window.game.track must have at least 1 target!")
-        } else {
-            return alert("Sorry, but your window.game.track must be bigger or more detailed.")
-        }
+        if (window.game.track.targets < 1) {
+            alert("Sorry, but your window.game.track must have at least 1 target!")
+        } else
+            alert("Sorry, but your window.game.track must be bigger or more detailed.")
     }
 });
 
@@ -224,7 +223,6 @@ document.onkeydown = function(event) {
                     canvas.style.cursor = "none";
                 } else if (!window.game.track.cameraLock) {
                     window.game.track.cameraLock = true;
-                    //window.game.track.parent.mouse.old.copy(window.game.track.parent.mouse.position);
                 }
                 break;
             case 83:
@@ -233,7 +231,6 @@ document.onkeydown = function(event) {
                     canvas.style.cursor = "none";
                 } else if (!window.game.track.cameraLock) {
                     window.game.track.cameraLock = true;
-                    //window.game.track.parent.mouse.old.copy(window.game.track.parent.mouse.position);
                 }
                 break;
             case 81:
@@ -242,7 +239,6 @@ document.onkeydown = function(event) {
                     canvas.style.cursor = "none";
                 } else if (!window.game.track.cameraLock) {
                     window.game.track.cameraLock = true;
-                    //window.game.track.parent.mouse.old.copy(window.game.track.parent.mouse.position);
                 }
                 break;
             case 87:

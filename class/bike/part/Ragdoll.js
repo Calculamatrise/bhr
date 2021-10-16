@@ -1,8 +1,5 @@
-import { ctx } from "../../../bootstrap.js";
-
-import Vector from "../../Vector.js";
 import Spring from "../../Spring.js";
-import BodyPart from "./BodyPart.js";
+import BodyPart from "./Entity.js";
 
 export default class {
     constructor(parent, stickman) {
@@ -10,16 +7,16 @@ export default class {
 
         this.dead = true;
         this.points = [
-            this.head = new BodyPart(new Vector(), this),
-            this.hip = new BodyPart(new Vector(), this),
-            this.elbow = new BodyPart(new Vector(), this),
-            this.shadowElbow = new BodyPart(new Vector(), this),
-            this.hand = new BodyPart(new Vector(), this),
-            this.shadowHand = new BodyPart(new Vector(), this),
-            this.knee = new BodyPart(new Vector(), this),
-            this.shadowKnee = new BodyPart(new Vector(), this),
-            this.foot = new BodyPart(new Vector(), this),
-            this.shadowFoot = new BodyPart(new Vector(), this)
+            this.head = new BodyPart(this),
+            this.hip = new BodyPart(this),
+            this.elbow = new BodyPart(this),
+            this.shadowElbow = new BodyPart(this),
+            this.hand = new BodyPart(this),
+            this.shadowHand = new BodyPart(this),
+            this.knee = new BodyPart(this),
+            this.shadowKnee = new BodyPart(this),
+            this.foot = new BodyPart(this),
+            this.shadowFoot = new BodyPart(this)
         ];
         this.joints = [
             new Spring(this.head,this.hip,this),
@@ -43,10 +40,8 @@ export default class {
             this.joints[joint].dampConstant= 0.7;
         }
         
-        for (var part in stickman) {
-            if (stickman.hasOwnProperty(part)) {
-                this[part].pos.copy(stickman[part])
-            }
+        for (const part in stickman) {
+            this[part].position.copy(stickman[part]);
         }
     }
     update() {
@@ -56,20 +51,20 @@ export default class {
         for (a = this.points.length - 1; a >= 0; a--)
             this.points[a].update()
     }
-    draw() {
-        var a = this.parent.track,
-            head = this.head.pos.toPixel(),
-            elbow = this.elbow.pos.toPixel(), 
-            hand = this.hand.pos.toPixel(), 
-            shadowElbow = this.shadowElbow.pos.toPixel(),
-            shadowHand = this.shadowHand.pos.toPixel(),
-            knee = this.knee.pos.toPixel(),
-            foot = this.foot.pos.toPixel(),
-            shadowKnee = this.shadowKnee.pos.toPixel(),
-            shadowFoot = this.shadowFoot.pos.toPixel(),
-            hip = this.hip.pos.toPixel();
+    draw(ctx) {
+        const head = this.head.position.toPixel();
+        const elbow = this.elbow.position.toPixel(); 
+        const hand = this.hand.position.toPixel();
+        const shadowElbow = this.shadowElbow.position.toPixel();
+        const shadowHand = this.shadowHand.position.toPixel();
+        const knee = this.knee.position.toPixel();
+        const foot = this.foot.position.toPixel();
+        const shadowKnee = this.shadowKnee.position.toPixel();
+        const shadowFoot = this.shadowFoot.position.toPixel();
+        const hip = this.hip.position.toPixel();
+        
         ctx.globalAlpha = this.ghost ? .5 : 1;
-        ctx.lineWidth = 5 * a.zoom;
+        ctx.lineWidth = 5 * this.parent.track.zoom;
         ctx.lineJoin = "round";
         ctx.strokeStyle = this.parent.track.parent.theme.dark ? "#FBFBFB80" : "rgba(0,0,0,0.5)";
         ctx.beginPath(),
@@ -89,16 +84,16 @@ export default class {
         ctx.lineTo(knee.x, knee.y),
         ctx.lineTo(foot.x, foot.y),
         ctx.stroke();
-        ctx.lineWidth = 8 * a.zoom;
+        ctx.lineWidth = 8 * this.parent.track.zoom;
         ctx.beginPath(),
         ctx.moveTo(hip.x, hip.y),
         ctx.lineTo(head.x, head.y),
         ctx.stroke();
         head.addToSelf(head.sub(hip).scale(0.25));
-        ctx.lineWidth = 2 * a.zoom;
+        ctx.lineWidth = 2 * this.parent.track.zoom;
         ctx.beginPath(),
-        ctx.moveTo(head.x + 5 * a.zoom, head.y),
-        ctx.arc(head.x, head.y, 5 * a.zoom, 0, 2 * Math.PI, !0),
+        ctx.moveTo(head.x + 5 * this.parent.track.zoom, head.y),
+        ctx.arc(head.x, head.y, 5 * this.parent.track.zoom, 0, 2 * Math.PI, !0),
         ctx.stroke()
     }
     setVelocity(a, b) {
@@ -117,13 +112,13 @@ export default class {
         f = [this.hip, this.knee, this.shadowKnee, this.foot, this.shadowFoot];
         c = 0;
         for (d = e.length; c < d; c++)
-            e[c].old = e[c].pos.sub(a);
+            e[c].old = e[c].position.sub(a);
         c = 0;
         for (d = f.length; c < d; c++)
-            f[c].old = f[c].pos.sub(b);
+            f[c].old = f[c].position.sub(b);
         for (c = this.points.length - 1; 0 <= c; c--)
-            this.points[c].vel.copy(this.points[c].pos.sub(this.points[c].old)),
-            this.points[c].vel.x += Math.random() - Math.random(),
-            this.points[c].vel.y += Math.random() - Math.random()
+            this.points[c].velocity.copy(this.points[c].position.sub(this.points[c].old)),
+            this.points[c].velocity.x += Math.random() - Math.random(),
+            this.points[c].velocity.y += Math.random() - Math.random()
     }
 }

@@ -4,12 +4,12 @@ import { ctx } from "../../bootstrap.js";
 
 export default class Item {
     constructor(a, b, c) {
-        this.pos = new Vector(a, b);
+        this.position = new Vector(a, b);
         this.track = c;
         this.id = tool.powerups++
     }
     removed = false;
-    draw(t = this.color, e = this.pos.toPixel()) {
+    draw(t = this.color, e = this.position.toPixel()) {
         ctx.strokeStyle = this.track.parent.theme.dark ? "#FBFBFB" : "#000000";
         ctx.fillStyle = t;
         ctx.beginPath();
@@ -19,12 +19,12 @@ export default class Item {
         ctx.stroke();
     }
     collide(t) {
-        if (t.pos.distanceToSquared(this.pos) < 500 && !t.parent.tb) {
+        if (t.position.distanceToSquared(this.position) < 500 && !t.parent.tb) {
             this.activate(t);
         }
     }
     erase(t) {
-        if (t.distanceTo(this.pos) < tool.eraser.size + 7) {
+        if (t.distanceTo(this.position) < tool.eraser.size + 7) {
             this.remove();
             return this
         }
@@ -32,14 +32,14 @@ export default class Item {
     }
     remove() {
         this.removed = true;
-        this.track.remove(this.pos);
+        this.track.remove(this.position);
         this.track.powerups.splice(this.track.powerups.indexOf(this), 1);
 
         this.ub();
         return this
     }
     toString() {
-        return this.d ? this.type + " " + this.pos.toString() + " " + this.d.toString() : this.type + " " + this.pos.toString()
+        return this.d ? this.type + " " + this.position.toString() + " " + this.d.toString() : this.type + " " + this.position.toString()
     }
     ub() {}
 }

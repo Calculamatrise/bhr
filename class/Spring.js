@@ -10,40 +10,40 @@ export default class Spring {
         this.springConstant = 0.7;
     }
     get length() {
-        return this.b.pos.sub(this.a.pos).length;
+        return this.b.position.sub(this.a.position).length;
     }
     lean(a) {
         this.leff += (this.lrest - a - this.leff) / 5
     }
     rotate(a) {
-        var b = this.b.pos.sub(this.a.pos),
+        var b = this.b.position.sub(this.a.position),
             b = new Vector(-b.y / this.leff,b.x / this.leff);
-        this.a.pos.addToSelf(b.scale(a));
-        this.b.pos.addToSelf(b.scale(-a))
+        this.a.position.addToSelf(b.scale(a));
+        this.b.position.addToSelf(b.scale(-a))
     }
     update() {
-        var a = this.b.pos.sub(this.a.pos),
+        var a = this.b.position.sub(this.a.position),
             b = a.length;
         if (1 > b)
             return this;
         a = a.scale(1 / b);
         b = a.scale((b - this.leff) * this.springConstant);
-        b.addToSelf(a.scale(this.b.vel.sub(this.a.vel).dot(a) * this.dampConstant));
-        this.b.vel.addToSelf(b.scale(-1));
-        this.a.vel.addToSelf(b);
+        b.addToSelf(a.scale(this.b.velocity.sub(this.a.velocity).dot(a) * this.dampConstant));
+        this.b.velocity.addToSelf(b.scale(-1));
+        this.a.velocity.addToSelf(b);
         return this
     }
     swap() {
         var a = new Vector;
-        a.copy(this.a.pos);
-        this.a.pos.copy(this.b.pos);
-        this.b.pos.copy(a);
+        a.copy(this.a.position);
+        this.a.position.copy(this.b.position);
+        this.b.position.copy(a);
         a.copy(this.a.old);
         this.a.old.copy(this.b.old);
         this.b.old.copy(a);
-        a.copy(this.a.vel);
-        this.a.vel.copy(this.b.vel);
-        this.b.vel.copy(a);
+        a.copy(this.a.velocity);
+        this.a.velocity.copy(this.b.velocity);
+        this.b.velocity.copy(a);
         a = this.a.rotation;
         this.a.rotation = this.b.rotation;
         this.b.rotation = a

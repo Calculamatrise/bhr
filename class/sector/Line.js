@@ -10,27 +10,33 @@ export default class Line {
         this.track = n;
     }
     removed = false;
-    draw(ctx) {
-        let point1 = this.a.toPixel();
-        let point2 = this.b.toPixel();
+    // draw(ctx) {
+    //     let point1 = this.a.toPixel();
+    //     let point2 = this.b.toPixel();
 
-        ctx.save();
+    //     ctx.save();
 
-        if (this.track.lineShading) {
-            ctx.shadowOffsetX = 2;
-            ctx.shadowOffsetY = 2;
-            ctx.shadowBlur = Math.max(2, this.track.zoom * 10);
-            ctx.shadowColor = this.type === "scenery" ? this.track.parent.theme.dark ? "#999999" : "#AAAAAA" : this.track.parent.theme.dark ? "#FFFFFF" : "#000000";
-        }
+    //     if (this.track.lineShading) {
+    //         ctx.shadowOffsetX = 2;
+    //         ctx.shadowOffsetY = 2;
+    //         ctx.shadowBlur = Math.max(2, this.track.zoom * 10);
+    //         ctx.shadowColor = this.type === "scenery" ? this.track.parent.theme.dark ? "#999999" : "#AAAAAA" : this.track.parent.theme.dark ? "#FFFFFF" : "#000000";
+    //     }
 
-        ctx.strokeStyle = this.type === "scenery" ? this.track.parent.theme.dark ? "#999999" : "#AAAAAA" : this.track.parent.theme.dark ? "#FFFFFF" : "#000000";
-        ctx.lineWidth = Math.max(this.track.zoom * 2, 0.5);
-        ctx.lineCap = "round";
+    //     ctx.strokeStyle = this.type === "scenery" ? this.track.parent.theme.dark ? "#999999" : "#AAAAAA" : this.track.parent.theme.dark ? "#FFFFFF" : "#000000";
+    //     ctx.lineWidth = Math.max(this.track.zoom * 2, 0.5);
+    //     ctx.lineCap = "round";
+    //     ctx.beginPath();
+    //     ctx.moveTo(point1.x, point1.y);
+    //     ctx.lineTo(point2.x, point2.y);
+    //     ctx.stroke();
+    //     ctx.restore();
+    // }
+    draw(ctx, e, i) {
         ctx.beginPath();
-        ctx.moveTo(point1.x, point1.y);
-        ctx.lineTo(point2.x, point2.y);
-        ctx.stroke();
-        ctx.restore();
+        ctx.moveTo(this.a.x * this.track.zoom - e, this.a.y * this.track.zoom - i);
+        ctx.lineTo(this.b.x * this.track.zoom - e, this.b.y * this.track.zoom - i);
+        ctx.stroke()
     }
     erase(t) {
         let b = t.sub(this.a).dot(this.vector.oppositeScale(this.len));

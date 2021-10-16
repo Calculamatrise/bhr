@@ -1,18 +1,21 @@
 import { ctx } from "../../bootstrap.js";
 
-import Antigravity from "../item/Antigravity.js";
+import Camera from "../tools/Camera.js";
 
 export default class {
     constructor(parent) {
         this.track = parent;
-
-        this.selected = "camera";
-        this.setTool("Antigravity", new Antigravity());
     }
     old = "camera";
-    #tools = {}
-    setTool(name, value) {
-        this.#tools[name] = value;
+    selected = "camera";
+    #tools = {
+        camera: new Camera()
+    }
+    get currentTool() {
+        return this.#tools[this.selected];
+    }
+    setTool(name) {
+        this.selected = name;
     }
     draw() {
         for (let i = 0; i < 200; i += 25) {
@@ -20,6 +23,7 @@ export default class {
                 continue;
 
             ctx.save();
+            ctx.strokeStyle = this.track.parent.theme.dark ? "#FBFBFB" : "#000000";
             ctx.lineWidth = 1;
             ctx.lineCap = "round";
             ctx.beginPath();

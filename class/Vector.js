@@ -1,6 +1,6 @@
 import { canvas } from "../bootstrap.js";
 
-export default class Vector {
+export default class {
     constructor(x = 0, y = 0) {
         if (typeof x === "object") {
             if (x.hasOwnProperty("x")) {
@@ -22,63 +22,72 @@ export default class Vector {
         return this.toPixel();
     }
     toPixel() {
-        return new Vector((this.x - window.game.track.camera.x) * window.game.track.zoom + canvas.width / 2, (this.y - window.game.track.camera.y) * window.game.track.zoom + canvas.height / 2);
+        return new this.constructor((this.x - window.game.track.camera.x) * window.game.track.zoom + canvas.width / 2, (this.y - window.game.track.camera.y) * window.game.track.zoom + canvas.height / 2);
     }
     toCanvas() {
-        return new Vector(Math.round((this.x - canvas.width / 2) / window.game.track.zoom + window.game.track.camera.x), Math.round((this.y - canvas.height / 2) / window.game.track.zoom + window.game.track.camera.y));
+        return new this.constructor(Math.round((this.x - canvas.width / 2) / window.game.track.zoom + window.game.track.camera.x), Math.round((this.y - canvas.height / 2) / window.game.track.zoom + window.game.track.camera.y));
     }
     copy(a) {
         this.x = a.x;
         this.y = a.y;
-        return this
+
+        return this;
     }
     addToSelf(a) {
         this.x += a.x;
         this.y += a.y;
-        return this
+
+        return this;
     }
     subtractFromSelf(a) {
         this.x -= a.x;
         this.y -= a.y;
-        return this 
+
+        return this;
     }
     scaleSelf(a) {
         this.x *= a;
         this.y *= a;
-        return this
+
+        return this;
+    }
+    lerp(target, alpha) {
+        this.x = (1 - alpha) * this.x + alpha * target.x;
+        this.y = (1 - alpha) * this.y + alpha * target.y;
+
+        return this;
+    }
+    lerpTowards(target, smoothing, delta) {
+        return this.lerp(target, 1 - Math.pow(smoothing, delta));
     }
     add(a) {
-        return new Vector(this.x + a.x,this.y + a.y)
+        return new this.constructor(this.x + a.x, this.y + a.y);
     }
     sub(a) {
-        return new Vector(this.x - a.x,this.y - a.y)
+        return new this.constructor(this.x - a.x, this.y - a.y);
     }
     scale(a) {
-        return new Vector(this.x * a,this.y * a)
+        return new this.constructor(this.x * a, this.y * a);
     }
     oppositeScale(a) {
-        return new Vector(this.x / a,this.y / a)
+        return new this.constructor(this.x / a, this.y / a);
     }
     dot(a) {
-        return this.x * a.x + this.y * a.y
+        return this.x * a.x + this.y * a.y;
     }
     lengthSquared() {
-        return this.x * this.x + this.y * this.y
+        return this.x * this.x + this.y * this.y;
     }
     distanceTo(a) {
-        var b = this.x - a.x,
-            a = this.y - a.y;
-        return Math.sqrt(b * b + a * a)
+        return Math.sqrt((this.x - a.x) ** 2 + (this.y - a.y) ** 2);
     }
     distanceToSquared(a) {
-        var b = this.x - a.x,
-            a = this.y - a.y;
-        return b * b + a * a
+        return (this.x - a.x) ** 2 + (this.y - a.y) ** 2;
     }
     clone() {
-        return new Vector(this.x,this.y)
+        return new this.constructor(this.x,this.y);
     }
     toString() {
-        return Math.round(this.x).toString(32) + " " + Math.round(this.y).toString(32)
+        return Math.round(this.x).toString(32) + " " + Math.round(this.y).toString(32);
     }
 }

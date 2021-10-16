@@ -1,13 +1,22 @@
 import Vector from "../../Vector.js";
 
-export default class Mass {
-    constructor(t = new Vector(0, 0), e = new Vector(0, 0)) {
-        this.pos = t.clone();
-        this.old = t.clone();
-        this.real = t.add(e);
-        this.vel = e.clone();
+export default class {
+    constructor(parent) {
+        this.parent = parent;
     }
-    update(t) {
-        this.real = this.pos.add(this.vel.scale(t));
+    size = 10;
+    motor = 0;
+    friction = 0;
+    collide = true;
+    touching = false;
+    position = new Vector();
+    old = new Vector();
+    velocity = new Vector();
+    displayPos = new Vector();
+    fixedUpdate() {
+        this.displayPos = this.position;
+    }
+    update(delta) {
+        this.displayPos = this.position.add(this.velocity.scale(delta));
     }
 }

@@ -94,7 +94,7 @@ export default class Track {
         }
 
         this.cameraFocus = this.firstPlayer.vehicle.head,
-        this.camera = this.firstPlayer.vehicle.head.pos.clone();
+        this.camera = this.firstPlayer.vehicle.head.position.clone();
     }
     removeCheckpoint() {
         for (var i in this.players) {
@@ -148,8 +148,8 @@ export default class Track {
         this.paused = false;
     }
     collide(a) {
-        let x = Math.floor(a.pos.x / this.scale - 0.5);
-        let y = Math.floor(a.pos.y / this.scale - 0.5);
+        let x = Math.floor(a.position.x / this.scale - 0.5);
+        let y = Math.floor(a.position.y / this.scale - 0.5);
         if (this.grid[x] !== void 0) {
             if (this.grid[x][y] !== void 0) {
                 this.grid[x][y].za()
@@ -187,76 +187,119 @@ export default class Track {
 
         return this;
     }
+    fixedUpdate() {
+        if (!this.paused) {
+            for (const player of this.players)
+                player.fixedUpdate();
+
+            this.currentTime += 1000 / 25;
+        }
+
+        if (this.cameraFocus)
+            this.camera.addToSelf(this.cameraFocus.position.sub(this.camera).scale(0.3));
+
+        return this;
+    }
     update(delta) {
         if (!this.paused) {
             for (const player of this.players)
                 player.update(delta);
 
-            this.currentTime += 1000 / 25
+            this.currentTime += 1000 / 25;
         }
 
         if (this.cameraFocus)
-            this.camera.addToSelf(this.cameraFocus.pos.sub(this.camera).scale(0.3))
+            this.camera.addToSelf(this.cameraFocus.position.sub(this.camera).scale(0.3));
 
-        return this
+        return this;
     }
-    render() {
-        this.draw();
+    render(ctx) {
+        this.draw(ctx);
         for (const player of this.players)
-            player.draw();
+            player.draw(ctx);
 
         this.toolHandler.draw();
     }
-    draw() {
-        const ctx = this.parent.canvas.getContext("2d");
+    draw(ctx) {
         ctx.clearRect(0, 0, this.parent.canvas.width, this.parent.canvas.height);
         ctx.lineWidth = Math.max(2 * this.zoom, 0.5);
 
-        let pos = this.parent.mouse.position.toPixel();
+        let position = this.parent.mouse.position.toPixel();
         let old = this.parent.mouse.old.toPixel();
         if (this.cameraLock && ["line", "scenery line", "brush", "scenery brush", "teleporter"].includes(this.toolHandler.selected)) {
-            if (pos.x < 50) {
+            if (position.x < 50) {
                 this.camera.x -= 4 / this.zoom;
                 this.parent.mouse.position.x -= 4 / this.zoom;
-            } else if (pos.x > this.parent.canvas.width - 50) {
+            } else if (position.x > this.parent.canvas.width - 50) {
                 this.camera.x += 4 / this.zoom;
                 this.parent.mouse.position.x += 4 / this.zoom;
             }
 
-            if (pos.y < 50) {
+            if (position.y < 50) {
                 this.camera.y -= 4 / this.zoom;
                 this.parent.mouse.position.y -= 4 / this.zoom;
-            } else if (pos.y > this.parent.canvas.height - 50) {
+            } else if (position.y > this.parent.canvas.height - 50) {
                 this.camera.y += 4 / this.zoom;
                 this.parent.mouse.position.y += 4 / this.zoom;
             }
 
-            pos = this.parent.mouse.position.toPixel();
+            position = this.parent.mouse.position.toPixel();
             old = this.parent.mouse.old.toPixel();
             
             ctx.save();
             ctx.strokeStyle = "#f00";
             ctx.beginPath(),
             ctx.moveTo(old.x, old.y),
-            ctx.lineTo(pos.x, pos.y),
+            ctx.lineTo(position.x, position.y),
             ctx.stroke();
             ctx.restore();
         }
 
-        for (const line of this.scenery) {
-            if (!line.removed)       
-                line.draw(ctx);
-        }
-
-        for (const line of this.physics) {
-            if (!line.removed) {       
-                line.draw(ctx);
+        let i = new Vector().toCanvas(this.parent.canvas)
+        , l = new Vector(this.parent.canvas.width, this.parent.canvas.height).toCanvas(this.parent.canvas);
+        i.x = Math.floor(i.x / this.scale);
+        i.y = Math.floor(i.y / this.scale);
+        l.x = Math.floor(l.x / this.scale);
+        l.y = Math.floor(l.y / this.scale);
+        var m = [], n, x, w, y, C;
+        for (w = i.x; w <= l.x; w++) {
+            for (y = i.y; y <= l.y; y++) {
+                if (this.grid[w] !== void 0 && this.grid[w][y] !== void 0) {
+                    if (0 < this.grid[w][y].physics.length || 0 < this.grid[w][y].scenery.length) {
+                        m[C = w + "_" + y] = 1;
+                        if (this.sectors[C] === void 0) {
+                            n = this.sectors[C] = document.createElement("canvas");
+                            n.width = this.scale * this.zoom;
+                            n.height = this.scale * this.zoom;
+                            var M = n.getContext("2d");
+                            M.lineCap = "round";
+                            M.lineWidth = Math.max(2 * this.zoom, 0.5);
+                            M.strokeStyle = this.parent.theme.dark ? "#999999" : "#AAAAAA";
+                            n = 0;
+                            for (x = this.grid[w][y].scenery.length; n < x; n++)
+                                this.grid[w][y].scenery[n].draw(M, w * this.scale * this.zoom, y * this.scale * this.zoom);
+                            
+                            M.strokeStyle = this.parent.theme.dark ? "#FFFFFF" : "#000000";
+                            this.lineShading && (M.shadowOffsetX = M.shadowOffsetY = 2,
+                            M.shadowBlur = Math.max(2, 10 * this.zoom),
+                            M.shadowColor = this.parent.theme.dark ? "#FFFFFF" : "#000000");
+                            n = 0;
+                            for (x = this.grid[w][y].physics.length; n < x; n++)
+                                this.grid[w][y].physics[n].draw(M, w * this.scale * this.zoom, y * this.scale * this.zoom)
+                        }
+                        ctx.drawImage(this.sectors[C], Math.floor(this.parent.canvas.width / 2 - this.camera.x * this.zoom + w * this.scale * this.zoom), Math.floor(this.parent.canvas.height / 2 - this.camera.y * this.zoom + y * this.scale * this.zoom))
+                    }
+                    ctx.strokeStyle = "#000";
+                    n = 0;
+                    for (x = this.grid[w][y].powerups.length; n < x; n++) {
+                        this.grid[w][y].powerups[n].draw();
+                    }
+                }
             }
         }
 
-        for (const item of this.powerups) {
-            item.draw();
-        }
+        for (var X in this.sectors)
+            m[X] === void 0 && delete this.sectors[X];
 
         if (this.toolHandler.selected !== "camera" && !this.cameraFocus) {
             ctx.save();
@@ -265,22 +308,20 @@ export default class Track {
                 case "scenery line":
                 case "brush":
                 case "scenery brush":
-                    let w = pos.x;
-                    let y = pos.y;
                     ctx.lineWidth = 1;
                     ctx.strokeStyle = this.parent.theme.dark ? "#FBFBFB" : "#000000";
                     ctx.beginPath(),
-                    ctx.moveTo(w - 10, y),
-                    ctx.lineTo(w + 10, y),
-                    ctx.moveTo(w, y + 10),
-                    ctx.lineTo(w, y - 10),
+                    ctx.moveTo(position.x - 10, position.y),
+                    ctx.lineTo(position.x + 10, position.y),
+                    ctx.moveTo(position.x, position.y + 10),
+                    ctx.lineTo(position.x, position.y - 10),
                     ctx.stroke();
                 break;
 
                 case "eraser":
                     ctx.fillStyle = "#ffb6c199";
                     ctx.beginPath();
-                    ctx.arc(pos.x, pos.y, (tool.eraser.size - 1) * this.zoom, 0, Math.PI * 2, !0);
+                    ctx.arc(position.x, position.y, (tool.eraser.size - 1) * this.zoom, 0, Math.PI * 2, true);
                     ctx.fill();
                 break;
 
@@ -292,7 +333,7 @@ export default class Track {
                 case "teleporter":
                     ctx.fillStyle = this.toolHandler.selected == "goal" ? "#ff0" : this.toolHandler.selected == "checkpoint" ? "#00f" : this.toolHandler.selected == "bomb" ? "#f00" : this.toolHandler.selected == "slow-mo" ? "#eee" : this.toolHandler.selected == "antigravity" ? "#0ff" : "#f0f";
                     ctx.beginPath(),
-                    ctx.arc(pos.x, pos.y, 7 * this.zoom, 0, 2 * Math.PI, true),
+                    ctx.arc(position.x, position.y, 7 * this.zoom, 0, 2 * Math.PI, true),
                     ctx.fill(),
                     ctx.stroke();
                 break;
@@ -305,8 +346,9 @@ export default class Track {
                         ctx.translate(old.x, old.y),
                         ctx.rotate(Math.atan2(-(this.parent.mouse.position.x - this.parent.mouse.old.x), this.parent.mouse.position.y - this.parent.mouse.old.y));
                     } else {
-                        ctx.translate(pos.x, pos.y);
+                        ctx.translate(position.x, position.y);
                     }
+
                     ctx.moveTo(-7 * this.zoom, -10 * this.zoom),
                     ctx.lineTo(0, 10 * this.zoom),
                     ctx.lineTo(7 * this.zoom, -10 * this.zoom),
@@ -318,6 +360,7 @@ export default class Track {
 
             ctx.restore();
         }
+        
         ctx.beginPath();
         ctx.fillStyle = "#ff0";
         ctx.lineWidth = 1;
@@ -333,7 +376,7 @@ export default class Track {
         let h = Math.floor(this.currentTime % 6E4 / 1E3);
         let c = Math.floor((this.currentTime - 6E4 * e - 1E3 * h) / 100);
 
-        let i = "";
+        i = "";
         10 > e && (e = "0" + e);
         10 > h && (h = "0" + h);
         i = e + ":" + h + "." + c;

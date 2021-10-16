@@ -1,80 +1,78 @@
-import { ctx } from "../../bootstrap.js";
-
+import Bike from "./Bike.js";
 import Vector from "../Vector.js";
-import Spring from "../Spring.js";
-import BodyPart from "./part/BodyPart.js";
-import Wheel from "./part/Wheel.js";
 
-export default class MountainBike {
+export default class extends Bike {
     constructor(parent) {
-        this.parent = parent,
+        super(parent);
 
-        this.dir = 1;
+        this.head.size = 14;
+        this.frontWheel.size = 14;
+        this.rearWheel.size = 14;
 
-        this.createMasses(),
-        this.createSprings();
+        this.head.position = new Vector(2, -3);
+        this.head.old = this.head.position.clone();
+        this.head.displayPos = this.head.position.clone();
+        this.frontWheel.position = new Vector(23, 35);
+        this.frontWheel.old = this.frontWheel.position.clone();
+        this.frontWheel.displayPos = this.frontWheel.position.clone();
+        this.rearWheel.position = new Vector(-23, 35);
+        this.rearWheel.old = this.rearWheel.position.clone();
+        this.rearWheel.displayPos = this.rearWheel.position.clone();
+
+        this.rearSpring.lrest = 47;
+        this.rearSpring.leff = 47;
+        this.rearSpring.springConstant = 0.2;
+        this.rearSpring.dampConstant = 0.3;
+
+        this.chasse.lrest = 45;
+        this.chasse.leff = 45;
+        this.chasse.springConstant = 0.2;
+        this.chasse.dampConstant = 0.3;
+
+        this.frontSpring.lrest = 45;
+        this.frontSpring.leff = 45;
+        this.frontSpring.springConstant = 0.2;
+        this.frontSpring.dampConstant = 0.3;
     }
     name = "MTB";
-    pedalSpeed = 0;
-    createMasses() {
-        var a = 2, b = -3,
-            c = 23, d = 35,
-            e = -23, f = 35;
+    updateControls() {
+        if (this.parent.gamepad.downKeys.has("ArrowUp"))
+            this.pedalSpeed += this.rearWheel.pedalSpeed / 5;
 
-        this.masses = [
-            this.head = new BodyPart(new Vector(a,b), this, 14),
-            this.frontWheel = new Wheel(new Vector(c,d), this, 14),
-            this.rearWheel = new Wheel(new Vector(e,f), this, 14)
-        ]
-
-        this.head.drive = this.destroy.bind(this);
+        this.rearWheel.motor += (this.parent.gamepad.downKeys.has("ArrowUp") - this.rearWheel.motor) / 10;
+        this.rearWheel.brake = this.frontWheel.brake = this.parent.gamepad.downKeys.has("ArrowDown");
+        
+        let rotate = this.parent.gamepad.downKeys.has("ArrowLeft") - this.parent.gamepad.downKeys.has("ArrowRight");
+        this.rearSpring.lean(rotate * this.dir * 5);
+        this.frontSpring.lean(-rotate * this.dir * 5);
+        this.chasse.rotate(rotate / 8);
+        if (!rotate && this.parent.gamepad.downKeys.has("ArrowUp")) {
+            this.rearSpring.lean(-7);
+            this.frontSpring.lean(7);
+        }
     }
-    createSprings() {
-        var a = 47,
-            b = 45,
-            c = 45;
-        this.springs = [
-            this.rearSpring = new Spring(this.head,this.rearWheel,this),
-            this.chasse = new Spring(this.rearWheel,this.frontWheel,this),
-            this.frontSpring = new Spring(this.frontWheel,this.head,this)
-        ];
-        this.rearSpring.lrest = 47,
-        this.chasse.lrest = 45,
-        this.frontSpring.lrest = 45,
-        this.chasse.springConstant = this.rearSpring.springConstant = this.frontSpring.springConstant = .2,
-        this.chasse.dampConstant = this.rearSpring.dampConstant = this.frontSpring.dampConstant = .3,
-        this.rearSpring.leff = a
-        this.chasse.leff = b,
-        this.frontSpring.leff = c
-    }
-    swap() {
-        this.dir *= -1;
-        this.chasse.swap();
-        var a = this.rearSpring.leff;
-        this.rearSpring.leff = this.frontSpring.leff;
-        this.frontSpring.leff = a;
-        this.parent.collide("turn")
-    }
-    draw() {
-        var b = this.rearWheel.pos.toPixel()
-        , c = this.frontWheel.pos.toPixel()
-        , d = this.head.pos.toPixel()
+    draw(ctx) {
+        var b = this.rearWheel.displayPos.toPixel()
+        , c = this.frontWheel.displayPos.toPixel()
+        , d = this.head.displayPos.toPixel()
         , e = c.sub(b)
         , f = new Vector((c.y - b.y) * this.dir,(b.x - c.x) * this.dir)
         , h = d.sub(b.add(e.scale(0.5)));
         ctx.globalAlpha = this.ghost ? .5 : 1;
         ctx.strokeStyle = this.parent.track.parent.theme.dark ? "#FBFBFB" : "#000000";
         ctx.lineWidth = 3.5 * this.parent.track.zoom;
-        ctx.beginPath(),ctx.arc(b.x, b.y, 12.5 * this.parent.track.zoom, 0, 2 * Math.PI, !0),
+        ctx.beginPath(),
+        ctx.arc(b.x, b.y, 12.5 * this.parent.track.zoom, 0, 2 * Math.PI, true),
         ctx.moveTo(c.x + 12.5 * this.parent.track.zoom, c.y),
-        ctx.arc(c.x, c.y, 12.5 * this.parent.track.zoom, 0, 2 * Math.PI, !0),
+        ctx.arc(c.x, c.y, 12.5 * this.parent.track.zoom, 0, 2 * Math.PI, true),
         ctx.stroke(),
+
         ctx.beginPath(),
         ctx.fillStyle = "grey";
         ctx.moveTo(b.x + 5 * this.parent.track.zoom, b.y),
-        ctx.arc(b.x, b.y, 5 * this.parent.track.zoom, 0, 2 * Math.PI, !0),
+        ctx.arc(b.x, b.y, 5 * this.parent.track.zoom, 0, 2 * Math.PI, true),
         ctx.moveTo(c.x + 4 * this.parent.track.zoom, c.y),
-        ctx.arc(c.x, c.y, 4 * this.parent.track.zoom, 0, 2 * Math.PI, !0),
+        ctx.arc(c.x, c.y, 4 * this.parent.track.zoom, 0, 2 * Math.PI, true),
         ctx.fill(),
         ctx.beginPath(),
         ctx.lineWidth = 5 * this.parent.track.zoom;
@@ -145,7 +143,7 @@ export default class MountainBike {
             ctx.beginPath(),
             ctx.lineWidth = 2 * this.parent.track.zoom;
             ctx.moveTo(d.x + 5 * this.parent.track.zoom, d.y),
-            ctx.arc(d.x, d.y, 5 * this.parent.track.zoom, 0, 2 * Math.PI, !0),
+            ctx.arc(d.x, d.y, 5 * this.parent.track.zoom, 0, 2 * Math.PI, true),
             ctx.stroke();
             ctx.beginPath();
             switch (this.parent.cosmetics.head) {
@@ -185,61 +183,4 @@ export default class MountainBike {
             ctx.stroke()
         }
     }
-    update(delta) {
-        if (!this.parent.dead)
-            this.updateControls()
-
-        for (const spring of this.springs)
-            spring.update();
-
-        for (const mass of this.masses)
-            mass.update(delta);
-
-        if (this.rearWheel.touching && this.frontWheel.touching)
-            this.parent.slow = false;
-
-        if (!this.slow && !this.parent.dead) {
-            this.updateControls();
-            for (const spring of this.springs)
-                spring.update();
-
-            for (const mass of this.masses)
-                mass.update(delta);
-        }
-    }
-    updateControls() {
-        if (this.parent.gamepad.downKeys.has("ArrowUp"))
-            this.pedalSpeed += this.rearWheel.pedalSpeed / 5;
-
-        this.rearWheel.motor += (this.parent.gamepad.downKeys.has("ArrowUp") - this.rearWheel.motor) / 10;
-        this.rearWheel.brake = this.frontWheel.brake = this.parent.gamepad.downKeys.has("ArrowDown");
-        
-        let rotate = this.parent.gamepad.downKeys.has("ArrowLeft") - this.parent.gamepad.downKeys.has("ArrowRight");
-        this.rearSpring.lean(rotate * this.dir * 5);
-        this.frontSpring.lean(-rotate * this.dir * 5);
-        this.chasse.rotate(rotate / 8);
-        if (!rotate && this.parent.gamepad.downKeys.has("ArrowUp")) {
-            this.rearSpring.lean(-7);
-            this.frontSpring.lean(7);
-        }
-    }
-    move(x, y) {
-        for (const mass of this.masses) {
-            mass.pos.x += x;
-            mass.pos.y += y;
-            mass.old.x += x;
-            mass.old.y += y;
-        }
-    }
-    destroy() {
-        this.parent.dead = true;
-        this.head.collide = false;
-        this.head.drive = () => {};
-        this.rearWheel.motor = 0;
-        this.rearWheel.brake = false;
-        this.frontWheel.brake = false;
-
-        this.parent.createRagdoll();
-    }
-    clone() {}
 }

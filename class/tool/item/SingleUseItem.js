@@ -12,11 +12,11 @@ export default class SingleUseItem extends Item {
         }
     }
     collide(a) {
-        if (a.position.distanceToSquared(this.position) < 500) {
+        if (a.pos.distanceToSquared(this.pos) < 500) {
             this.Ea(a);
         }
         if (this.d) {
-            if (a.position.distanceToSquared(this.d) < 500) {
+            if (a.pos.distanceToSquared(this.d) < 500) {
                 this.Ea(a);
             }
         }
