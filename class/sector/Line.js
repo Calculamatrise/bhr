@@ -1,5 +1,4 @@
 import Vector from "../Vector.js";
-import tool from "../../constant/tool.js";
 
 export default class Line {
     constructor(t, e, i, s, n) {
@@ -49,7 +48,7 @@ export default class Line {
             c.copy(this.a.add(this.vector.oppositeScale(this.len).scale(b)));
         }
 
-        return t.sub(c).length <= tool.eraser.size ? this.remove() : !1
+        return t.sub(c).length <= this.track.toolHandler.currentTool.size ? this.remove() : !1
     }
     remove() {
         this.removed = true;

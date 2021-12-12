@@ -71,6 +71,15 @@ toolbar tool {
     display: block;
 }
 
+tool.disabled {
+    opacity: .4;
+}
+
+tool.disabled:hover {
+    cursor: not-allowed;
+    pointer-events: none;
+}
+
 toolbar div.left tool {
     border-right-width: 1px;
     border-right-style: solid;
@@ -237,7 +246,7 @@ camera {
     );
 }
 
-powerup {
+powerup:not(.triangle) {
 	width: 7px;
 	height: 7px;
     border-width: 4px;
@@ -246,7 +255,11 @@ powerup {
     clip-path: circle(30%);
 }
 
-powerup.target, powerup.boost {
+powerup.triangle {
+    background-color: transparent;
+}
+
+powerup.target {
     background-color: #ff0;
 }
 
@@ -254,8 +267,12 @@ powerup.checkpoint {
     background-color: #00f;
 }
 
-powerup.gravity {
-    background-color: #0f0;
+powerup.boost svg {
+    fill: #ff0;
+}
+
+powerup.gravity svg {
+    fill: #0f0;
 }
 
 powerup.bomb {

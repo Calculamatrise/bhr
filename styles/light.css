@@ -6,8 +6,12 @@ tool {
     border-color: #bbb
 }
 
-tool:hover {
+tool:hover, tool.active:hover {
     background-color: #ddd;
+}
+
+tool.active {
+    background-color: #dddddd80;
 }
 
 tool *:not(wheel, line, eraser, svg, playpause, backtrack, rewind, brush, camera, powerup, fullscreen) {

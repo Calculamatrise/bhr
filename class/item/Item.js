@@ -1,11 +1,10 @@
 import Vector from "../Vector.js";
-import tool from "../../constant/tool.js";
 
 export default class Item {
     constructor(a, b, c) {
         this.position = new Vector(a, b);
         this.track = c;
-        this.id = tool.powerups++
+        this.id = this.track.goals++
     }
     removed = false;
     get ctx() {
@@ -26,7 +25,7 @@ export default class Item {
         }
     }
     erase(t) {
-        if (t.distanceTo(this.position) < tool.eraser.size + 7) {
+        if (t.distanceTo(this.position) < this.track.toolHandler.currentTool.size + 7) {
             this.remove();
             return this
         }

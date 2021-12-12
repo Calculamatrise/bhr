@@ -1,11 +1,10 @@
 export const canvas = document.querySelector("#view");
 
-import tool from "./constant/tool.js";
 import Game from "./class/Game.js";
 
 export default window.game = new Game(document.querySelector("#view"));
 
-localStorage.setItem("theme", localStorage.getItem("theme") || window.matchMedia("(prefers-color-scheme: dark)").matches);
+localStorage.setItem("theme", localStorage.getItem("theme") || (window.matchMedia("(prefers-color-scheme: dark)").matches ? "dark" : "light"));
 
 document.querySelector("#upload")?.addEventListener("click", () => {
     function ja(){
@@ -64,7 +63,7 @@ document.querySelector("#upload")?.addEventListener("click", () => {
     let a = window.game.track.toString();
     if (0 < a.length && window.game.track.targets > 0) {
         window.game.track.paused = true;
-        tool = "camera";
+        window.game.track.toolHandler.setTool("camera");
         window.game.track.Ab = true;
         K.lineCap = "round";
         K.lineJoin = "round";
@@ -163,9 +162,9 @@ document.querySelector("#upload")?.addEventListener("click", () => {
         })
     } else {
         if (window.game.track.targets < 1) {
-            alert("Sorry, but your window.game.track must have at least 1 target!")
+            alert("Sorry, but your track must have at least 1 target!")
         } else
-            alert("Sorry, but your window.game.track must be bigger or more detailed.")
+            alert("Sorry, but your track must be larger or more detailed.")
     }
 });
 
@@ -219,48 +218,51 @@ document.addEventListener("keydown", function(event) {
     if (window.game.track.id == void 0) {
         switch (event.keyCode) {
             case 65:
-                if (tool.selected !== "brush") {
-                    tool.selected = "brush";
+                if (window.game.track.toolHandler.selected !== "brush" || window.game.track.toolHandler.currentTool.scenery) {
+                    window.game.track.toolHandler.setTool("brush");
+                    window.game.track.toolHandler.currentTool.scenery = !1;
                     canvas.style.cursor = "none";
                 } else if (!window.game.track.cameraLock) {
                     window.game.track.cameraLock = true;
                 }
                 break;
             case 83:
-                if (tool.selected !== "scenery brush") {
-                    tool.selected = "scenery brush";
+                if (window.game.track.toolHandler.selected !== "scenery brush" || !window.game.track.toolHandler.currentTool.scenery) {
+                    window.game.track.toolHandler.setTool("brush");
+                    window.game.track.toolHandler.currentTool.scenery = !0;
                     canvas.style.cursor = "none";
                 } else if (!window.game.track.cameraLock) {
                     window.game.track.cameraLock = true;
                 }
                 break;
             case 81:
-                if (tool.selected !== "line") {
-                    tool.selected = "line";
+                if (window.game.track.toolHandler.selected !== "line" || window.game.track.toolHandler.currentTool.scenery) {
+                    window.game.track.toolHandler.setTool("line");
+                    window.game.track.toolHandler.currentTool.scenery = !1;
                     canvas.style.cursor = "none";
                 } else if (!window.game.track.cameraLock) {
                     window.game.track.cameraLock = true;
                 }
                 break;
             case 87:
-                if (tool.selected !== "scenery line") {
-                    tool.selected = "scenery line";
+                if (window.game.track.toolHandler.selected !== "scenery line" || !window.game.track.toolHandler.currentTool.scenery) {
+                    window.game.track.toolHandler.setTool("line");
+                    window.game.track.toolHandler.currentTool.scenery = !0;
                     canvas.style.cursor = "none";
                 } else if (!window.game.track.cameraLock) {
                     window.game.track.cameraLock = true;
                 }
                 break;
             case 69:
-                tool.selected = "eraser";
+                window.game.track.toolHandler.setTool("eraser");
                 canvas.style.cursor = "none";
                 break;
             case 82:
-                if (tool.selected != "camera") {
-                    tool.selectedCache = tool.selected;
-                    tool.selected = "camera";
+                if (window.game.track.toolHandler.selected != "camera") {
+                    window.game.track.toolHandler.setTool("camera");
                     canvas.style.cursor = "move";
                 } else {
-                    tool.toggleCamera = true
+                    window.game.track.toggleCamera = true;
                 }
                 break;
             case 77:
@@ -284,17 +286,16 @@ document.addEventListener("keyup", function(event) {
 
         case "g":
             if (window.game.track.players.length <= 1) {
-                tool.grid = 11 - tool.grid,
-                tool.descriptions.right[6] = (1 === tool.grid ? "En" : "Dis") + "able grid snapping ( G )";
+                window.game.track.gridSize = 11 - window.game.track.gridSize;
+                // tool.descriptions.right[6] = (1 === window.game.track.gridSize ? "En" : "Dis") + "able grid snapping ( G )";
             }
 
             break;
 
         case "r":
-            if (tool.toggleCamera) {
-                tool.selected = tool.selectedCache;
+            if (window.game.track.toggleCamera) {
                 canvas.style.cursor = "none";
-                tool.toggleCamera = false;
+                window.game.track.toggleCamera = false;
             }
 
             break;

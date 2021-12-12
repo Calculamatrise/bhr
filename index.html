@@ -62,53 +62,73 @@
                         </tool>
                         <settings>
                             <!-- Add eraser/brush tool settings -->
-                            <tool title="Increase length" style="border-top-width: 1px;border-top-style: solid;" onclick="">
+                            <tool title="Increase length - A + Scroll" style="border-top-width: 1px;border-top-style: solid;" onclick="
+                            if (window.game.track.toolHandler.selected === 'eraser') {
+                                window.game.track.toolHandler.currentTool.size < 500 && (window.game.track.toolHandler.currentTool.size += 5);
+                                return;
+                            }
+
+                            window.game.track.toolHandler.currentTool.length < 200 && (window.game.track.toolHandler.currentTool.length += 8);
+                            ">
                                 <increment/>
                             </tool>
-                            <tool title="Decrease length" style="border-bottom-width: 1px;border-bottom-style: solid;" onclick="">
+                            <tool title="Decrease length - A + Scroll" style="border-bottom-width: 1px;border-bottom-style: solid;" onclick="
+                            if (window.game.track.toolHandler.selected === 'eraser') {
+                                window.game.track.toolHandler.currentTool.size > 10 && (window.game.track.toolHandler.currentTool.size -= 5);
+                                return;
+                            }
+
+                            window.game.track.toolHandler.currentTool.length > 4 && (window.game.track.toolHandler.currentTool.length -= 8);
+                            ">
                                 <decrement/>
                             </tool>
                             <div data-id="eraser">
-                                <tool title="Erase physical lines - Enabled" style="border-top-width: 1px;border-top-style: solid;" onclick="">
+                                <tool title="Erase physical lines - Enabled" class="active" style="border-top-width: 1px;border-top-style: solid;" onclick="
+                                this.classList[(window.game.track.toolHandler.currentTool.settings.physics = !window.game.track.toolHandler.currentTool.settings.physics) ? 'add' : 'remove']('active');
+                                ">
                                     <brush/>
                                 </tool>
-                                <tool title="Erase visual lines - Enabled" onclick="">
+                                <tool title="Erase visual lines - Enabled" class="active" onclick="
+                                this.classList[(window.game.track.toolHandler.currentTool.settings.scenery = !window.game.track.toolHandler.currentTool.settings.scenery) ? 'add' : 'remove']('active');
+                                ">
                                     <brush class="scenery"/>
                                 </tool>
-                                <tool title="Erase powerups - Enabled" style="border-bottom-width: 1px;border-bottom-style: solid;" onclick="">
+                                <tool title="Erase powerups - Enabled" class="active" style="border-bottom-width: 1px;border-bottom-style: solid;" onclick="
+                                this.classList[(window.game.track.toolHandler.currentTool.settings.powerups = !window.game.track.toolHandler.currentTool.settings.powerups) ? 'add' : 'remove']('active');
+                                ">
                                     <powerup class="target"/>
                                 </tool>
                             </div>
                         </settings>
                     </div>
                     <div class="right">
-                        <tool title="Brush - A" onclick="window.game.track.toolHandler.setTool('brush')">
+                        <tool title="Brush - A" onclick="window.game.track.toolHandler.setTool('brush'), window.game.track.toolHandler.currentTool.scenery = !1">
                             <brush/>
                         </tool>
-                        <tool title="Scenery Brush - S" onclick="window.game.track.toolHandler.setTool('scenery brush')">
+                        <tool title="Scenery Brush - S" onclick="window.game.track.toolHandler.setTool('brush'), window.game.track.toolHandler.currentTool.scenery = !0">
                             <brush class="scenery"/>
                         </tool>
-                        <tool title="Line - Q" onclick="window.game.track.toolHandler.setTool('line')">
+                        <tool title="Line - Q" onclick="window.game.track.toolHandler.setTool('line'), window.game.track.toolHandler.currentTool.scenery = !1">
                             <line>
                                 <svg xmlns="http://www.w3.org/2000/svg" viewbox="0 0 25 25">
                                     <line x1="20" y1="5" x2="5" y2="20"/>
                                 </svg>
                             </line>
                         </tool>
-                        <tool title="Scenery Line - Q" onclick="window.game.track.toolHandler.setTool('scenery line')">
+                        <tool title="Scenery Line - W" onclick="window.game.track.toolHandler.setTool('line'), window.game.track.toolHandler.currentTool.scenery = !0">
                             <line class="scenery">
                                 <svg xmlns="http://www.w3.org/2000/svg" viewbox="0 0 25 25" style="stroke: #aaa">
                                     <line x1="20" y1="5" x2="5" y2="20"/>
                                 </svg>
                             </line>
                         </tool>
-                        <tool title="Eraser - Backspace" onclick="window.game.track.toolHandler.setTool('eraser')">
+                        <tool title="Eraser - E" onclick="window.game.track.toolHandler.setTool('eraser')">
                             <eraser/>
                         </tool>
                         <tool title="Camera - R" onclick="window.game.track.toolHandler.setTool('camera')">
                             <camera/>
                         </tool>
-                        <tool title="Grid - G" style="border-bottom-width: 1px;border-bottom-style: solid;" onclick="return; tool.grid === 1 ? 10 : 1">
+                        <tool title="Grid - G" style="border-bottom-width: 1px;border-bottom-style: solid;" onclick="window.game.track.gridSize = 11 - window.game.track.gridSize">
                             <line class="scenery">
                                 <svg xmlns="http://www.w3.org/2000/svg" viewbox="0 0 25 25" style="stroke: #ccc; stroke-width: 1">
                                     <line x1="5" y1="5" x2="20" y2="5"/><line x1="5" y1="5" x2="5" y2="20"/>
@@ -119,28 +139,36 @@
                             </line>
                         </tool>
                         <br>
-                        <tool style="border-top-width: 1px;border-top-style: solid;" onclick="window.game.track.toolHandler.setTool('goal')">
+                        <tool title="Goal" style="border-top-width: 1px;border-top-style: solid;" onclick="window.game.track.toolHandler.setTool('goal')">
                             <powerup class="target"/>
                         </tool>
-                        <tool onclick="window.game.track.toolHandler.setTool('checkpoint')">
+                        <tool title="Checkpoint" onclick="window.game.track.toolHandler.setTool('checkpoint')">
                             <powerup class="checkpoint"/>
                         </tool>
-                        <tool onclick="window.game.track.toolHandler.setTool('boost')">
-                            <powerup class="boost"/>
+                        <tool title="Booster" onclick="window.game.track.toolHandler.setTool('boost')">
+                            <powerup class="boost triangle">
+                                <svg xmlns="http://www.w3.org/2000/svg" viewbox="0 0 25 25" style="stroke-width: 2">
+                                    <polyline points="5,7 20,12.5 5,18 5,7"/>
+                                </svg>
+                            </powerup>
                         </tool>
-                        <tool onclick="window.game.track.toolHandler.setTool('gravity')">
-                            <powerup class="gravity"/>
+                        <tool title="Gravity" onclick="window.game.track.toolHandler.setTool('gravity')">
+                            <powerup class="gravity triangle">
+                                <svg xmlns="http://www.w3.org/2000/svg" viewbox="0 0 25 25" style="stroke-width: 2">
+                                    <polyline points="5,7 20,12.5 5,18 5,7"/>
+                                </svg>
+                            </powerup>
                         </tool>
-                        <tool onclick="window.game.track.toolHandler.setTool('bomb')">
+                        <tool title="Bomb" onclick="window.game.track.toolHandler.setTool('bomb')">
                             <powerup class="bomb"/>
                         </tool>
-                        <tool onclick="window.game.track.toolHandler.setTool('slow-mo')">
+                        <tool title="Slow-motion" onclick="window.game.track.toolHandler.setTool('slow-mo')">
                             <powerup class="slowmo"/>
                         </tool>
-                        <tool onclick="window.game.track.toolHandler.setTool('antigravity')">
+                        <tool title="Anti-gravity" onclick="window.game.track.toolHandler.setTool('antigravity')">
                             <powerup class="antigravity"/>
                         </tool>
-                        <tool style="border-bottom-width: 1px;border-bottom-style: solid;" onclick="window.game.track.toolHandler.setTool('teleporter')">
+                        <tool title="Teleporter" style="border-bottom-width: 1px;border-bottom-style: solid;" onclick="window.game.track.toolHandler.setTool('teleporter')">
                             <powerup class="teleport"/>
                         </tool>
                     </div>

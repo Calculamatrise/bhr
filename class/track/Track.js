@@ -17,8 +17,6 @@ import Antigravity from "../item/Antigravity.js";
 import Slowmo from "../item/Slowmo.js";
 import Teleporter from "../item/Teleporter.js";
 
-import tool from "../../constant/tool.js";
-
 export default class Track {
     constructor(parent, { id, code } = { id: null, code: "-18 1i 18 1i###BMX" }) {
         this.parent = parent;
@@ -28,7 +26,7 @@ export default class Track {
 
         this.editor = !this.id;
         if (this.editor) {
-            this.toolHandler.selected = "line";
+            this.toolHandler.setTool("line");
         }
 
         this.code = code;
@@ -37,8 +35,10 @@ export default class Track {
         this.parent.watchGhost = this.watchGhost;
     }
     code = null;
+    goals = 0;
     scale = 100;
     targets = 0;
+    gridSize = 1;
     grid = {}
     sectors = {}
     players = []
@@ -215,8 +215,12 @@ export default class Track {
         this.draw(ctx);
         for (const player of this.players)
             player.draw(ctx);
-
-        this.toolHandler.draw();
+        
+        if (!this.cameraFocus) {
+            ctx.save();
+            this.toolHandler.currentTool && this.toolHandler.currentTool.draw(ctx);
+            ctx.restore();
+        }
     }
     draw(ctx) {
         ctx.clearRect(0, 0, this.parent.canvas.width, this.parent.canvas.height);
@@ -298,66 +302,6 @@ export default class Track {
 
         for (var X in this.sectors)
             m[X] === void 0 && delete this.sectors[X];
-
-        if (this.toolHandler.selected !== "camera" && !this.cameraFocus) {
-            ctx.save();
-            switch (this.toolHandler.selected) {
-                case "line":
-                case "scenery line":
-                case "brush":
-                case "scenery brush":
-                    ctx.lineWidth = 1;
-                    ctx.strokeStyle = this.parent.theme.dark ? "#FBFBFB" : "#000000";
-                    ctx.beginPath(),
-                    ctx.moveTo(position.x - 10, position.y),
-                    ctx.lineTo(position.x + 10, position.y),
-                    ctx.moveTo(position.x, position.y + 10),
-                    ctx.lineTo(position.x, position.y - 10),
-                    ctx.stroke();
-                break;
-
-                case "eraser":
-                    ctx.fillStyle = "#ffb6c199";
-                    ctx.beginPath();
-                    ctx.arc(position.x, position.y, (tool.eraser.size - 1) * this.zoom, 0, Math.PI * 2, true);
-                    ctx.fill();
-                break;
-
-                case "goal":
-                case "checkpoint":
-                case "bomb":
-                case "slow-mo":
-                case "antigravity":
-                case "teleporter":
-                    ctx.fillStyle = this.toolHandler.selected == "goal" ? "#ff0" : this.toolHandler.selected == "checkpoint" ? "#00f" : this.toolHandler.selected == "bomb" ? "#f00" : this.toolHandler.selected == "slow-mo" ? "#eee" : this.toolHandler.selected == "antigravity" ? "#0ff" : "#f0f";
-                    ctx.beginPath(),
-                    ctx.arc(position.x, position.y, 7 * this.zoom, 0, 2 * Math.PI, true),
-                    ctx.fill(),
-                    ctx.stroke();
-                break;
-
-                case "boost":
-                case "gravity":
-                    ctx.beginPath(),
-                    ctx.fillStyle = this.toolHandler.selected == "boost" ? "#ff0" : "#0f0";
-                    if (this.cameraLock) {
-                        ctx.translate(old.x, old.y),
-                        ctx.rotate(Math.atan2(-(this.parent.mouse.position.x - this.parent.mouse.old.x), this.parent.mouse.position.y - this.parent.mouse.old.y));
-                    } else {
-                        ctx.translate(position.x, position.y);
-                    }
-
-                    ctx.moveTo(-7 * this.zoom, -10 * this.zoom),
-                    ctx.lineTo(0, 10 * this.zoom),
-                    ctx.lineTo(7 * this.zoom, -10 * this.zoom),
-                    ctx.lineTo(-7 * this.zoom, -10 * this.zoom),
-                    ctx.fill(),
-                    ctx.stroke();
-                break;
-            }
-
-            ctx.restore();
-        }
         
         ctx.beginPath();
         ctx.fillStyle = "#ff0";
@@ -386,12 +330,12 @@ export default class Track {
                 i += " or BACKSPACE to cancel Checkpoint"
             }
         } else if (this.id === void 0) {
-            if (tool.grid === 10 && "line\\scenery line\\brush\\scenery brush".split(/\\/).includes(this.toolHandler.selected)) {
+            if (this.gridSize === 10 && "line\\scenery line\\brush\\scenery brush".split(/\\/).includes(this.toolHandler.selected)) {
                 i += " - Grid ";
             }
             i += " - " + this.toolHandler.selected;
             if ("brush\\scenery brush".split(/\\/).includes(this.toolHandler.selected)) {
-                i += " ( size " + tool.brush.length + " )";
+                i += " ( size " + this.toolHandler.currentTool.length + " )";
             }
         }
         if (this.displayText) {
@@ -455,34 +399,34 @@ export default class Track {
             f = e[d];
             h = e[d + 1];
             if (f !== void 0) {
-                if (tool.eraser.settings.physics) {
+                if (this.toolHandler.currentTool.settings.physics) {
                     for (e = 0, i = f.physics.length; e < i; e++) {
                         f.physics[e] && b(f.physics[e]);
                     }
                 }
-                if (tool.eraser.settings.scenery) {
+                if (this.toolHandler.currentTool.settings.scenery) {
                     for (e = 0, i = f.scenery.length; e < i; e++) {
                         f.scenery[e] && b(f.scenery[e]);
                     }
                 }
-                if (tool.eraser.settings.powerups) {
+                if (this.toolHandler.currentTool.settings.powerups) {
                     for (e = 0, i = f.powerups.length; e < i; e++) {
                         f.powerups[e] && b(f.powerups[e]);
                     }
                 }
             }
             if (h !== void 0) {
-                if (tool.eraser.settings.physics) {
+                if (this.toolHandler.currentTool.settings.physics) {
                     for (e = 0, i = h.physics.length; e < i; e++) {
                         h.physics[e] && b(h.physics[e]);
                     }
                 }
-                if (tool.eraser.settings.scenery) {
+                if (this.toolHandler.currentTool.settings.scenery) {
                     for (e = 0, i = h.scenery.length; e < i; e++) {
                         h.scenery[e] && b(h.scenery[e]);
                     }
                 }
-                if (tool.eraser.settings.powerups) {
+                if (this.toolHandler.currentTool.settings.powerups) {
                     for (e = 0, i = h.powerups.length; e < i; e++) {
                         h.powerups[e] && b(h.powerups[e])
                     }
@@ -493,34 +437,34 @@ export default class Track {
             f = c[d];
             d = c[d + 1];
             if (f !== void 0) {
-                if (tool.eraser.settings.physics) {
+                if (this.toolHandler.currentTool.settings.physics) {
                     for (e = 0, i = f.physics.length; e < i; e++) {
                         f.physics[e] && b(f.physics[e]);
                     }
                 }
-                if (tool.eraser.settings.scenery) {
+                if (this.toolHandler.currentTool.settings.scenery) {
                     for (e = 0, i = f.scenery.length; e < i; e++) {
                         f.scenery[e] && b(f.scenery[e]);
                     }
                 }
-                if (tool.eraser.settings.powerups) {
+                if (this.toolHandler.currentTool.settings.powerups) {
                     for (e = 0, i = f.powerups.length; e < i; e++) {
                         f.powerups[e] && b(f.powerups[e])
                     }
                 }
             }
             if (d !== void 0) {
-                if (tool.eraser.settings.physics) {
+                if (this.toolHandler.currentTool.settings.physics) {
                     for (e = 0, i = d.physics.length; e < i; e++) {
                         d.physics[e] && b(d.physics[e]);
                     }
                 }
-                if (tool.eraser.settings.scenery) {
+                if (this.toolHandler.currentTool.settings.scenery) {
                     for (e = 0, i = d.scenery.length; e < i; e++) {
                         d.scenery[e] && b(d.scenery[e]);
                     }
                 }
-                if (tool.eraser.settings.powerups) {
+                if (this.toolHandler.currentTool.settings.powerups) {
                     for (i = d.powerups.length; e < i; e++) {
                         d.powerups[e] && b(d.powerups[e]);
                     }

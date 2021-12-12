@@ -5,7 +5,6 @@ import Player from "./Player.js";
 
 import Vector from "./Vector.js";
 import Sector from "./sector/Sector.js";
-import tool from "../constant/tool.js";
 import Target from "./item/Target.js";
 import Checkpoint from "./item/Checkpoint.js";
 import Bomb from "./item/Bomb.js";
@@ -72,48 +71,21 @@ export default class {
         if (this.mouse.position.x / 25 < 1 && [0, 1, 2, 4, 6, 7, 12, 13, 15, 16, 17].includes(Math.floor(this.mouse.position.y / 25))) {
             this.track.cameraLock = false;
             switch(Math.floor(this.mouse.position.y / 25) + 1) {
-                case 13:
-                    if (this.track.toolHandler.selected == "eraser") {
-                        if (tool.eraser.size < 500) {
-                            tool.eraser.size += 5;
-                        }
-                    } else if (["brush", "scenery brush"].includes(this.track.toolHandler.selected)) {
-                        if (tool.brush.length < 200) {
-                            tool.brush.length += 8;
-                        }
-                    }
-                    break;
-
-                case 14:
-                    if (this.track.toolHandler.selected == "eraser") {
-                        if (tool.eraser.size > 10) {
-                            tool.eraser.size -= 5;
-                        }
-                    } else if (["brush", "scenery brush"].includes(this.track.toolHandler.selected)) {
-                        if (tool.brush.length > 4) {
-                            tool.brush.length -= 8;
-                        }
-                    }
-                    break;
-
                 case 16:
                     if (this.track.toolHandler.selected == "eraser") {
-                        tool.eraser.settings.physics = !tool.eraser.settings.physics;
-                        this.track.displayText[2] = tool.descriptions.left[15];
+                        this.track.toolHandler.currentTool.settings.physics = !this.track.toolHandler.currentTool.settings.physics;
                     }
                     break;
 
                 case 17:
                     if (this.track.toolHandler.selected == "eraser") {
-                        tool.eraser.settings.scenery = !tool.eraser.settings.scenery;
-                        this.track.displayText[2] = tool.descriptions.left[16];
+                        this.track.toolHandler.currentTool.settings.scenery = !this.track.toolHandler.currentTool.settings.scenery;
                     }
                     break;
                     
                 case 18:
                     if (this.track.toolHandler.selected == "eraser") {
-                        tool.eraser.settings.powerups = !tool.eraser.settings.powerups;
-                        this.track.displayText[2] = tool.descriptions.left[17];
+                        this.track.toolHandler.currentTool.settings.powerups = !this.track.toolHandler.currentTool.settings.powerups;
                     }
                     break;
             }
@@ -122,12 +94,12 @@ export default class {
             this.track.cameraLock = false;
             switch (Math.floor(this.mouse.position.y / 25) + 1) {
                 case 7:
-                    if (tool.grid === 1) {
-                        tool.grid = 10;
-                        this.track.displayText[2] = tool.descriptions.right[6] = "Disable grid snapping ( G )";
+                    if (this.track.gridSize === 1) {
+                        this.track.gridSize = 10;
+                        // this.track.displayText[2] = tool.descriptions.right[6] = "Disable grid snapping ( G )";
                     } else {
-                        tool.grid = 1;
-                        this.track.displayText[2] = tool.descriptions.right[6] = "Enable grid snapping ( G )";
+                        this.track.gridSize = 1;
+                        // this.track.displayText[2] = tool.descriptions.right[6] = "Enable grid snapping ( G )";
                     }
                     break;
 
@@ -138,7 +110,7 @@ export default class {
         } else if (event.button === 2 && this.track.toolHandler.selected !== "camera") {
             //this.track.erase(this.mouse.position);
             return;
-        } else if (this.track.firstPlayer.gamepad.downKeys.has("q") && this.track.toolHandler.selected === "line") {
+        } else if (this.track.firstPlayer.gamepad.downKeys.has("q") && this.track.toolHandler.selected === "line" && !this.track.toolHandler.currentTool.scenery) {
             this.track.addLine(this.mouse.old, this.mouse.position, false);
         } else {
             let x;
@@ -181,7 +153,7 @@ export default class {
 
                 case "brush":
                 case "scenery brush":
-                    this.track.addLine(this.mouse.old, this.mouse.position, "brush" !== this.track.toolHandler.selected);
+                    this.track.addLine(this.mouse.old, this.mouse.position, this.track.toolHandler.currentTool.scenery);
                     this.track.cameraLock = true;
                     break;
             }
@@ -203,8 +175,8 @@ export default class {
 
         if (this.track.toolHandler.selected !== "eraser") {
             if (event.button !== 2) {
-                this.mouse.position.x = Math.round(this.mouse.position.x / tool.grid) * tool.grid;
-                this.mouse.position.y = Math.round(this.mouse.position.y / tool.grid) * tool.grid;
+                this.mouse.position.x = Math.round(this.mouse.position.x / this.track.gridSize) * this.track.gridSize;
+                this.mouse.position.y = Math.round(this.mouse.position.y / this.track.gridSize) * this.track.gridSize;
             }
         }
 
@@ -214,8 +186,8 @@ export default class {
                 this.mouse.position.copy(this.mouse.old);
             } else if (this.track.toolHandler.selected === "eraser" || window.BHR_RCE_ENABLED && event.button === 2) {
                 this.track.erase(this.mouse.position);
-            } else if (["brush", "scenery brush"].includes(this.track.toolHandler.selected) && this.mouse.old.distanceTo(this.mouse.position) >= tool.brush.length) {
-                this.track.addLine(this.mouse.old, this.mouse.position, "brush" !== this.track.toolHandler.selected);
+            } else if (["brush", "scenery brush"].includes(this.track.toolHandler.selected) && this.mouse.old.distanceTo(this.mouse.position) >= this.track.toolHandler.currentTool.length) {
+                this.track.addLine(this.mouse.old, this.mouse.position, this.track.toolHandler.currentTool.scenery);
             }
         }
 
@@ -226,7 +198,7 @@ export default class {
                 if ("eraser\\brush\\scenery brush".split(/\\/).includes(this.track.toolHandler.selected)) {
                     if (y > 13) {
                         if (this.track.toolHandler.selected == "eraser") {
-                            this.track.displayText = [0, y, tool.descriptions.left[y]];
+                            this.track.displayText = [0, y, undefined /* tool description */];
                         }
                     }
                 }
@@ -238,7 +210,7 @@ export default class {
                 this.canvas.style.cursor = this.track.toolHandler.selected == "camera" ? "move" : ["boost", "gravity"].includes(this.track.toolHandler.selected) ? "crosshair" : "none";
             }
         } else if (this.track.editor && x > this.canvas.width / 25 - 1) {
-            this.track.displayText = [1, y, tool.descriptions.right[y]];
+            this.track.displayText = [1, y, undefined /* tool description */];
             if (14 === y && ("scenery line" === this.track.toolHandler.selected || "scenery brush" === this.track.toolHandler.selected)) {
                 this.track.displayText[2] = "Shorten last set of scenery lines ( Z )";
             }
@@ -262,7 +234,7 @@ export default class {
 
         //if (this.track.cameraLock) {
             if (["line", "scenery line", "brush", "scenery brush"].includes(this.track.toolHandler.selected)) {
-                this.track.addLine(this.mouse.old, this.mouse.position, "line" !== this.track.toolHandler.selected && "brush" !== this.track.toolHandler.selected);
+                this.track.addLine(this.mouse.old, this.mouse.position, this.track.toolHandler.currentTool.scenery);
             } else if ("teleporter" === this.track.toolHandler.selected) {
                 this.mouse.old.copy(this.mouse.position);
                 if (this.track.teleporter) {
@@ -287,19 +259,19 @@ export default class {
     scroll(event) {
         if (Z) {
             if ("eraser" === this.track.toolHandler.selected) {
-                if ((0 < event.detail || 0 > event.wheelDelta) && 5 < tool.eraser.size) {
-                    tool.eraser.size -= 5;
+                if ((0 < event.detail || 0 > event.wheelDelta) && 5 < this.track.toolHandler.currentTool.size) {
+                    this.track.toolHandler.currentTool.size -= 5;
                 } else {
-                    if ((0 > event.detail || 0 < event.wheelDelta) && 40 > tool.eraser.size) {
-                        tool.eraser.size += 5
+                    if ((0 > event.detail || 0 < event.wheelDelta) && 40 > this.track.toolHandler.currentTool.size) {
+                        this.track.toolHandler.currentTool.size += 5
                     }
                 }
             } else {
                 if ("brush" === this.track.toolHandler.selected || "scenery brush" === this.track.toolHandler.selected) {
-                    if ((0 < event.detail || 0 > event.wheelDelta) && 4 < tool.brush.length) {
-                        tool.brush.length -= 8;
-                    } else if ((0 > event.detail || 0 < event.wheelDelta) && 200 > tool.brush.length) {
-                        tool.brush.length += 8;
+                    if ((0 < event.detail || 0 > event.wheelDelta) && 4 < this.track.toolHandler.currentTool.length) {
+                        this.track.toolHandler.currentTool.length -= 8;
+                    } else if ((0 > event.detail || 0 < event.wheelDelta) && 200 > this.track.toolHandler.currentTool.length) {
+                        this.track.toolHandler.currentTool.length += 8;
                     }
                 }
             }

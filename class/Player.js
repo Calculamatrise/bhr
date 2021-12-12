@@ -214,16 +214,14 @@ export default class Player {
         }
     }
     collide(a) {
-        if (this.snapshots) {
-            if (this.snapshots[a]) {
-                for (var i in this.snapshots) {
-                    this.snapshots[i].apply(this, _slice.call(arguments, 1))
-                }
+        if (this.snapshots && this.snapshots[a]) {
+            for (const i in this.snapshots) {
+                this.snapshots[i].apply(this, _slice.call(arguments, 1))
             }
         }
     }
     trackComplete() {
-        var e = this.track;
+        let e = this.track;
         this.collide("hitTarget");
         if (this.pastCheckpoint & 2) {
             this.collide("hitGoal");

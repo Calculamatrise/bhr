@@ -6,8 +6,12 @@ tool {
     border-color: #444;
 }
 
-tool:hover {
+tool:hover, tool.active:hover {
     background-color: #333;
+}
+
+tool.active {
+    background-color: #33333380;
 }
 
 tool *:not(wheel, line, eraser, svg) {
