@@ -8,7 +8,7 @@
         <link rel="stylesheet" href="styles/light.css" onload="localStorage.getItem('theme') === 'dark' && (this.href = 'styles/dark.css')">
     </head>
     <body>
-        <div class="container">
+        <container>
             <interface>
                 <overlay>
                     <div id="track_menu">
@@ -175,7 +175,7 @@
                 </toolbar>
             </interface>
             <canvas id="view" width="800" height="450"></canvas>
-        </div>
+        </container>
         <script type="module" src="bootstrap.js"></script>
         <script type="module">
             game.init();
