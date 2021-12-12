@@ -20,8 +20,9 @@ let Z = false, Hb = false, older = null;
 export default class {
     constructor(canvas) {
         this.canvas = canvas;
-        this.canvas.style.setProperty("background-color", this.theme.dark ? "#1B1B1B" : "white");
+
         this.ctx = this.canvas.getContext("2d");
+        this.container = this.canvas.parentElement;
         
         window.addEventListener("resize", this.adjust.bind(canvas));
         this.adjust.bind(canvas)();
@@ -39,9 +40,9 @@ export default class {
     lastFrame = null;
     progress = 0;
     get theme() {
-        this.canvas.style.backgroundColor = JSON.parse(localStorage.getItem("dark")) ?? window.matchMedia("(prefers-color-scheme: dark)").matches ? "#1B1B1B" : "white";
+        this.canvas.style.backgroundColor = localStorage.getItem("theme") === "dark" ? "#1b1b1b" : "white";
         return {
-            dark: JSON.parse(localStorage.getItem("dark")) ?? window.matchMedia("(prefers-color-scheme: dark)").matches
+            dark: localStorage.getItem("theme") === "dark"
         }
     }
     adjust() {
@@ -71,37 +72,6 @@ export default class {
         if (this.mouse.position.x / 25 < 1 && [0, 1, 2, 4, 6, 7, 12, 13, 15, 16, 17].includes(Math.floor(this.mouse.position.y / 25))) {
             this.track.cameraLock = false;
             switch(Math.floor(this.mouse.position.y / 25) + 1) {
-                case 1:
-                    this.track.paused = !this.track.paused;
-                    break;
-
-                case 2:
-                    this.track.gotoCheckpoint();
-                    break;
-
-                case 3:
-                    this.track.removeCheckpoint();
-                    break;
-
-                case 5:
-                    this.track.switchBike();
-                    break;
-
-                case 7:
-                    this.track.lineShading ? (this.track.lineShading = false,
-                    this.track.displayText[2] = tool.descriptions.left[6] = "Enable line shading") : (this.track.lineShading = true,
-                    this.track.displayText[2] = tool.descriptions.left[6] = "Disable line shading");
-                    this.track.sectors = [];
-                    break;
-
-                case 8:
-                    if (document.fullscreenElement) {
-                        document.exitFullscreen();
-                    } else {
-                        this.canvas.requestFullscreen();
-                    }
-                    break;
-
                 case 13:
                     if (this.track.toolHandler.selected == "eraser") {
                         if (tool.eraser.size < 500) {
@@ -151,30 +121,6 @@ export default class {
         [0, 1, 2, 3, 4, 5, 6, 8, 9, 10, 11, 12, 13, 14, 15, 17].includes(Math.floor(this.mouse.position.y / 25))) {
             this.track.cameraLock = false;
             switch (Math.floor(this.mouse.position.y / 25) + 1) {
-                case 1:
-                    this.track.toolHandler.selected = "brush";
-                    break;
-
-                case 2:
-                    this.track.toolHandler.selected = "scenery brush";
-                    break;
-
-                case 3:
-                    this.track.toolHandler.selected = "line";
-                    break;
-
-                case 4:
-                    this.track.toolHandler.selected = "scenery line";
-                    break;
-
-                case 5:
-                    this.track.toolHandler.selected = "eraser";
-                    break;
-
-                case 6:
-                    this.track.toolHandler.selected = "camera";
-                    break;
-
                 case 7:
                     if (tool.grid === 1) {
                         tool.grid = 10;
@@ -183,38 +129,6 @@ export default class {
                         tool.grid = 1;
                         this.track.displayText[2] = tool.descriptions.right[6] = "Enable grid snapping ( G )";
                     }
-                    break;
-
-                case 9:
-                    this.track.toolHandler.selected = "goal";
-                    break;
-                    
-                case 10:
-                    this.track.toolHandler.selected = "checkpoint";
-                    break;
-
-                case 11:
-                    this.track.toolHandler.selected = "boost";
-                    break;
-
-                case 12:
-                    this.track.toolHandler.selected = "gravity";
-                    break;
-
-                case 13:
-                    this.track.toolHandler.selected = "bomb";
-                    break;
-
-                case 14:
-                    this.track.toolHandler.selected = "slow-mo";
-                    break;
-
-                case 15:
-                    this.track.toolHandler.selected = "antigravity";
-                    break;
-
-                case 16:
-                    this.track.toolHandler.selected = "teleporter";
                     break;
 
                 case 18:
@@ -314,15 +228,11 @@ export default class {
                         if (this.track.toolHandler.selected == "eraser") {
                             this.track.displayText = [0, y, tool.descriptions.left[y]];
                         }
-                    } else {
-                        this.track.displayText = [0, y, tool.descriptions.left[y]];
                     }
                 }
-            } else {
-                this.track.displayText = [0, y, tool.descriptions.left[y]];
             }
 
-            if ([0, 1, 2, 4, 6, 7].includes(y) || this.track.toolHandler.selected == "eraser" && [12, 13, 15, 16, 17].includes(y)) {
+            if (this.track.toolHandler.selected == "eraser" && [12, 13, 15, 16, 17].includes(y)) {
                 this.canvas.style.cursor = "default";
             } else {
                 this.canvas.style.cursor = this.track.toolHandler.selected == "camera" ? "move" : ["boost", "gravity"].includes(this.track.toolHandler.selected) ? "crosshair" : "none";

@@ -1,6 +1,5 @@
 import Vector from "../Vector.js";
 import tool from "../../constant/tool.js";
-import { ctx } from "../../bootstrap.js";
 
 export default class Item {
     constructor(a, b, c) {
@@ -9,14 +8,17 @@ export default class Item {
         this.id = tool.powerups++
     }
     removed = false;
+    get ctx() {
+        return this.track.parent.ctx;
+    }
     draw(t = this.color, e = this.position.toPixel()) {
-        ctx.strokeStyle = this.track.parent.theme.dark ? "#FBFBFB" : "#000000";
-        ctx.fillStyle = t;
-        ctx.beginPath();
-        ctx.moveTo(e.x + 7 * this.track.zoom, e.y);
-        ctx.arc(e.x, e.y, 7 * this.track.zoom, 0, 2 * Math.PI, !0);
-        ctx.fill();
-        ctx.stroke();
+        this.ctx.strokeStyle = this.track.parent.theme.dark ? "#FBFBFB" : "#000000";
+        this.ctx.fillStyle = t;
+        this.ctx.beginPath();
+        this.ctx.moveTo(e.x + 7 * this.track.zoom, e.y);
+        this.ctx.arc(e.x, e.y, 7 * this.track.zoom, 0, 2 * Math.PI, !0);
+        this.ctx.fill();
+        this.ctx.stroke();
     }
     collide(t) {
         if (t.position.distanceToSquared(this.position) < 500 && !t.parent.tb) {

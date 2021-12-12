@@ -1,10 +1,11 @@
 export const canvas = document.querySelector("#view");
-export const ctx = canvas.getContext("2d");
 
 import tool from "./constant/tool.js";
 import Game from "./class/Game.js";
 
 export default window.game = new Game(document.querySelector("#view"));
+
+localStorage.setItem("theme", localStorage.getItem("theme") || window.matchMedia("(prefers-color-scheme: dark)").matches);
 
 document.querySelector("#upload")?.addEventListener("click", () => {
     function ja(){
@@ -168,7 +169,7 @@ document.querySelector("#upload")?.addEventListener("click", () => {
     }
 });
 
-document.onkeydown = function(event) {
+document.addEventListener("keydown", function(event) {
     event.preventDefault();
     switch (event.keyCode) {
         case 8:
@@ -270,32 +271,42 @@ document.onkeydown = function(event) {
                 break;
         }
     }
-}
-document.onkeyup = function(event) {
-    switch (event.keyCode) {
-        case 66:
+});
+
+document.addEventListener("keyup", function(event) {
+    switch (event.key) {
+        case "b":
             if (event.ctrlKey) {
                 window.game.track.switchBike();
             }
-        break;
 
-        case 71:
+            break;
+
+        case "g":
             if (window.game.track.players.length <= 1) {
                 tool.grid = 11 - tool.grid,
                 tool.descriptions.right[6] = (1 === tool.grid ? "En" : "Dis") + "able grid snapping ( G )";
             }
-        break;
 
-        case 82:
+            break;
+
+        case "r":
             if (tool.toggleCamera) {
                 tool.selected = tool.selectedCache;
                 canvas.style.cursor = "none";
                 tool.toggleCamera = false;
             }
-        break;
 
-        case 113:
+            break;
+
+        case "F2":
             window.game.track.firstPlayer.pastCheckpoint = false;
-        break;
+            break;
+
+        case "Escape":
+            let overlay = window.game.container.querySelector("overlay");
+            overlay.style.setProperty("display", overlay.style.display === "flex" ? (window.game.track.paused = !1, "none") : (window.game.track.paused = !0, "flex"));
+
+            break;
     }
-}
+});

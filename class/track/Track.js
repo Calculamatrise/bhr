@@ -1,5 +1,3 @@
-import { ctx } from "../../bootstrap.js";
-
 import Player from "../Player.js";
 
 import ToolHandler from "../handler/Tool.js";
@@ -585,7 +583,7 @@ export default class Track {
             delete this.sectors[c + "_" + d]
     }
     read(a = "-18 1i 18 1i###BMX") {
-        ctx.fillText("Loading track... Please wait.", 36, 16);
+        this.parent.ctx.fillText("Loading track... Please wait.", 36, 16);
         var e = a.split("#")
           , i = e[0].split(",")
           , s = []

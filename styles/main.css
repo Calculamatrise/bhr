@@ -1,0 +1,340 @@
+html {
+    font-family: Arial, Helvetica, sans-serif;
+}
+
+body {
+    margin: 0;
+}
+
+canvas#view {
+    width: 100vw;
+    height: 100vh;
+    background-color: white;
+}
+
+div.container {
+	position: relative;
+	display: inline-flex;
+}
+
+div.container interface {
+	position: absolute;
+	display: flex;
+	z-index: 1;
+	left: 0;
+	top: 0;
+}
+
+interface overlay {
+    width: 100%;
+    height: 100%;
+    display: none;
+    align-items: center;
+    justify-content: center;
+    backdrop-filter: blur(10px);
+    position: fixed;
+}
+
+interface toolbar {
+    top: 0;
+    display: block;
+    position: relative;
+    pointer-events: none;
+    user-select: none;
+    -webkit-user-select: none;
+}
+
+toolbar settings, toolbar settings div[data-id=eraser] {
+    display: none;
+    margin-top: 25px;
+}
+
+toolbar :is(div.left, div.right) {
+    width: 30px;
+    position: fixed;
+    pointer-events: all;
+}
+
+toolbar div.left {
+    left: 0;
+}
+
+toolbar div.right {
+    right: 0;
+}
+
+toolbar tool {
+    width: 16px;
+    height: 16px;
+    padding: 8px;
+    outline: none;
+    display: block;
+}
+
+toolbar div.left tool {
+    border-right-width: 1px;
+    border-right-style: solid;
+}
+
+toolbar div.right tool {
+    border-left-width: 1px;
+    border-left-style: solid;
+}
+
+tool:hover {
+    transition: all 40ms;
+    background-color: #333;
+}
+
+tool * {
+    display: block;
+    width: inherit;
+    height: inherit;
+    pointer-events: none;
+    transition: all 200ms;
+}
+
+playpause {
+    clip-path: polygon(
+        0 0,
+        50% 25%,
+        50% 75%,
+        50% 75%,
+        50% 25%,
+        100% 50%,
+        100% 50%,
+        0 100%
+    );
+}
+
+playpause.playing {
+    clip-path: polygon(
+        0 0,
+        40% 0,
+        40% 100%,
+        60% 100%,
+        60% 0,
+        100% 0,
+        100% 100%,
+        0 100%
+    );
+}
+
+backtrack {
+    clip-path: polygon(
+        0 0,
+        20% 0,
+        20% 50%,
+        100% 0,
+        100% 100%,
+        20% 50%,
+        20% 100%,
+        0 100%
+    );
+}
+
+rewind {
+    clip-path: polygon(
+        0 0,
+        20% 0,
+        20% 50%,
+
+        /* arrow left midway end */
+        60% 0,
+        60% 50%,
+
+        /* arrow left midway arrow left*/
+        100% 0,
+        100% 100%,
+        50% 50%,
+        60% 50%,
+
+        60% 100%,
+        20% 50%,
+        20% 100%,
+        0 100%
+    );
+}
+
+@keyframes rotate {
+    0% {
+        transform: rotate(0);
+    }
+
+    100% {
+        transform: rotate(360deg);
+    }
+}
+
+wheel, line {
+    display: block;
+    background-color: transparent;
+}
+
+tool:active wheel {
+    animation: none;
+}
+
+tool:focus wheel {
+    animation: rotate 1s ease;
+}
+
+tool svg {
+    stroke: black;
+    stroke-linecap: round;
+    stroke-linejoin: round;
+    background-color: transparent;
+}
+
+wheel svg {
+    stroke: #777;
+}
+
+wheel svg circle {
+    fill: none;
+    stroke-width: 2.5;
+}
+
+brush {
+    clip-path: circle(20%);
+}
+
+brush.scenery {
+    background-color: #aaa;
+}
+
+line svg {
+    stroke-width: 4;
+}
+
+camera {
+    clip-path: polygon(
+        50% 0,
+        30% 25%,
+        45% 25%,
+        45% 45%,
+        25% 45%,
+        25% 30%,
+        0 50%,
+        25% 70%,
+        25% 55%,
+        45% 55%,
+        45% 75%,
+        30% 75%,
+        50% 100%,
+        70% 75%,
+        55% 75%,
+        55% 55%,
+        75% 55%,
+        75% 70%,
+        100% 50%,
+        75% 30%,
+        75% 45%,
+        55% 45%,
+        55% 25%,
+        70% 25%,
+        50% 0
+    );
+}
+
+powerup {
+	width: 7px;
+	height: 7px;
+    border-width: 4px;
+    border-style: solid;
+    border-radius: 50%;
+    clip-path: circle(30%);
+}
+
+powerup.target, powerup.boost {
+    background-color: #ff0;
+}
+
+powerup.checkpoint {
+    background-color: #00f;
+}
+
+powerup.gravity {
+    background-color: #0f0;
+}
+
+powerup.bomb {
+    background-color: #f00;
+}
+
+powerup.slowmo {
+    background-color: #eee;
+}
+
+powerup.antigravity {
+    background-color: #0ff;
+}
+
+powerup.teleport {
+    background-color: #f0f;
+}
+
+eraser {
+    clip-path: circle(45%);
+    background-color: #ffb6c1;
+}
+
+fullscreen {
+    clip-path: polygon(
+        0 40%,
+        0 0,
+        40% 0,
+        40% 20%,
+        20% 20%,
+        20% 40%,
+        0 40%,
+        0 100%,
+        40% 100%,
+        40% 80%,
+        20% 80%,
+        20% 60%,
+        0 60%,
+        0 100%,
+        100% 100%,
+        100% 60%,
+        80% 60%,
+        80% 80%,
+        60% 80%,
+        60% 100%,
+        100% 100%,
+        100% 0,
+        60% 0,
+        60% 20%,
+        80% 20%,
+        80% 40%,
+        100% 40%,
+        100% 100%,
+        0 100%
+    );
+}
+
+increment {
+    clip-path: polygon(
+        40% 0,
+        40% 40%,
+        0 40%,
+        0 60%,
+        40% 60%,
+        40% 100%,
+        60% 100%,
+        60% 60%,
+        100% 60%,
+        100% 40%,
+        60% 40%,
+        60% 0
+    );
+}
+
+decrement {
+    clip-path: polygon(
+        0 40%,
+        100% 40%,
+        100% 60%,
+        0 60%
+    );
+}

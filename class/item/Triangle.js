@@ -1,6 +1,5 @@
 import Vector from "../Vector.js";
 import Item from "./Item.js";
-import { ctx } from "../../bootstrap.js";
 
 export default class Triangle extends Item {
     constructor(a, b, c, d) {
@@ -11,13 +10,19 @@ export default class Triangle extends Item {
     draw() {
         var a = this.track,
             b = this.position.toPixel();
-        ctx.strokeStyle = this.track.parent.theme.dark ? "#FBFBFB" : "#000000";
-        ctx.fillStyle = this.color;
-        ctx.beginPath(),
-        ctx.save();
-        ctx.translate(b.x, b.y);
-        ctx.rotate(this.rotation * Math.PI / 180);
-        ctx.moveTo(-7 * a.zoom, -10 * a.zoom),ctx.lineTo(0, 10 * a.zoom),ctx.lineTo(7 * a.zoom, -10 * a.zoom),ctx.lineTo(-7 * a.zoom, -10 * a.zoom),ctx.fill(),ctx.stroke(),ctx.restore()
+        this.ctx.strokeStyle = this.track.parent.theme.dark ? "#FBFBFB" : "#000000";
+        this.ctx.fillStyle = this.color;
+        this.ctx.beginPath(),
+        this.ctx.save();
+        this.ctx.translate(b.x, b.y);
+        this.ctx.rotate(this.rotation * Math.PI / 180);
+        this.ctx.moveTo(-7 * a.zoom, -10 * a.zoom),
+        this.ctx.lineTo(0, 10 * a.zoom),
+        this.ctx.lineTo(7 * a.zoom, -10 * a.zoom),
+        this.ctx.lineTo(-7 * a.zoom, -10 * a.zoom),
+        this.ctx.fill(),
+        this.ctx.stroke(),
+        this.ctx.restore()
     }
     collide(a) {
         if (a.position.distanceToSquared(this.position) < 1E3) {

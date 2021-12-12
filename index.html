@@ -4,29 +4,149 @@
         <meta http-equiv="X-UA-Compatible" content="IE=edge">
         <meta name="viewport" content="width=device-width, initial-scale=1.0">
         <title>Black Hat Rider - Calculamatrise</title>
-        <link rel="stylesheet" href="style.css">
+        <link rel="stylesheet" href="styles/main.css">
+        <link rel="stylesheet" href="styles/light.css" onload="localStorage.getItem('theme') === 'dark' && (this.href = 'styles/dark.css')">
         <script type="module" src="bootstrap.js"></script>
     </head>
     <body>
         <div class="container">
-            <canvas id="view" width="800" height="450" onload="console.log('tes')"></canvas>
-            <div class="overlay">
-                <div id="settings">
-                    Restart
-                </div>
-            </div>
-        </div>
-        <div id="track_menu" style="display:none">
-            <div class="span12" id="charcount">Trackcode - CTRL + V to paste</div>
-            <input id="trackcode" style="width:528px" spellcheck="false" oninput="
-                if (event.target.value.startsWith('GHOST:')) {
-                    document.querySelector('#track_menu').style.display = 'none';
-                    document.querySelector('#view').style.display = 'block';
-                    game.watchGhost(event.target.value);
-                } else {
-                    game.loadRide(event.target.value);
-                }
-            ">
+            <interface>
+                <overlay>
+                    <div id="track_menu">
+                        <div class="span12" id="charcount">Trackcode - CTRL + V to paste</div>
+                        <input id="trackcode" style="width:250px" spellcheck="false" oninput="
+                            if (event.target.value.startsWith('GHOST:')) {
+                                document.querySelector('#track_menu').style.display = 'none';
+                                document.querySelector('#view').style.display = 'block';
+                                game.watchGhost(event.target.value);
+                            } else {
+                                game.loadRide(event.target.value);
+                            }
+                        ">
+                    </div>
+                </overlay>
+                <toolbar>
+                    <div class="left">
+                        <tool title="Pause/Play - Space" onclick="this.firstElementChild.classList.contains('playing') ? (this.firstElementChild.classList.remove('playing'), window.game.track.paused = !0) : (this.firstElementChild.classList.add('playing'), window.game.track.paused = !1);">
+                            <playpause class="playing"/>
+                        </tool>
+                        <tool title="Checkpoint - Enter" onclick="window.game.track.gotoCheckpoint()">
+                            <backtrack/>
+                        </tool>
+                        <tool title="Cancel Checkpoint - Backspace" style="border-bottom-width: 1px;border-bottom-style: solid;" onclick="window.game.track.removeCheckpoint()">
+                            <rewind/>
+                        </tool>
+                        <br>
+                        <tool title="Change Vehicle - Ctrl + B" style="border-bottom-width: 1px;border-bottom-style: solid;border-top-width: 1px;border-top-style: solid;" tabindex="0"onclick="window.game.track.switchBike()">
+                            <wheel>
+                                <svg xmlns="http://www.w3.org/2000/svg" viewbox="0 0 25 25">
+                                    <circle cx="12.5" cy="12.5" r="10"/>
+                                    <line x1="12.5" y1="12.5" x2="20.5" y2="12.5"/>
+                                    <line x1="12.5" y1="12.5" x2="19.42820323027551" y2="16.5"/>
+                                    <line x1="12.5" y1="12.5" x2="16.5" y2="19.428203230275507"/>
+                                    <line x1="12.5" y1="12.5" x2="12.5" y2="20.5"/>
+                                    <line x1="12.5" y1="12.5" x2="8.500000000000002" y2="19.42820323027551"/>
+                                    <line x1="12.5" y1="12.5" x2="5.57179676972449" y2="16.5"/>
+                                    <line x1="12.5" y1="12.5" x2="4.5" y2="12.500000000000002"/>
+                                    <line x1="12.5" y1="12.5" x2="5.571796769724491" y2="8.5"/>
+                                    <line x1="12.5" y1="12.5" x2="8.499999999999996" y2="5.571796769724492"/>
+                                    <line x1="12.5" y1="12.5" x2="12.499999999999998" y2="4.5"/>
+                                    <line x1="12.5" y1="12.5" x2="16.5" y2="5.571796769724491"/>
+                                    <line x1="12.5" y1="12.5" x2="19.428203230275507" y2="8.499999999999996"/>
+                                </svg>
+                            </wheel>
+                        </tool>
+                        <br>
+                        <tool title="Fullscreen - F" style="border-bottom-width: 1px;border-bottom-style: solid;border-top-width: 1px;border-top-style: solid;" onclick="document.fullscreenElement ? document.exitFullscreen() : window.game.container.requestFullscreen()">
+                            <fullscreen/>
+                        </tool>
+                        <settings>
+                            <!-- Add eraser/brush tool settings -->
+                            <tool title="Increase length" style="border-top-width: 1px;border-top-style: solid;" onclick="">
+                                <increment/>
+                            </tool>
+                            <tool title="Decrease length" style="border-bottom-width: 1px;border-bottom-style: solid;" onclick="">
+                                <decrement/>
+                            </tool>
+                            <div data-id="eraser">
+                                <tool title="Erase physical lines - Enabled" style="border-top-width: 1px;border-top-style: solid;" onclick="">
+                                    <brush/>
+                                </tool>
+                                <tool title="Erase visual lines - Enabled" onclick="">
+                                    <brush class="scenery"/>
+                                </tool>
+                                <tool title="Erase powerups - Enabled" style="border-bottom-width: 1px;border-bottom-style: solid;" onclick="">
+                                    <powerup class="target"/>
+                                </tool>
+                            </div>
+                        </settings>
+                    </div>
+                    <div class="right">
+                        <tool title="Brush - A" onclick="window.game.track.toolHandler.setTool('brush')">
+                            <brush/>
+                        </tool>
+                        <tool title="Scenery Brush - S" onclick="window.game.track.toolHandler.setTool('scenery brush')">
+                            <brush class="scenery"/>
+                        </tool>
+                        <tool title="Line - Q" onclick="window.game.track.toolHandler.setTool('line')">
+                            <line>
+                                <svg xmlns="http://www.w3.org/2000/svg" viewbox="0 0 25 25">
+                                    <line x1="20" y1="5" x2="5" y2="20"/>
+                                </svg>
+                            </line>
+                        </tool>
+                        <tool title="Scenery Line - Q" onclick="window.game.track.toolHandler.setTool('scenery line')">
+                            <line class="scenery">
+                                <svg xmlns="http://www.w3.org/2000/svg" viewbox="0 0 25 25" style="stroke: #aaa">
+                                    <line x1="20" y1="5" x2="5" y2="20"/>
+                                </svg>
+                            </line>
+                        </tool>
+                        <tool title="Eraser - Backspace" onclick="window.game.track.toolHandler.setTool('eraser')">
+                            <eraser/>
+                        </tool>
+                        <tool title="Camera - R" onclick="window.game.track.toolHandler.setTool('camera')">
+                            <camera/>
+                        </tool>
+                        <tool title="Grid - G" style="border-bottom-width: 1px;border-bottom-style: solid;" onclick="return; tool.grid === 1 ? 10 : 1">
+                            <line class="scenery">
+                                <svg xmlns="http://www.w3.org/2000/svg" viewbox="0 0 25 25" style="stroke: #ccc; stroke-width: 1">
+                                    <line x1="5" y1="5" x2="20" y2="5"/><line x1="5" y1="5" x2="5" y2="20"/>
+                                    <line x1="5" y1="10" x2="20" y2="10"/><line x1="10" y1="5" x2="10" y2="20"/>
+                                    <line x1="5" y1="15" x2="20" y2="15"/><line x1="15" y1="5" x2="15" y2="20"/>
+                                    <line x1="5" y1="20" x2="20" y2="20"/><line x1="20" y1="5" x2="20" y2="20"/>
+                                </svg>
+                            </line>
+                        </tool>
+                        <br>
+                        <tool style="border-top-width: 1px;border-top-style: solid;" onclick="window.game.track.toolHandler.setTool('goal')">
+                            <powerup class="target"/>
+                        </tool>
+                        <tool onclick="window.game.track.toolHandler.setTool('checkpoint')">
+                            <powerup class="checkpoint"/>
+                        </tool>
+                        <tool onclick="window.game.track.toolHandler.setTool('boost')">
+                            <powerup class="boost"/>
+                        </tool>
+                        <tool onclick="window.game.track.toolHandler.setTool('gravity')">
+                            <powerup class="gravity"/>
+                        </tool>
+                        <tool onclick="window.game.track.toolHandler.setTool('bomb')">
+                            <powerup class="bomb"/>
+                        </tool>
+                        <tool onclick="window.game.track.toolHandler.setTool('slow-mo')">
+                            <powerup class="slowmo"/>
+                        </tool>
+                        <tool onclick="window.game.track.toolHandler.setTool('antigravity')">
+                            <powerup class="antigravity"/>
+                        </tool>
+                        <tool style="border-bottom-width: 1px;border-bottom-style: solid;" onclick="window.game.track.toolHandler.setTool('teleporter')">
+                            <powerup class="teleport"/>
+                        </tool>
+                    </div>
+                </toolbar>
+            </interface>
+            <canvas id="view" width="800" height="450"></canvas>
         </div>
         <script type="module">
             game.init();

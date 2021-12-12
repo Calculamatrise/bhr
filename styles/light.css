@@ -1,0 +1,27 @@
+canvas#view {
+    background-color: white;
+}
+
+tool {
+    border-color: #bbb
+}
+
+tool:hover {
+    background-color: #ddd;
+}
+
+tool *:not(wheel, line, eraser, svg, playpause, backtrack, rewind, brush, camera, powerup, fullscreen) {
+    background-color: white;
+}
+
+tool svg {
+    stroke: black;
+}
+
+playpause, backtrack, rewind, brush, camera, powerup, fullscreen {
+    background-color: black;
+}
+
+powerup {
+    border-color: black;
+}

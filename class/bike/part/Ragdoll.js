@@ -44,6 +44,7 @@ export default class {
             this[part].position.copy(stickman[part]);
         }
     }
+    fixedUpdate() {}
     update() {
         for (var a = this.joints.length - 1; a >= 0; a--)
             this.joints[a].update();

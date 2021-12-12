@@ -1,0 +1,23 @@
+canvas#view {
+    background-color: #1b1b1b;
+}
+
+tool {
+    border-color: #444;
+}
+
+tool:hover {
+    background-color: #333;
+}
+
+tool *:not(wheel, line, eraser, svg) {
+    background-color: white;
+}
+
+tool :is(svg, svg circle) {
+    stroke: white;
+}
+
+powerup {
+    border-color: white;
+}
