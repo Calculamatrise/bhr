@@ -50,7 +50,6 @@ export default class Track {
     currentTime = 0;
     pictureMode = false;
     displayText = false;
-    lineShading = false;
     camera = new Vector(0, 0);
     cameraLock = false;
     cameraFocus = null;
@@ -60,30 +59,38 @@ export default class Track {
     get firstPlayer() {
         return this.players[0];
     }
+
     zoomIn() {
         if (4 > this.zoom) {
             this.zoom = Math.round(10 * this.zoom + 2) / 10;
             this.sectors = {}
         }
     }
+
     zoomOut() {
         if (0.2 < this.zoom) {
             this.zoom = Math.round(10 * this.zoom + 2 * -1) / 10;
             this.sectors = {}
         }
     }
+    
     switchBike() {
         this.firstPlayer.vehicle.name = this.firstPlayer.vehicle.name === "BMX" ? "MTB" : "BMX"
         this.reset();
         this.cameraFocus = this.firstPlayer.vehicle.head;
     }
+
     gotoCheckpoint() {
-        this.paused = false; // JSON.parse(localStorage.pauseOnEnter) ? true : false;
         this.removeCollectedItems();
+
+        this.paused = false; // JSON.parse(localStorage.pauseOnEnter) ? true : false;
         if (this.firstPlayer.snapshots.length > 0) {
-            var c = this.firstPlayer.snapshots.pop();
-            this.firstPlayer.restore(c);
-            this.currentTime = c.time;
+            let snapshot = this.firstPlayer.snapshots[this.firstPlayer.snapshots.length - 1];
+            this.currentTime = snapshot.currentTime;
+
+            this.firstPlayer.restore(snapshot);
+
+            this.collectItems(snapshot.powerupsConsumed);
         } else {
             for (const player of this.players)
                 player.reset();
@@ -94,38 +101,45 @@ export default class Track {
         this.cameraFocus = this.firstPlayer.vehicle.head,
         this.camera = this.firstPlayer.vehicle.head.position.clone();
     }
+
     removeCheckpoint() {
-        for (var i in this.players) {
-            if (this.players[i].snapshots.length > 0) {
-                if (this.players[i].snapshots.cache !== void 0) {
-                    this.players[i].snapshots.cache.push(this.players[i].snapshots[this.players[i].snapshots.length - 1]);
+        for (const player of this.players) {
+            if (player.snapshots.length > 0) {
+                if (player.snapshots.cache !== void 0) {
+                    player.snapshots.cache.push(player.snapshots[player.snapshots.length - 1]);
                 }
-                this.players[i].snapshots.pop()
+
+                player.snapshots.pop();
+
+                this.gotoCheckpoint();
             }
         }
     }
+
     removeCheckpointUndo() {
-        for (var i in this.players) {
-            if (this.players[i].snapshots.cache.length > 0) {
-                if (this.players[i].snapshots !== void 0) {
+        for (const player of this.players) {
+            if (player.snapshots.cache.length > 0) {
+                if (player.snapshots !== void 0) {
                     snapshots.push(snapshots.cache[snapshots.cache.length - 1]);
-                    this.players[i].snapshots.push(this.players[i].snapshots.cache[this.players[i].snapshots.cache.length - 1]);
+                    player.snapshots.push(player.snapshots.cache[player.snapshots.cache.length - 1]);
                 }
-                this.players[i].snapshots.cache.pop()
+                
+                player.snapshots.cache.pop()
             }
         }
     }
-    removeCollectedItems() {
-        var a, b, c, d, e;
-        for (a in this.grid) {
-            if (this.grid.hasOwnProperty(a)) {
-                for (b in this.grid[a]) {
-                    if (this.grid[a].hasOwnProperty(b)) {
-                        e = this.grid[a][b];
-                        c = 0;
-                        for (d = e.powerups.length; c < d; c++) {
-                            if (e.powerups[c].used !== void 0) {
-                                e.powerups[c].used = false
+
+    collectItems(items) {
+        for (const x in this.grid) {
+            if (this.grid.hasOwnProperty(x)) {
+                for (const y in this.grid[x]) {
+                    if (this.grid[x].hasOwnProperty(y)) {
+                        let sector = this.grid[x][y];
+                        for (const powerup of sector.powerups) {
+                            if (powerup.used !== void 0) {
+                                if (items.includes(powerup.id)) {
+                                    powerup.used = true;
+                                }
                             }
                         }
                     }
@@ -133,6 +147,24 @@ export default class Track {
             }
         }
     }
+
+    removeCollectedItems() {
+        for (const x in this.grid) {
+            if (this.grid.hasOwnProperty(x)) {
+                for (const y in this.grid[x]) {
+                    if (this.grid[x].hasOwnProperty(y)) {
+                        let sector = this.grid[x][y];
+                        for (const powerup of sector.powerups) {
+                            if (powerup.used !== void 0) {
+                                powerup.used = false;
+                            }
+                        }
+                    }
+                }
+            }
+        }
+    }
+
     watchGhost(a) {
         if (typeof a === "string")
             a = JSON.parse(a);
@@ -145,6 +177,7 @@ export default class Track {
         }));
         this.paused = false;
     }
+
     collide(a) {
         let x = Math.floor(a.position.x / this.scale - 0.5);
         let y = Math.floor(a.position.y / this.scale - 0.5);
@@ -215,7 +248,7 @@ export default class Track {
 
         let position = this.parent.mouse.position.toPixel();
         let old = this.parent.mouse.old.toPixel();
-        if (this.cameraLock && ["line", "scenery line", "brush", "scenery brush", "teleporter"].includes(this.toolHandler.selected)) {
+        if (this.cameraLock && ["line", "brush", "teleporter"].includes(this.toolHandler.selected)) {
             if (position.x < 50) {
                 this.camera.x -= 4 / this.zoom;
                 this.parent.mouse.position.x -= 4 / this.zoom;
@@ -269,9 +302,6 @@ export default class Track {
                                 this.grid[w][y].scenery[n].draw(M, w * this.scale * this.zoom, y * this.scale * this.zoom);
                             
                             M.strokeStyle = this.parent.theme === "dark" ? "#fff" : "#000";
-                            this.lineShading && (M.shadowOffsetX = M.shadowOffsetY = 2,
-                            M.shadowBlur = Math.max(2, 10 * this.zoom),
-                            M.shadowColor = this.parent.theme === "dark" ? "#fff" : "#000");
                             n = 0;
                             for (x = this.grid[w][y].physics.length; n < x; n++)
                                 this.grid[w][y].physics[n].draw(M, w * this.scale * this.zoom, y * this.scale * this.zoom)

@@ -49,6 +49,7 @@ document.addEventListener("keydown", function(event) {
 
                     window.game.track.undoManager.undo();
                 }
+
                 if (window.autoPause) {
                     window.game.track.paused = false, window.autoPause = false
                 }
@@ -58,6 +59,7 @@ document.addEventListener("keydown", function(event) {
 
         case " ":
             window.game.track.paused = window.autoPause ? true : !window.game.track.paused,
+            window.game.container.querySelector("playpause")?.classList[window.game.track.paused ? "remove" : "add"]("playing"),
             window.autoPause = false;
             break;
     }

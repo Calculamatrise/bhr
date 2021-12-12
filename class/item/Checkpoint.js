@@ -6,7 +6,7 @@ export default class Checkpoint extends SingleUseItem {
         return this.used ? "#aaf" : "#00f";
     }
 
-    activate(a) {
+    activate(part) {
         if (this.track.players.length > 1) {
             this.track.players[1].pastCheckpoint |= 1;
         } else

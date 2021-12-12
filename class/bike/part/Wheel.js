@@ -13,14 +13,17 @@ export default class extends Entity {
         this.pedalSpeed = a.dot(this.velocity) / this.size;
         this.touching = true
     }
+
     draw(ctx) {
         ctx.beginPath();
         ctx.moveTo(this.position.x + 10 * this.parent.track.zoom, this.position.y);
         ctx.arc(this.position.x, this.position.y, this.parent.parent.track.zoom * 10, 0, 2 * Math.PI, true);
         ctx.stroke();
     }
+
     clone() {
         const clone = new this.constructor(this.parent);
+        
         clone.size = this.size;
         clone.position = this.position.clone();
         clone.old = this.old.clone();

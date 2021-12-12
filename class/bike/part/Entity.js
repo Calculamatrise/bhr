@@ -5,6 +5,7 @@ export default class extends Mass {
         this.position.addToSelf(t.scale(-t.dot(this.velocity) * this.friction));
         this.touching = true;
     }
+    
     update() {
         this.velocity.addToSelf(this.parent.parent.gravity).scaleSelf(.99);
         this.position.addToSelf(this.velocity);
@@ -18,6 +19,7 @@ export default class extends Mass {
         
         super.update();
     }
+
     clone() {
         const clone = new this.constructor(this.parent);
         clone.size = this.size;

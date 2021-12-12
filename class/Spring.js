@@ -12,15 +12,18 @@ export default class Spring {
     get length() {
         return this.b.position.sub(this.a.position).length;
     }
+
     lean(a) {
         this.leff += (this.lrest - a - this.leff) / 5
     }
+
     rotate(a) {
         var b = this.b.position.sub(this.a.position),
             b = new Vector(-b.y / this.leff,b.x / this.leff);
         this.a.position.addToSelf(b.scale(a));
         this.b.position.addToSelf(b.scale(-a))
     }
+
     update() {
         var a = this.b.position.sub(this.a.position),
             b = a.length;
@@ -33,6 +36,7 @@ export default class Spring {
         this.a.velocity.addToSelf(b);
         return this
     }
+    
     swap() {
         var a = new Vector;
         a.copy(this.a.position);
@@ -48,12 +52,15 @@ export default class Spring {
         this.a.rotation = this.b.rotation;
         this.b.rotation = a
     }
+
     clone() {
-        var a = new Spring(this.a,this.b,this.track);
-        a.lrest = this.lrest;
-        a.leff = this.leff;
-        a.dampConstant= this.dampConstant;
-        a.springConstant = this.springConstant;
-        return a
+        const clone = new this.constructor(this.a,this.b,this.track);
+        
+        clone.lrest = this.lrest;
+        clone.leff = this.leff;
+        clone.dampConstant= this.dampConstant;
+        clone.springConstant = this.springConstant;
+
+        return clone;
     }
 }

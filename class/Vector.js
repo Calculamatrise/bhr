@@ -87,6 +87,11 @@ export default class {
     clone() {
         return new this.constructor(this.x,this.y);
     }
+    snapshot() {
+        return {
+            ...this
+        }
+    }
     toString() {
         return Math.round(this.x).toString(32) + " " + Math.round(this.y).toString(32);
     }

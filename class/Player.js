@@ -34,7 +34,7 @@ export default class Player {
     explosion = null;
     powerupsEnabled = true;
     targetsCollected = 0;
-    powerupsConsumed = 0;
+    powerupsConsumed = [];
     get ghost() {
         return !!this.ghostData;
     }
@@ -55,20 +55,11 @@ export default class Player {
         this.hat.size = 10;
         this.hat.rotationFactor = .1;
     }
+
     createExplosion(part) {
         this.explosion = new Explosion(this, part);
     }
-    draw(ctx) {
-        if (this.explosion) {
-            this.explosion.draw(ctx);
-        } else {
-            this.vehicle.draw(ctx);
-            if (this.dead) {
-                this.ragdoll.draw(ctx);
-                this.hat.draw(ctx);
-            }
-        }
-    }
+
     update(delta) {
         if (this.pastCheckpoint)
             this.trackComplete();
@@ -126,6 +117,7 @@ export default class Player {
             }
         }
     }
+
     updateControls(key) {
         if (this.dead)
             return;
@@ -156,13 +148,27 @@ export default class Player {
             break;
         }
     }
-    collide(a) {
-        if (this.snapshots && this.snapshots[a]) {
-            for (const i in this.snapshots) {
-                this.snapshots[i].apply(this, _slice.call(arguments, 1))
+
+    draw(ctx) {
+        if (this.explosion) {
+            this.explosion.draw(ctx);
+        } else {
+            this.vehicle.draw(ctx);
+            if (this.dead) {
+                this.ragdoll.draw(ctx);
+                this.hat.draw(ctx);
             }
         }
     }
+
+    collide(a) {
+        if (this.snapshots && this.snapshots[a]) {
+            for (const snapshot of this.snapshots) {
+                snapshot.apply(this, _slice.call(arguments, 1));
+            }
+        }
+    }
+
     trackComplete() {
         let e = this.track;
         this.collide("hitTarget");
@@ -196,28 +202,38 @@ export default class Player {
                 player.snapshots.push(player.snapshot())
             }
         }
+        
         this.pastCheckpoint = 0;
     }
+
     snapshot() {
-        return this.vehicle.snapshot();
+        return {
+            slow: this.slow,
+            dead: this.dead,
+            ragdoll: null,
+            explosion: this.explosion,
+            powerupsEnabled: this.powerupsEnabled,
+            targetsCollected: this.targetsCollected,
+            powerupsConsumed: this.powerupsConsumed,
+            currentTime: this.track.currentTime,
+            gravity: this.gravity.clone(),
+            vehicle: this.vehicle.clone()
+        }
     }
+
     restore(snapshot) {
-        console.log(snapshot)
-        this.vehicle.masses[0].position = snapshot.masses[0].position;
-        this.vehicle.masses[0].old = snapshot.masses[0].old;
-        this.vehicle.masses[0].velocity = snapshot.masses[0].velocity;
-        this.vehicle.masses[1].position = snapshot.masses[1].position;
-        this.vehicle.masses[1].old = snapshot.masses[1].old;
-        this.vehicle.masses[1].velocity = snapshot.masses[1].velocity;
-        this.vehicle.masses[2].position = snapshot.masses[2].position;
-        this.vehicle.masses[2].old = snapshot.masses[2].old;
-        this.vehicle.masses[2].velocity = snapshot.masses[2].velocity;
-        this.vehicle.masses[1].motor = snapshot.masses[1].motor;
-        this.vehicle.masses[2].motor = snapshot.masses[2].motor;
-        this.vehicle.springs[0].leff = snapshot.springs[0].leff;
-        this.vehicle.springs[1].leff = snapshot.springs[1].leff;
-        this.vehicle.springs[2].leff = snapshot.springs[2].leff;
+        this.slow = snapshot.slow;
+        this.dead = snapshot.dead;
+        this.ragdoll = snapshot.ragdoll;
+        this.explosion = snapshot.explosion;
+        this.powerupsEnabled = snapshot.powerupsEnabled;
+        this.targetsCollected = snapshot.targetsCollected;
+        this.powerupsConsumed = snapshot.powerupsConsumed;
+        this.gravity = snapshot.gravity.clone();
+
+        this.vehicle.restore(snapshot.vehicle);
     }
+
     reset() {
         this.slow = false;
         this.dead = false;
@@ -225,7 +241,7 @@ export default class Player {
         this.explosion = null;
         this.powerupsEnabled = true;
         this.targetsCollected = 0;
-        this.powerupsConsumed = 0;
+        this.powerupsConsumed = [];
 
         this.snapshots = new SnapshotHandler();
 

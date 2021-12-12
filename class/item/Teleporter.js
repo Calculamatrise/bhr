@@ -12,14 +12,19 @@ export default class Teleporter extends SingleUseItem {
         return this.used ? "#faf" : "#f0f";
     }
 
+    draw() {
+        super.draw();
+        super.draw(this.d.toPixel());
+    }
+
     tpb(t, e) {
         this.d = new Vector(t, e);
         this.x = t;
         this.y = e;
     }
 
-    activate(a) {
-        console.log(a)
-        a.parent.move(this.x - this.a, this.y - this.b)
+    activate(part) {
+        console.log(part)
+        part.parent.move(this.x - this.a, this.y - this.b);
     }
 }

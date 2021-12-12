@@ -6,22 +6,24 @@ export default class Target extends SingleUseItem {
         return this.used ? "#ffa" : "#ff0";
     }
 
-    activate(a) {
+    activate(part) {
         if (this.track.players.length > 1) {
             this.track.players[1].targetsCollected++
         } else {
             this.track.firstPlayer.targetsCollected++;
             if (this.track.firstPlayer.targetsCollected === this.track.targets) {
-                a.parent.pastCheckpoint = 2
+                part.parent.pastCheckpoint = 2
             }
         }
     }
 
-    vb() {
-        a.parent.ha.hasOwnProperty(this.id) || (a.parent.ha[this.id] = ++a.parent.firstPlayer.targetsCollected)
+    vb(part) {
+        part.parent.ha.hasOwnProperty(this.id) || (part.parent.ha[this.id] = ++part.parent.firstPlayer.targetsCollected)
     }
     
-    ub() {
+    remove() {
+        super.remove();
+        
         this.track.targets--
     }
 }

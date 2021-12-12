@@ -9,26 +9,25 @@ export default class Triangle extends Item {
     }
     
     draw() {
-        var a = this.track,
-            b = this.position.toPixel();
+        let position = this.position.toPixel();
         this.ctx.strokeStyle = this.track.parent.theme === "dark" ? "#fbfbfb" : "#000000";
         this.ctx.fillStyle = this.color;
         this.ctx.beginPath(),
         this.ctx.save();
-        this.ctx.translate(b.x, b.y);
+        this.ctx.translate(position.x, position.y);
         this.ctx.rotate(this.rotation * Math.PI / 180);
-        this.ctx.moveTo(-7 * a.zoom, -10 * a.zoom),
-        this.ctx.lineTo(0, 10 * a.zoom),
-        this.ctx.lineTo(7 * a.zoom, -10 * a.zoom),
-        this.ctx.lineTo(-7 * a.zoom, -10 * a.zoom),
+        this.ctx.moveTo(-7 * this.track.zoom, -10 * this.track.zoom),
+        this.ctx.lineTo(0, 10 * this.track.zoom),
+        this.ctx.lineTo(7 * this.track.zoom, -10 * this.track.zoom),
+        this.ctx.lineTo(-7 * this.track.zoom, -10 * this.track.zoom),
         this.ctx.fill(),
         this.ctx.stroke(),
         this.ctx.restore()
     }
 
-    collide(a) {
-        if (a.position.distanceToSquared(this.position) < 1E3) {
-            this.activate(a);
+    collide(part) {
+        if (part.position.distanceToSquared(this.position) < 1E3) {
+            this.activate(part);
         }
     }
 

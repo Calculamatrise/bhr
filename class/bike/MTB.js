@@ -51,6 +51,7 @@ export default class extends Bike {
             this.frontSpring.lean(7);
         }
     }
+    
     draw(ctx) {
         var b = this.rearWheel.displayPos.toPixel()
         , c = this.frontWheel.displayPos.toPixel()
@@ -182,5 +183,50 @@ export default class extends Bike {
             ctx.lineTo(b.x, b.y),
             ctx.stroke()
         }
+    }
+
+    clone() {
+        const bike = new this.constructor(this.parent);
+
+        bike.dir = this.dir;
+        bike.pedalSpeed = this.pedalSpeed;
+        bike.head = this.head.clone();
+        bike.frontWheel = this.frontWheel.clone();
+        bike.rearWheel = this.rearWheel.clone();
+        bike.rearSpring = this.rearSpring.clone();
+        bike.chasse = this.chasse.clone();
+        bike.frontSpring = this.frontSpring.clone();
+        bike.masses = [
+            bike.head,
+            bike.frontWheel,
+            bike.rearWheel
+        ]
+
+        bike.springs = [
+            bike.rearSpring,
+            bike.chasse,
+            bike.frontSpring
+        ]
+
+        return bike;
+    }
+
+    restore(clone) {
+        this.dir = clone.dir;
+        this.pedalSpeed = clone.pedalSpeed;
+        this.masses[0].position = clone.masses[0].position;
+        this.masses[0].old = clone.masses[0].old;
+        this.masses[0].velocity = clone.masses[0].velocity;
+        this.masses[1].position = clone.masses[1].position;
+        this.masses[1].old = clone.masses[1].old;
+        this.masses[1].velocity = clone.masses[1].velocity;
+        this.masses[2].position = clone.masses[2].position;
+        this.masses[2].old = clone.masses[2].old;
+        this.masses[2].velocity = clone.masses[2].velocity;
+        this.masses[1].motor = clone.masses[1].motor;
+        this.masses[2].motor = clone.masses[2].motor;
+        this.springs[0].leff = clone.springs[0].leff;
+        this.springs[1].leff = clone.springs[1].leff;
+        this.springs[2].leff = clone.springs[2].leff;
     }
 }

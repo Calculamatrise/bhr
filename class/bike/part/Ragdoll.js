@@ -44,6 +44,7 @@ export default class {
             this[part].position.copy(stickman[part]);
         }
     }
+
     update() {
         for (var a = this.joints.length - 1; a >= 0; a--)
             this.joints[a].update();
@@ -51,6 +52,7 @@ export default class {
         for (a = this.points.length - 1; a >= 0; a--)
             this.points[a].update()
     }
+
     draw(ctx) {
         const head = this.head.position.toPixel();
         const elbow = this.elbow.position.toPixel(); 
@@ -96,6 +98,7 @@ export default class {
         ctx.arc(head.x, head.y, 5 * this.parent.track.zoom, 0, 2 * Math.PI, !0),
         ctx.stroke()
     }
+    
     setVelocity(a, b) {
         a.scaleSelf(0.7);
         b.scaleSelf(0.7);

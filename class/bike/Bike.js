@@ -54,6 +54,7 @@ export default class {
 
         return rider;
     }
+    
     swap() {
         this.dir *= -1;
         this.chasse.swap();
@@ -62,6 +63,7 @@ export default class {
         this.frontSpring.leff = rearSpring;
         this.parent.collide("turn");
     }
+
     update(delta) {
         if (!this.parent.dead)
             this.updateControls()
@@ -85,6 +87,7 @@ export default class {
                 mass.update();
         }
     }
+
     move(x, y) {
         for (const mass of this.masses) {
             mass.position.x += x;
@@ -93,6 +96,7 @@ export default class {
             mass.old.y += y;
         }
     }
+
     destroy() {
         this.parent.dead = true;
         this.head.collide = false;
@@ -102,39 +106,5 @@ export default class {
         this.frontWheel.brake = false;
         
         this.parent.createRagdoll();
-    }
-    clone() {
-        return {
-            masses: [
-                {
-                    position: this.masses[0].position.clone(),
-                    old: this.masses[0].position.clone(),
-                    velocity: this.masses[0].position.clone()
-                },
-                {
-                    position: this.masses[1].position.clone(),
-                    old: this.masses[1].position.clone(),
-                    velocity: this.masses[1].position.clone(),
-                    motor: this.masses[1].motor
-                },
-                {
-                    position: this.masses[2].position.clone(),
-                    old: this.masses[2].position.clone(),
-                    velocity: this.masses[2].position.clone(),
-                    motor: this.masses[2].motor
-                }
-            ],
-            springs: [
-                {
-                    leff: this.springs[0].leff
-                },
-                {
-                    leff: this.springs[1].leff
-                },
-                {
-                    leff: this.springs[2].leff
-                }
-            ]
-        }
     }
 }

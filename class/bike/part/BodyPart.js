@@ -1,6 +1,6 @@
-import Mass from "./Mass.js";
+import Entity from "./Entity.js";
 
-export default class BodyPart extends Mass {
+export default class BodyPart extends Entity {
     constructor(t, e, i = 10) {
         super(t);
         this.parent = e;
@@ -8,27 +8,13 @@ export default class BodyPart extends Mass {
         this.friction = 0;
         this.collide = !0;
     }
-    drive(t) {
-        this.pos.addToSelf(t.scale(-t.dot(this.vel) * this.friction));
-        this.touching = !0
-    }
-    update(delta) {
-        this.vel.addToSelf(this.parent.parent.gravity).scaleSelf(.99);
-        this.pos.addToSelf(this.vel);
-        // this.pos.lerpTowards(this.pos.add(this.vel), Math.cos(Math.PI * .5), delta);
-        this.touching = !1;
-        if (this.collide) {
-            this.parent.parent.track.collide(this);
-        }
-        
-        this.vel = this.pos.sub(this.old);
-        this.old.copy(this.pos);
-        // super.update(delta);
-    }
+
     clone() {
-        const bodyPart = new BodyPart(this.pos, this.parent, this.size);
-        bodyPart.old = this.old.clone();
-        bodyPart.vel = this.vel.clone();
+        const bodyPart = new this.constructor(this.pos, this.parent, this.size);
+
+        bodyPart.position = this.position.snapshot();
+        bodyPart.old = this.old.snapshot();
+        bodyPart.velocity = this.velocity.snapshot();
         bodyPart.friction = this.friction;
 
         return bodyPart;
