@@ -10,12 +10,14 @@ export default class Line {
         this.Remove = false;
         this.track = n;
     }
+    
     draw(t, e, i) {
         t.beginPath();
         t.moveTo(this.a.x * this.track.zoom - e, this.a.y * this.track.zoom - i);
         t.lineTo(this.b.x * this.track.zoom - e, this.b.y * this.track.zoom - i);
         t.stroke();
     }
+
     erase(t) {
         let b = t.sub(this.a).dot(this.vector.oppositeScale(this.len));
         let c = new Vector();
@@ -28,14 +30,18 @@ export default class Line {
         }
         return t.sub(c).getLength() <= tool.eraser.size ? (this.remove(), this) : !1;
     }
+
     remove() {
         this.Remove = !0;
         this.track.remove(this.a, this.b);
+
         return this;
     }
+
     xb() {
         this.track.addLineInternal(this);
     }
+
     toString() {
         return this.a + this.getEnd();
     }

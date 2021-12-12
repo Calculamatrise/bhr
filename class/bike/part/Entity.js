@@ -5,10 +5,9 @@ export default class extends Mass {
         this.position.addToSelf(t.scale(-t.dot(this.velocity) * this.friction));
         this.touching = true;
     }
-    fixedUpdate() {
+    update() {
         this.velocity.addToSelf(this.parent.parent.gravity).scaleSelf(.99);
         this.position.addToSelf(this.velocity);
-        // this.position.lerpTowards(this.position.add(this.velocity), Math.cos(Math.PI * .5), delta);
         this.touching = false;
         if (this.collide) {
             this.parent.parent.track.collide(this);
@@ -17,7 +16,7 @@ export default class extends Mass {
         this.velocity = this.position.sub(this.old);
         this.old.copy(this.position);
         
-        super.fixedUpdate();
+        super.update();
     }
     clone() {
         const clone = new this.constructor(this.parent);

@@ -185,19 +185,6 @@ export default class Track {
 
         return this;
     }
-    fixedUpdate() {
-        if (!this.paused) {
-            for (const player of this.players)
-                player.fixedUpdate();
-
-            this.currentTime += 1000 / 25;
-        }
-
-        if (this.cameraFocus)
-            this.camera.addToSelf(this.cameraFocus.position.sub(this.camera).scale(0.3));
-
-        return this;
-    }
     update(delta) {
         if (!this.paused) {
             for (const player of this.players)
@@ -276,15 +263,15 @@ export default class Track {
                             var M = n.getContext("2d");
                             M.lineCap = "round";
                             M.lineWidth = Math.max(2 * this.zoom, 0.5);
-                            M.strokeStyle = this.parent.theme.dark ? "#999999" : "#AAAAAA";
+                            M.strokeStyle = this.parent.theme === "dark" ? "#999" : "#aaa";
                             n = 0;
                             for (x = this.grid[w][y].scenery.length; n < x; n++)
                                 this.grid[w][y].scenery[n].draw(M, w * this.scale * this.zoom, y * this.scale * this.zoom);
                             
-                            M.strokeStyle = this.parent.theme.dark ? "#FFFFFF" : "#000000";
+                            M.strokeStyle = this.parent.theme === "dark" ? "#fff" : "#000";
                             this.lineShading && (M.shadowOffsetX = M.shadowOffsetY = 2,
                             M.shadowBlur = Math.max(2, 10 * this.zoom),
-                            M.shadowColor = this.parent.theme.dark ? "#FFFFFF" : "#000000");
+                            M.shadowColor = this.parent.theme === "dark" ? "#fff" : "#000");
                             n = 0;
                             for (x = this.grid[w][y].physics.length; n < x; n++)
                                 this.grid[w][y].physics[n].draw(M, w * this.scale * this.zoom, y * this.scale * this.zoom)
@@ -306,13 +293,13 @@ export default class Track {
         ctx.beginPath();
         ctx.fillStyle = "#ff0";
         ctx.lineWidth = 1;
-        ctx.arc(40, 12, 3.5, 0, 2 * Math.PI, true),
+        ctx.arc(45, 12, 3.5, 0, 2 * Math.PI, true),
         ctx.fill(),
         ctx.stroke(),
         ctx.beginPath();
         ctx.lineWidth = 10;
-        ctx.strokeStyle = this.parent.theme.dark ? "#1B1B1B" : "#FFFFFF";
-        ctx.fillStyle = this.parent.theme.dark ? "#FBFBFB" : "#000000";
+        ctx.strokeStyle = this.parent.theme === "dark" ? "#1b1b1b" : "#fff";
+        ctx.fillStyle = this.parent.theme === "dark" ? "#fbfbfb" : "#000";
 
         let e = Math.floor(this.currentTime / 6E4);
         let h = Math.floor(this.currentTime % 6E4 / 1E3);
@@ -330,11 +317,11 @@ export default class Track {
                 i += " or BACKSPACE to cancel Checkpoint"
             }
         } else if (this.id === void 0) {
-            if (this.gridSize === 10 && "line\\scenery line\\brush\\scenery brush".split(/\\/).includes(this.toolHandler.selected)) {
+            if (this.gridSize === 10 && ["line", "brush"].includes(this.toolHandler.selected)) {
                 i += " - Grid ";
             }
             i += " - " + this.toolHandler.selected;
-            if ("brush\\scenery brush".split(/\\/).includes(this.toolHandler.selected)) {
+            if (this.toolHandler.selected === "brush") {
                 i += " ( size " + this.toolHandler.currentTool.length + " )";
             }
         }
@@ -343,16 +330,16 @@ export default class Track {
                 i += " - " + (this.paused ? "Unp" : "P") + "ause ( SPACE )";
             }
         }
-        ctx.strokeText(i = ": " + this.firstPlayer.targetsCollected + " / " + this.targets + "  -  " + i, 50, 16);
-        ctx.fillText(i, 50, 16);
+        ctx.strokeText(i = ": " + this.firstPlayer.targetsCollected + " / " + this.targets + "  -  " + i, 55, 16);
+        ctx.fillText(i, 55, 16);
         if (this.players.length > 1) {
             for (i = 1; i < this.players.length; i++) {
-                ctx.fillStyle = this.parent.theme.dark ? "#999999" : "#AAAAAA";
+                ctx.fillStyle = this.parent.theme === "dark" ? "#999" : "#aaa";
                 ctx.textAlign = "right";
                 ctx.strokeText(i = (this.players[i].name || "Ghost") + (this.players[i].targetsCollected === this.targets ? " finished!" : ": " + this.players[i].targetsCollected + " / " + this.targets), this.parent.canvas.width - 7, 16);
                 ctx.fillText(i, this.parent.canvas.width - 7, 16);
                 ctx.textAlign = "left";
-                ctx.fillStyle = this.parent.theme.dark ? "#FBFBFB" : "#000000";
+                ctx.fillStyle = this.parent.theme === "dark" ? "#fbfbfb" : "#000";
             }
         }
 
@@ -380,7 +367,7 @@ export default class Track {
             c = (this.parent.canvas.height - 150) / 2;
 
             ctx.lineWidth = 1;
-            ctx.strokeStyle = this.parent.theme.dark ? "#1B1B1B" : "#FFFFFF";
+            ctx.strokeStyle = this.parent.theme === "dark" ? "#1b1b1b" : "#fff";
             ctx.fillStyle = "rgba(0, 0, 0, 0.4)";
             ctx.fillRect(0, 0, this.parent.canvas.width, c);
             ctx.fillRect(0, c + 150, this.parent.canvas.width, c);
@@ -479,11 +466,16 @@ export default class Track {
     }
     addLine(a, b, c) {
         a = new (c ? SceneryLine : PhysicsLine)(a.x, a.y, b.x, b.y,this);
-        if (2 <= a.len && 1E5 > a.len && (this.addLineInternal(a), "line\\scenery line\\brush\\scenery brush".split(/\\/).includes(this.toolHandler.selected))) {
-            if (["line", "scenery line", "brush", "scenery brush"].includes(this.toolHandler.selected)) {
+        if (2 <= a.len && 1E5 > a.len && (this.addLineInternal(a), ["line", "brush"].includes(this.toolHandler.selected))) {
+            if (["line", "brush"].includes(this.toolHandler.selected)) {
                 this.parent.mouse.old.copy(this.parent.mouse.position);
             }
         }
+
+        this.undoManager.push({
+            undo: a.remove.bind(a),
+            redo: () =>  this.addLineInternal(a)
+        });
 
         return a
     }

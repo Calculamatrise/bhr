@@ -39,10 +39,7 @@ export default class {
     lastFrame = null;
     progress = 0;
     get theme() {
-        this.canvas.style.backgroundColor = localStorage.getItem("theme") === "dark" ? "#1b1b1b" : "white";
-        return {
-            dark: localStorage.getItem("theme") === "dark"
-        }
+        return localStorage.getItem("theme");
     }
     adjust() {
         this.setAttribute("height", +getComputedStyle(this).getPropertyValue("height").slice(0, -2) * window.devicePixelRatio);
@@ -68,46 +65,7 @@ export default class {
     mouseDown(event) {
         this.track.cameraLock = true;
         this.track.cameraFocus = false;
-        if (this.mouse.position.x / 25 < 1 && [0, 1, 2, 4, 6, 7, 12, 13, 15, 16, 17].includes(Math.floor(this.mouse.position.y / 25))) {
-            this.track.cameraLock = false;
-            switch(Math.floor(this.mouse.position.y / 25) + 1) {
-                case 16:
-                    if (this.track.toolHandler.selected == "eraser") {
-                        this.track.toolHandler.currentTool.settings.physics = !this.track.toolHandler.currentTool.settings.physics;
-                    }
-                    break;
-
-                case 17:
-                    if (this.track.toolHandler.selected == "eraser") {
-                        this.track.toolHandler.currentTool.settings.scenery = !this.track.toolHandler.currentTool.settings.scenery;
-                    }
-                    break;
-                    
-                case 18:
-                    if (this.track.toolHandler.selected == "eraser") {
-                        this.track.toolHandler.currentTool.settings.powerups = !this.track.toolHandler.currentTool.settings.powerups;
-                    }
-                    break;
-            }
-        } else if (this.track.editor && this.mouse.position.x / 25 > this.canvas.width / 25 - 1 &&
-        [0, 1, 2, 3, 4, 5, 6, 8, 9, 10, 11, 12, 13, 14, 15, 17].includes(Math.floor(this.mouse.position.y / 25))) {
-            this.track.cameraLock = false;
-            switch (Math.floor(this.mouse.position.y / 25) + 1) {
-                case 7:
-                    if (this.track.gridSize === 1) {
-                        this.track.gridSize = 10;
-                        // this.track.displayText[2] = tool.descriptions.right[6] = "Disable grid snapping ( G )";
-                    } else {
-                        this.track.gridSize = 1;
-                        // this.track.displayText[2] = tool.descriptions.right[6] = "Enable grid snapping ( G )";
-                    }
-                    break;
-
-                case 18:
-                    this.track.undo()
-                    break;
-            }
-        } else if (event.button === 2 && this.track.toolHandler.selected !== "camera") {
+        if (event.button === 2 && this.track.toolHandler.selected !== "camera") {
             //this.track.erase(this.mouse.position);
             return;
         } else if (this.track.firstPlayer.gamepad.downKeys.has("q") && this.track.toolHandler.selected === "line" && !this.track.toolHandler.currentTool.scenery) {
@@ -181,49 +139,24 @@ export default class {
         }
 
         if (this.track.cameraLock) {
-            if (this.track.toolHandler.selected === "camera") {
-                this.track.camera.addToSelf(this.mouse.old.sub(this.mouse.position)),
-                this.mouse.position.copy(this.mouse.old);
-            } else if (this.track.toolHandler.selected === "eraser" || window.BHR_RCE_ENABLED && event.button === 2) {
-                this.track.erase(this.mouse.position);
-            } else if (["brush", "scenery brush"].includes(this.track.toolHandler.selected) && this.mouse.old.distanceTo(this.mouse.position) >= this.track.toolHandler.currentTool.length) {
-                this.track.addLine(this.mouse.old, this.mouse.position, this.track.toolHandler.currentTool.scenery);
+            switch(this.track.toolHandler.selected) {
+                case "brush":
+                    this.mouse.old.distanceTo(this.mouse.position) >= this.track.toolHandler.currentTool.length && this.track.addLine(this.mouse.old, this.mouse.position, this.track.toolHandler.currentTool.scenery);
+                    break;
+
+                case "camera":
+                    this.track.camera.addToSelf(this.mouse.old.sub(this.mouse.position)),
+                    this.mouse.position.copy(this.mouse.old);
+                    break;
+
+                case "eraser":
+                    this.track.erase(this.mouse.position);
+                    break;
             }
         }
 
-        const x = this.mouse.position.x / 25;
-        const y = Math.floor(this.mouse.position.y / 25);
-        if (x < 1) {
-            if (y > 11) {
-                if ("eraser\\brush\\scenery brush".split(/\\/).includes(this.track.toolHandler.selected)) {
-                    if (y > 13) {
-                        if (this.track.toolHandler.selected == "eraser") {
-                            this.track.displayText = [0, y, undefined /* tool description */];
-                        }
-                    }
-                }
-            }
+        this.canvas.style.cursor = this.track.toolHandler.selected == "camera" ? "move" : ["boost", "gravity"].includes(this.track.toolHandler.selected) ? "crosshair" : "none";
 
-            if (this.track.toolHandler.selected == "eraser" && [12, 13, 15, 16, 17].includes(y)) {
-                this.canvas.style.cursor = "default";
-            } else {
-                this.canvas.style.cursor = this.track.toolHandler.selected == "camera" ? "move" : ["boost", "gravity"].includes(this.track.toolHandler.selected) ? "crosshair" : "none";
-            }
-        } else if (this.track.editor && x > this.canvas.width / 25 - 1) {
-            this.track.displayText = [1, y, undefined /* tool description */];
-            if (14 === y && ("scenery line" === this.track.toolHandler.selected || "scenery brush" === this.track.toolHandler.selected)) {
-                this.track.displayText[2] = "Shorten last set of scenery lines ( Z )";
-            }
-            
-            if ([0, 1, 2, 3, 4, 5, 6, 8, 9, 10, 11, 12, 13, 14, 15, 17].includes(y)) {
-                this.canvas.style.cursor = "default";
-            } else {
-                this.canvas.style.cursor = this.track.toolHandler.selected == "camera" ? "move" : ["boost", "gravity"].includes(this.track.toolHandler.selected) ? "crosshair" : "none";
-            }
-        } else {
-            this.track.displayText = false;
-            this.canvas.style.cursor = this.track.toolHandler.selected == "camera" ? "move" : ["boost", "gravity"].includes(this.track.toolHandler.selected) ? "crosshair" : "none";
-        }
     }
     mouseUp(event) {
         if (!Z)
@@ -289,18 +222,12 @@ export default class {
         this.lastFrame = requestAnimationFrame(this.render.bind(this));
         this.delta = time - this.lastTime;
         if (this.delta < 1000 / this.fps) {
-            //this.track.fixedUpdate();
             this.track.render(this.ctx);
 
             return;
         }
-        // this.progress += this.delta / (1000 / 50);
-        // while(this.progress >= 1) {
-        //     this.track.fixedUpdate();
-        //     this.progress--;
-        // }
-        this.track.fixedUpdate();
-        // this.track.update(this.progress);
+
+        this.track.update(this.delta);
         this.track.render(this.ctx);
         this.lastTime = time;
     }

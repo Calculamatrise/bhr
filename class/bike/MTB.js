@@ -59,7 +59,7 @@ export default class extends Bike {
         , f = new Vector((c.y - b.y) * this.dir,(b.x - c.x) * this.dir)
         , h = d.sub(b.add(e.scale(0.5)));
         ctx.globalAlpha = this.ghost ? .5 : 1;
-        ctx.strokeStyle = this.parent.track.parent.theme.dark ? "#FBFBFB" : "#000000";
+        ctx.strokeStyle = this.parent.track.parent.theme === "dark" ? "#fbfbfb" : "#000000";
         ctx.lineWidth = 3.5 * this.parent.track.zoom;
         ctx.beginPath(),
         ctx.arc(b.x, b.y, 12.5 * this.parent.track.zoom, 0, 2 * Math.PI, true),
@@ -122,13 +122,13 @@ export default class extends Bike {
             , m = l.sub(i)
             , h = i.add(m.scale(0.5)).add(new Vector(m.y * this.dir, -m.x * this.dir).scaleSelf(this.parent.track.zoom * this.parent.track.zoom).scale(200 / m.lengthSquared()));
             ctx.beginPath(),ctx.lineWidth = 6 * this.parent.track.zoom;
-            ctx.strokeStyle = this.parent.track.parent.theme.dark ? "#FBFBFB80" : "rgba(0, 0, 0, 0.5)";
+            ctx.strokeStyle = this.parent.track.parent.theme === "dark" ? "#FBFBFB80" : "rgba(0, 0, 0, 0.5)";
             ctx.moveTo(l.x, l.y),
             ctx.lineTo(h.x, h.y),
             ctx.lineTo(i.x, i.y),
             ctx.stroke(),
             ctx.beginPath(),
-            ctx.strokeStyle = this.parent.track.parent.theme.dark ? "#FBFBFB" : "#000000";
+            ctx.strokeStyle = this.parent.track.parent.theme === "dark" ? "#fbfbfb" : "#000000";
             ctx.moveTo(d.x, d.y),
             ctx.lineTo(n.x, n.y),
             ctx.lineTo(i.x, i.y),
@@ -160,7 +160,7 @@ export default class extends Bike {
                     c = c.add(e.scale(0.09)).add(f.scale(1.15)),
                     n = d.sub(e.scale(0.1)).addToSelf(f.scale(0.2)),
                     e = i.add(e.scale(0.02)).addToSelf(f.scale(0.2)),
-                    ctx.fillStyle = this.parent.track.parent.theme.dark ? "#FBFBFB" : "#000000",
+                    ctx.fillStyle = this.parent.track.parent.theme === "dark" ? "#fbfbfb" : "#000000",
                     ctx.lineJoin = "round",
                     ctx.moveTo(d.x, d.y),
                     ctx.lineTo(l.x, l.y),

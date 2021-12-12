@@ -62,7 +62,7 @@ export default class {
         this.frontSpring.leff = rearSpring;
         this.parent.collide("turn");
     }
-    fixedUpdate() {
+    update(delta) {
         if (!this.parent.dead)
             this.updateControls()
 
@@ -74,7 +74,7 @@ export default class {
             spring.update();
 
         for (const mass of this.masses)
-            mass.fixedUpdate();
+            mass.update();
 
         if (!this.parent.slow && !this.parent.dead) {
             this.updateControls();
@@ -82,16 +82,8 @@ export default class {
                 spring.update();
 
             for (const mass of this.masses)
-                mass.fixedUpdate();
+                mass.update();
         }
-    }
-    update(delta) {
-        if (this.parent.slow) {
-            delta = delta / 2;
-        }
-
-        for (const mass of this.masses)
-            mass.update(delta);
     }
     move(x, y) {
         for (const mass of this.masses) {

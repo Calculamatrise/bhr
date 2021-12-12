@@ -5,13 +5,9 @@ export default class Gravity extends Triangle {
         super(a, b, c, d);
         this.dir.scaleSelf(0.3);
     }
+    type = "G";
+    color = "#0f0";
     activate(t) {
         t.parent.parent.gravity.copy(this.dir);
-    }
-    get type() {
-        return "G";
-    }
-    get color() {
-        return "#0f0";
     }
 }

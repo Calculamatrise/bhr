@@ -11,7 +11,7 @@ export default class Item {
         return this.track.parent.ctx;
     }
     draw(t = this.color, e = this.position.toPixel()) {
-        this.ctx.strokeStyle = this.track.parent.theme.dark ? "#FBFBFB" : "#000000";
+        this.ctx.strokeStyle = this.track.parent.theme === "dark" ? "#fbfbfb" : "#000";
         this.ctx.fillStyle = t;
         this.ctx.beginPath();
         this.ctx.moveTo(e.x + 7 * this.track.zoom, e.y);

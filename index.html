@@ -37,7 +37,7 @@
                             <rewind/>
                         </tool>
                         <br>
-                        <tool title="Change Vehicle - Ctrl + B" style="border-bottom-width: 1px;border-bottom-style: solid;border-top-width: 1px;border-top-style: solid;" tabindex="0"onclick="window.game.track.switchBike()">
+                        <tool title="Change Vehicle - Ctrl + B" style="border-bottom-width: 1px;border-bottom-style: solid;border-top-width: 1px;border-top-style: solid;" tabindex="0" onclick="window.game.track.switchBike()">
                             <wheel>
                                 <svg xmlns="http://www.w3.org/2000/svg" viewbox="0 0 25 25">
                                     <circle cx="12.5" cy="12.5" r="10"/>
@@ -61,7 +61,6 @@
                             <fullscreen/>
                         </tool>
                         <settings>
-                            <!-- Add eraser/brush tool settings -->
                             <tool title="Increase length - A + Scroll" style="border-top-width: 1px;border-top-style: solid;" onclick="
                             if (window.game.track.toolHandler.selected === 'eraser') {
                                 window.game.track.toolHandler.currentTool.size < 500 && (window.game.track.toolHandler.currentTool.size += 5);
@@ -128,7 +127,9 @@
                         <tool title="Camera - R" onclick="window.game.track.toolHandler.setTool('camera')">
                             <camera/>
                         </tool>
-                        <tool title="Grid - G" style="border-bottom-width: 1px;border-bottom-style: solid;" onclick="window.game.track.gridSize = 11 - window.game.track.gridSize">
+                        <tool title="Grid - G" style="border-bottom-width: 1px;border-bottom-style: solid;" onclick="
+                        this.classList[(window.game.track.gridSize = 11 - window.game.track.gridSize) > 1 ? 'add' : 'remove']('active');
+                        ">
                             <line class="scenery">
                                 <svg xmlns="http://www.w3.org/2000/svg" viewbox="0 0 25 25" style="stroke: #ccc; stroke-width: 1">
                                     <line x1="5" y1="5" x2="20" y2="5"/><line x1="5" y1="5" x2="5" y2="20"/>

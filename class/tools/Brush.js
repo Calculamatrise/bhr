@@ -18,7 +18,7 @@ export default class extends Tool {
 
         ctx.beginPath(),
         ctx.lineWidth = 1,
-        ctx.strokeStyle = this.parent.track.parent.theme.dark ? "#ebebeb" : "#000000",
+        ctx.strokeStyle = this.parent.track.parent.theme === "dark" ? "#ebebeb" : "#000",
         ctx.moveTo(position.x - 10, position.y),
         ctx.lineTo(position.x + 10, position.y),
         ctx.moveTo(position.x, position.y + 10),

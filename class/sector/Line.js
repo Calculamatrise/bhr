@@ -19,10 +19,10 @@ export default class Line {
     //         ctx.shadowOffsetX = 2;
     //         ctx.shadowOffsetY = 2;
     //         ctx.shadowBlur = Math.max(2, this.track.zoom * 10);
-    //         ctx.shadowColor = this.type === "scenery" ? this.track.parent.theme.dark ? "#999999" : "#AAAAAA" : this.track.parent.theme.dark ? "#FFFFFF" : "#000000";
+    //         ctx.shadowColor = this.type === "scenery" ? this.parent.track.parent.theme === "dark" ? "#999" : "#aaa" : this.parent.track.parent.theme === "dark" ? "#fff" : "#000";
     //     }
 
-    //     ctx.strokeStyle = this.type === "scenery" ? this.track.parent.theme.dark ? "#999999" : "#AAAAAA" : this.track.parent.theme.dark ? "#FFFFFF" : "#000000";
+    //     ctx.strokeStyle = this.type === "scenery" ? this.parent.track.parent.theme === "dark" ? "#999" : "#aaa" : this.parent.track.parent.theme === "dark" ? "#fff" : "#000";
     //     ctx.lineWidth = Math.max(this.track.zoom * 2, 0.5);
     //     ctx.lineCap = "round";
     //     ctx.beginPath();

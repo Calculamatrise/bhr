@@ -1,6 +1,11 @@
 import SingleUseItem from "./SingleUseItem.js";
 
 export default class Target extends SingleUseItem {
+    type = "T";
+    get color() {
+        return this.used ? "#ffa" : "#ff0";
+    }
+
     activate(a) {
         if (this.track.players.length > 1) {
             this.track.players[1].targetsCollected++
@@ -11,19 +16,12 @@ export default class Target extends SingleUseItem {
             }
         }
     }
+
     vb() {
         a.parent.ha.hasOwnProperty(this.id) || (a.parent.ha[this.id] = ++a.parent.firstPlayer.targetsCollected)
     }
+    
     ub() {
         this.track.targets--
-    }
-    get type() {
-        return "T";
-    }
-    get color() {
-        return "#ff0";
-    }
-    get newColor() {
-        return "#ffa";
     }
 }

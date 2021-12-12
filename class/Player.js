@@ -69,63 +69,6 @@ export default class Player {
             }
         }
     }
-    fixedUpdate() {
-        if (this.pastCheckpoint)
-            this.trackComplete();
-
-        if (this.ghost) {
-            if (this.ghostData[0][this.track.currentTime]) {
-                if (this.gamepad.downKeys.has("ArrowLeft")) {
-                    this.gamepad.downKeys.delete("ArrowLeft");
-                } else {
-                    this.gamepad.downKeys.set("ArrowLeft", true);
-                }
-            }
-
-            if (this.ghostData[1][this.track.currentTime]) {
-                if (this.gamepad.downKeys.has("ArrowRight")) {
-                    this.gamepad.downKeys.delete("ArrowRight");
-                } else {
-                    this.gamepad.downKeys.set("ArrowRight", true);
-                }
-            }
-
-            if (this.ghostData[2][this.track.currentTime]) {
-                if (this.gamepad.downKeys.has("ArrowUp")) {
-                    this.gamepad.downKeys.delete("ArrowUp");
-                } else {
-                    this.gamepad.downKeys.set("ArrowUp", true);
-                }
-            }
-
-            if (this.ghostData[3][this.track.currentTime]) {
-                if (this.gamepad.downKeys.has("ArrowDown")) {
-                    this.gamepad.downKeys.delete("ArrowDown");
-                } else {
-                    this.gamepad.downKeys.set("ArrowDown", true);
-                }
-            }
-
-            if (this.ghostData[4][this.track.currentTime]) {
-                if (this.gamepad.downKeys.has("z")) {
-                    this.gamepad.downKeys.delete("z");
-                } else {
-                    this.gamepad.downKeys.set("z", true);
-                    this.vehicle.swap();
-                }
-            }
-        }
-
-        if (this.explosion) {
-            this.explosion.fixedUpdate();
-        } else {
-            this.vehicle.fixedUpdate();
-            if (this.dead) {
-                this.ragdoll.fixedUpdate();
-                this.hat.fixedUpdate();
-            }
-        }
-    }
     update(delta) {
         if (this.pastCheckpoint)
             this.trackComplete();

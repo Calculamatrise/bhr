@@ -44,7 +44,6 @@ export default class {
             this[part].position.copy(stickman[part]);
         }
     }
-    fixedUpdate() {}
     update() {
         for (var a = this.joints.length - 1; a >= 0; a--)
             this.joints[a].update();
@@ -67,7 +66,7 @@ export default class {
         ctx.globalAlpha = this.ghost ? .5 : 1;
         ctx.lineWidth = 5 * this.parent.track.zoom;
         ctx.lineJoin = "round";
-        ctx.strokeStyle = this.parent.track.parent.theme.dark ? "#FBFBFB80" : "rgba(0,0,0,0.5)";
+        ctx.strokeStyle = this.parent.track.parent.theme === "dark" ? "#fbfbfb80" : "rgba(0,0,0,0.5)";
         ctx.beginPath(),
         ctx.moveTo(head.x, head.y),
         ctx.lineTo(shadowElbow.x, shadowElbow.y),
@@ -76,7 +75,7 @@ export default class {
         ctx.lineTo(shadowKnee.x, shadowKnee.y),
         ctx.lineTo(shadowFoot.x, shadowFoot.y),
         ctx.stroke();
-        ctx.strokeStyle = this.parent.track.parent.theme.dark ? "#FBFBFB" : "#000000";
+        ctx.strokeStyle = this.parent.track.parent.theme === "dark" ? "#fbfbfb" : "#000000";
         ctx.beginPath(),
         ctx.moveTo(head.x, head.y),
         ctx.lineTo(elbow.x, elbow.y),

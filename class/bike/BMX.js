@@ -56,7 +56,7 @@ export default class extends Bike {
         const frontWheel = this.frontWheel.displayPos.toPixel();
         
         ctx.globalAlpha = this.parent.ghost ? .5 : 1;
-        ctx.strokeStyle = this.parent.track.parent.theme.dark ? "#FBFBFB" : "#000000";
+        ctx.strokeStyle = this.parent.track.parent.theme === "dark" ? "#fbfbfb" : "#000000";
         ctx.lineWidth = 3.5 * this.parent.track.zoom;
 
         ctx.beginPath(),
@@ -123,14 +123,14 @@ export default class extends Bike {
             let N = new Vector(h.x + 0.5 * T.x + 200 * T.y * za, h.y + 0.5 * T.y + 200 * -T.x * za);
             
             ctx.lineWidth = this.parent.track.zoom * 6;
-            ctx.strokeStyle = this.parent.track.parent.theme.dark ? "#FBFBFB80" : "rgba(0, 0, 0, 0.5)";
+            ctx.strokeStyle = this.parent.track.parent.theme === "dark" ? "#FBFBFB80" : "rgba(0, 0, 0, 0.5)";
             ctx.beginPath(),
             ctx.moveTo(c.x, c.y),
             ctx.lineTo(N.x, N.y),
             ctx.lineTo(h.x, h.y),
             ctx.stroke();
 
-            ctx.strokeStyle = this.parent.track.parent.theme.dark ? "#FBFBFB" : "#000000";
+            ctx.strokeStyle = this.parent.track.parent.theme === "dark" ? "#fbfbfb" : "#000000";
             ctx.beginPath(),
             ctx.moveTo(n.x, n.y),
             ctx.lineTo(M.x, M.y),
@@ -174,7 +174,7 @@ export default class extends Bike {
                     let lm = h.x + 0.02 * l.x + 0.2 * i.x;
                     let m = h.y + 0.02 * l.y + 0.2 * i.y;
 
-                    ctx.fillStyle = this.parent.track.parent.theme.dark ? "#FBFBFB" : "#000000";
+                    ctx.fillStyle = this.parent.track.parent.theme === "dark" ? "#fbfbfb" : "#000000";
                     ctx.moveTo(c.x, c.y),
                     ctx.lineTo(M.x, M.y),
                     ctx.lineTo(ya, T),

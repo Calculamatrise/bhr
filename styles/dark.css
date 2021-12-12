@@ -7,7 +7,7 @@ tool {
 }
 
 tool:hover, tool.active:hover {
-    background-color: #333;
+    background-color: #333333cc;
 }
 
 tool.active {

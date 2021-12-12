@@ -3,18 +3,18 @@ canvas#view {
 }
 
 tool {
-    border-color: #bbb
+    border-color: #bbb;
 }
 
 tool:hover, tool.active:hover {
-    background-color: #ddd;
+    background-color: #ddddddcc;
 }
 
 tool.active {
     background-color: #dddddd80;
 }
 
-tool *:not(wheel, line, eraser, svg, playpause, backtrack, rewind, brush, camera, powerup, fullscreen) {
+tool *:not(wheel, line, eraser, svg, playpause, backtrack, rewind, brush, camera, powerup, fullscreen, increment, decrement) {
     background-color: white;
 }
 
@@ -22,7 +22,7 @@ tool svg {
     stroke: black;
 }
 
-playpause, backtrack, rewind, brush, camera, powerup, fullscreen {
+playpause, backtrack, rewind, brush, camera, powerup, fullscreen, increment, decrement {
     background-color: black;
 }
 

@@ -13,10 +13,8 @@ export default class {
     old = new Vector();
     velocity = new Vector();
     displayPos = new Vector();
-    fixedUpdate() {
-        this.displayPos = this.position;
-    }
     update(delta) {
-        this.displayPos = this.position.add(this.velocity.scale(delta));
+        this.displayPos = this.position;
+        // this.displayPos = this.position.add(this.velocity.scale(delta));
     }
 }

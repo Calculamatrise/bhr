@@ -69,6 +69,7 @@ toolbar tool {
     padding: 8px;
     outline: none;
     display: block;
+    backdrop-filter: blur(2px);
 }
 
 tool.disabled {

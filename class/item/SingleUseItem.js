@@ -3,12 +3,13 @@ import Item from "./Item.js";
 export default class SingleUseItem extends Item {
     constructor(a, b, c) {
         super(a, b, c);
+        
         this.used = !1
     }
     draw() {
-        super.draw(this.used ? this.newColor : this.color);
+        super.draw(this.color);
         if (this.d) {
-            super.draw(this.used ? this.newColor : this.color, this.d.toPixel());
+            super.draw(this.color, this.d.toPixel());
         }
     }
     collide(a) {
