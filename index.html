@@ -6,7 +6,6 @@
         <title>Black Hat Rider - Calculamatrise</title>
         <link rel="stylesheet" href="styles/main.css">
         <link rel="stylesheet" href="styles/light.css" onload="localStorage.getItem('theme') === 'dark' && (this.href = 'styles/dark.css')">
-        <script type="module" src="bootstrap.js"></script>
     </head>
     <body>
         <div class="container">
@@ -27,17 +26,17 @@
                 </overlay>
                 <toolbar>
                     <div class="left">
-                        <tool title="Pause/Play - Space" onclick="this.firstElementChild.classList.contains('playing') ? (this.firstElementChild.classList.remove('playing'), window.game.track.paused = !0) : (this.firstElementChild.classList.add('playing'), window.game.track.paused = !1);">
+                        <tool title="Pause/Play - Space" onclick="this.firstElementChild.classList[(window.game.track.paused = !window.game.track.paused) ? 'remove' : 'add']('playing')">
                             <playpause class="playing"/>
                         </tool>
                         <tool title="Checkpoint - Enter" onclick="window.game.track.gotoCheckpoint()">
                             <backtrack/>
                         </tool>
-                        <tool title="Cancel Checkpoint - Backspace" style="border-bottom-width: 1px;border-bottom-style: solid;" onclick="window.game.track.removeCheckpoint()">
+                        <tool title="Cancel Checkpoint - Backspace" style="border-bottom-width: 1px;border-bottom-style: solid; border-bottom-right-radius: 5px;" onclick="window.game.track.removeCheckpoint()">
                             <rewind/>
                         </tool>
                         <br>
-                        <tool title="Change Vehicle - Ctrl + B" style="border-bottom-width: 1px;border-bottom-style: solid;border-top-width: 1px;border-top-style: solid;" tabindex="0" onclick="window.game.track.switchBike()">
+                        <tool title="Change Vehicle - Ctrl + B" style="border-bottom-width: 1px;border-bottom-style: solid;border-bottom-right-radius: 5px;border-top-width: 1px;border-top-style: solid;border-top-right-radius: 5px;" tabindex="0" onclick="window.game.track.switchBike()">
                             <wheel>
                                 <svg xmlns="http://www.w3.org/2000/svg" viewbox="0 0 25 25">
                                     <circle cx="12.5" cy="12.5" r="10"/>
@@ -57,11 +56,11 @@
                             </wheel>
                         </tool>
                         <br>
-                        <tool title="Fullscreen - F" style="border-bottom-width: 1px;border-bottom-style: solid;border-top-width: 1px;border-top-style: solid;" onclick="document.fullscreenElement ? document.exitFullscreen() : window.game.container.requestFullscreen()">
+                        <tool title="Fullscreen - F" style="border-bottom-width: 1px;border-bottom-style: solid;border-bottom-right-radius: 5px;border-top-width: 1px;border-top-style: solid;border-top-right-radius: 5px;" onclick="document.fullscreenElement ? (document.exitFullscreen(), this.firstElementChild.classList.remove('active')) : (window.game.container.requestFullscreen(), this.firstElementChild.classList.add('active'))">
                             <fullscreen/>
                         </tool>
                         <settings>
-                            <tool title="Increase length - A + Scroll" style="border-top-width: 1px;border-top-style: solid;" onclick="
+                            <tool title="Increase length - A + Scroll" style="border-top-width: 1px;border-top-style: solid;border-top-right-radius: 5px;" onclick="
                             if (window.game.track.toolHandler.selected === 'eraser') {
                                 window.game.track.toolHandler.currentTool.size < 500 && (window.game.track.toolHandler.currentTool.size += 5);
                                 return;
@@ -71,7 +70,7 @@
                             ">
                                 <increment/>
                             </tool>
-                            <tool title="Decrease length - A + Scroll" style="border-bottom-width: 1px;border-bottom-style: solid;" onclick="
+                            <tool title="Decrease length - A + Scroll" style="border-bottom-width: 1px;border-bottom-style: solid;border-bottom-right-radius: 5px;" onclick="
                             if (window.game.track.toolHandler.selected === 'eraser') {
                                 window.game.track.toolHandler.currentTool.size > 10 && (window.game.track.toolHandler.currentTool.size -= 5);
                                 return;
@@ -82,7 +81,7 @@
                                 <decrement/>
                             </tool>
                             <div data-id="eraser">
-                                <tool title="Erase physical lines - Enabled" class="active" style="border-top-width: 1px;border-top-style: solid;" onclick="
+                                <tool title="Erase physical lines - Enabled" class="active" style="border-top-width: 1px;border-top-style: solid;border-top-right-radius: 5px;" onclick="
                                 this.classList[(window.game.track.toolHandler.currentTool.settings.physics = !window.game.track.toolHandler.currentTool.settings.physics) ? 'add' : 'remove']('active');
                                 ">
                                     <brush/>
@@ -92,7 +91,7 @@
                                 ">
                                     <brush class="scenery"/>
                                 </tool>
-                                <tool title="Erase powerups - Enabled" class="active" style="border-bottom-width: 1px;border-bottom-style: solid;" onclick="
+                                <tool title="Erase powerups - Enabled" class="active" style="border-bottom-width: 1px;border-bottom-style: solid;border-bottom-right-radius: 5px;" onclick="
                                 this.classList[(window.game.track.toolHandler.currentTool.settings.powerups = !window.game.track.toolHandler.currentTool.settings.powerups) ? 'add' : 'remove']('active');
                                 ">
                                     <powerup class="target"/>
@@ -127,7 +126,7 @@
                         <tool title="Camera - R" onclick="window.game.track.toolHandler.setTool('camera')">
                             <camera/>
                         </tool>
-                        <tool title="Grid - G" style="border-bottom-width: 1px;border-bottom-style: solid;" onclick="
+                        <tool title="Grid - G" style="border-bottom-width: 1px;border-bottom-style: solid;border-bottom-left-radius: 5px;" onclick="
                         this.classList[(window.game.track.gridSize = 11 - window.game.track.gridSize) > 1 ? 'add' : 'remove']('active');
                         ">
                             <line class="scenery">
@@ -140,7 +139,7 @@
                             </line>
                         </tool>
                         <br>
-                        <tool title="Goal" style="border-top-width: 1px;border-top-style: solid;" onclick="window.game.track.toolHandler.setTool('goal')">
+                        <tool title="Goal" style="border-top-width: 1px;border-top-style: solid;border-top-left-radius: 5px;" onclick="window.game.track.toolHandler.setTool('goal')">
                             <powerup class="target"/>
                         </tool>
                         <tool title="Checkpoint" onclick="window.game.track.toolHandler.setTool('checkpoint')">
@@ -169,7 +168,7 @@
                         <tool title="Anti-gravity" onclick="window.game.track.toolHandler.setTool('antigravity')">
                             <powerup class="antigravity"/>
                         </tool>
-                        <tool title="Teleporter" style="border-bottom-width: 1px;border-bottom-style: solid;" onclick="window.game.track.toolHandler.setTool('teleporter')">
+                        <tool title="Teleporter" style="border-bottom-width: 1px;border-bottom-style: solid;border-bottom-left-radius: 5px;" onclick="window.game.track.toolHandler.setTool('teleporter')">
                             <powerup class="teleport"/>
                         </tool>
                     </div>
@@ -177,6 +176,7 @@
             </interface>
             <canvas id="view" width="800" height="450"></canvas>
         </div>
+        <script type="module" src="bootstrap.js"></script>
         <script type="module">
             game.init();
             

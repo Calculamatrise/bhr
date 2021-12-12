@@ -100,11 +100,45 @@ export default class {
     destroy() {
         this.parent.dead = true;
         this.head.collide = false;
-        this.head.drive = () => {};
         this.rearWheel.motor = 0;
         this.rearWheel.brake = false;
         this.frontWheel.brake = false;
         
         this.parent.createRagdoll();
+    }
+
+    clone() {
+        const bike = new this.constructor(this.parent);
+
+        bike.dir = this.dir;
+        bike.pedalSpeed = this.pedalSpeed;
+        bike.head = this.head.clone();
+        bike.frontWheel = this.frontWheel.clone();
+        bike.rearWheel = this.rearWheel.clone();
+        bike.rearSpring = this.rearSpring.clone();
+        bike.chasse = this.chasse.clone();
+        bike.frontSpring = this.frontSpring.clone();
+
+        return bike;
+    }
+
+    restore(clone) {
+        this.dir = clone.dir;
+        this.pedalSpeed = clone.pedalSpeed;
+        this.head.collide = true;
+        this.head.position = clone.head.position.clone();
+        this.head.old = clone.head.old.clone();
+        this.head.velocity = clone.head.velocity.clone();
+        this.frontWheel.position = clone.frontWheel.position.clone();
+        this.frontWheel.old = clone.frontWheel.old.clone();
+        this.frontWheel.velocity = clone.frontWheel.velocity.clone();
+        this.rearWheel.position = clone.rearWheel.position.clone();
+        this.rearWheel.old = clone.rearWheel.old.clone();
+        this.rearWheel.velocity = clone.rearWheel.velocity.clone();
+        this.frontWheel.motor = clone.frontWheel.motor;
+        this.rearWheel.motor = clone.rearWheel.motor;
+        this.rearSpring.leff = clone.rearSpring.leff;
+        this.chasse.leff = clone.chasse.leff;
+        this.frontSpring.leff = clone.frontSpring.leff;
     }
 }

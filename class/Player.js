@@ -181,20 +181,19 @@ export default class Player {
                 
                     return record;
                 }).join(",")},${this.track.currentTime},${this.vehicle.name}`;
-                const c = new XMLHttpRequest;
-                c.open("POST", "/tracks/ghost_save", true);
-                c.setRequestHeader("Content-type", "application/x-www-form-urlencoded");
-                c.onload = function() {
-                    if (c.readyState === c.DONE) {
-                        if (c.status === 200) {
-                            if (c.response.startsWith("Ghost")) {
-                                alert(c.response)
-                            }
-                        }
-                    }
-                };
-                c.send("id=" + window.location.pathname.split("/")[2] + "&vehicle=" + this.vehicle + "&time=" + e.currentTime + "&code=" + records);
-                this.gamepad.left = this.gamepad.right = this.gamepad.up = this.gamepad.down = 0
+
+                fetch("/tracks/ghost_save", {
+                    headers: {
+                        "Content-Type": "application/x-www-form-urlencoded"
+                    },
+                    body: new URLSearchParams({
+                        id: window.location.pathname.split("/")[2],
+                        vehicle: this.vehicle,
+                        time: this.track.currentTime,
+                        code: records
+                    }),
+                    method: "post"
+                });
             }
         } else if (this.pastCheckpoint & 1) {
             this.collide("hitCheckpoint");
@@ -210,11 +209,8 @@ export default class Player {
         return {
             slow: this.slow,
             dead: this.dead,
-            ragdoll: null,
-            explosion: this.explosion,
-            powerupsEnabled: this.powerupsEnabled,
             targetsCollected: this.targetsCollected,
-            powerupsConsumed: this.powerupsConsumed,
+            powerupsConsumed: [...this.powerupsConsumed],
             currentTime: this.track.currentTime,
             gravity: this.gravity.clone(),
             vehicle: this.vehicle.clone()
@@ -224,11 +220,8 @@ export default class Player {
     restore(snapshot) {
         this.slow = snapshot.slow;
         this.dead = snapshot.dead;
-        this.ragdoll = snapshot.ragdoll;
-        this.explosion = snapshot.explosion;
-        this.powerupsEnabled = snapshot.powerupsEnabled;
         this.targetsCollected = snapshot.targetsCollected;
-        this.powerupsConsumed = snapshot.powerupsConsumed;
+        this.powerupsConsumed = [...snapshot.powerupsConsumed];
         this.gravity = snapshot.gravity.clone();
 
         this.vehicle.restore(snapshot.vehicle);

@@ -11,8 +11,12 @@ document.addEventListener("keydown", function(event) {
     
     switch(event.key.toLowerCase()) {
         case "backspace":
+            if (event.shiftKey) {
+                window.game.track.restoreCheckpoint();
+                break;
+            }
+
             window.game.track.removeCheckpoint();
-            window.game.track.gotoCheckpoint();
             break;
 
         case "enter":
@@ -20,13 +24,7 @@ document.addEventListener("keydown", function(event) {
             break;
 
         case ".":
-            window.game.track.removeCheckpointUndo();
-            window.game.track.gotoCheckpoint();
-            break;
-
-        case "f":
-        case "F11":
-            document.fullscreenElement ? document.exitFullscreen() : window.game.container.requestFullscreen();
+            window.game.track.restoreCheckpoint();
             break;
 
         case "-":
@@ -57,6 +55,7 @@ document.addEventListener("keydown", function(event) {
 
             break;
 
+        case "p":
         case " ":
             window.game.track.paused = window.autoPause ? true : !window.game.track.paused,
             window.game.container.querySelector("playpause")?.classList[window.game.track.paused ? "remove" : "add"]("playing"),
@@ -69,7 +68,7 @@ document.addEventListener("keydown", function(event) {
             window.game.track.cameraFocus = window.game.track.firstPlayer.vehicle.head;
         }
 
-        switch(event.key) {
+        switch(event.key.toLowerCase()) {
             case "a":
                 if (window.game.track.toolHandler.selected !== "brush" || window.game.track.toolHandler.currentTool.scenery) {
                     window.game.track.toolHandler.setTool("brush");
@@ -141,7 +140,7 @@ document.addEventListener("keydown", function(event) {
 });
 
 document.addEventListener("keyup", function(event) {
-    switch (event.key) {
+    switch (event.key.toLowerCase()) {
         case "b":
             if (event.ctrlKey) {
                 window.game.track.switchBike();
@@ -164,7 +163,12 @@ document.addEventListener("keyup", function(event) {
 
             break;
 
-        case "F2":
+        case "f":
+        case "f11":
+            document.fullscreenElement ? (document.exitFullscreen(), window.game.container.querySelector("fullscreen")?.classList.remove("active")) : (window.game.container.requestFullscreen(), window.game.container.querySelector("fullscreen")?.classList.add("active"));
+            break;
+
+        case "f2":
             window.game.track.firstPlayer.pastCheckpoint = false;
             break;
 

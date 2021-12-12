@@ -72,6 +72,19 @@ toolbar tool {
     backdrop-filter: blur(2px);
 }
 
+tool:hover {
+    transition: all 40ms;
+    background-color: #333;
+}
+
+tool * {
+    display: block;
+    width: inherit;
+    height: inherit;
+    pointer-events: none;
+    transition: all 200ms;
+}
+
 tool.disabled {
     opacity: .4;
 }
@@ -89,19 +102,6 @@ toolbar div.left tool {
 toolbar div.right tool {
     border-left-width: 1px;
     border-left-style: solid;
-}
-
-tool:hover {
-    transition: all 40ms;
-    background-color: #333;
-}
-
-tool * {
-    display: block;
-    width: inherit;
-    height: inherit;
-    pointer-events: none;
-    transition: all 200ms;
 }
 
 playpause {
@@ -325,6 +325,41 @@ fullscreen {
         60% 20%,
         80% 20%,
         80% 40%,
+        100% 40%,
+        100% 100%,
+        0 100%
+    );
+}
+
+fullscreen.active {
+    clip-path: polygon(
+        0 40%,
+        40% 40%,
+        40% 0,
+        20% 0,
+        20% 20%,
+        0 20%,
+        0 60%,
+        40% 60%,
+        40% 100%,
+        20% 100%,
+        20% 80%,
+        0 80%,
+        0 100%,
+        60% 100%,
+        60% 60%,
+        100% 60%,
+        100% 80%,
+        80% 80%,
+        80% 100%,
+        60% 100%,
+        100% 100%,
+        100% 40%,
+        60% 40%,
+        60% 0,
+        80% 0,
+        80% 20%,
+        100% 20%,
         100% 40%,
         100% 100%,
         0 100%

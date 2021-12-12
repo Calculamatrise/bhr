@@ -84,6 +84,7 @@ export default class Track {
         this.removeCollectedItems();
 
         this.paused = false; // JSON.parse(localStorage.pauseOnEnter) ? true : false;
+        this.parent.container.querySelector("playpause")?.classList[this.paused ? "remove" : "add"]("playing");
         if (this.firstPlayer.snapshots.length > 0) {
             let snapshot = this.firstPlayer.snapshots[this.firstPlayer.snapshots.length - 1];
             this.currentTime = snapshot.currentTime;
@@ -110,23 +111,24 @@ export default class Track {
                 }
 
                 player.snapshots.pop();
-
-                this.gotoCheckpoint();
             }
         }
+
+        this.gotoCheckpoint();
     }
 
-    removeCheckpointUndo() {
+    restoreCheckpoint() {
         for (const player of this.players) {
             if (player.snapshots.cache.length > 0) {
                 if (player.snapshots !== void 0) {
-                    snapshots.push(snapshots.cache[snapshots.cache.length - 1]);
                     player.snapshots.push(player.snapshots.cache[player.snapshots.cache.length - 1]);
                 }
                 
-                player.snapshots.cache.pop()
+                player.snapshots.cache.pop();
             }
         }
+
+        this.gotoCheckpoint();
     }
 
     collectItems(items) {
