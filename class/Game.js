@@ -14,7 +14,7 @@ import Antigravity from "./item/Antigravity.js";
 import Slowmo from "./item/Slowmo.js";
 import Teleporter from "./item/Teleporter.js";
 
-let Z = false, Hb = false, older = null;
+let Z = false, Hb = false;
 
 export default class {
     constructor(canvas) {
@@ -41,10 +41,12 @@ export default class {
     get theme() {
         return localStorage.getItem("theme");
     }
+
     adjust() {
         this.setAttribute("height", +getComputedStyle(this).getPropertyValue("height").slice(0, -2) * window.devicePixelRatio);
         this.setAttribute("width", +getComputedStyle(this).getPropertyValue("width").slice(0, -2) * window.devicePixelRatio);
     }
+
     init(trackCode) {
         this.track = new Track(this, {
             code: trackCode
@@ -56,12 +58,28 @@ export default class {
         
         this.lastFrame = requestAnimationFrame(this.render.bind(this));
     }
+
     initCursor() {
         if (this.track)
             this.track.displayText = false;
 
         this.canvas.style.cursor = this.track.toolHandler.selected === "camera" ? "move" : "none";
     }
+
+    render(time) {
+        this.lastFrame = requestAnimationFrame(this.render.bind(this));
+        this.delta = time - this.lastTime;
+        if (this.delta < 1000 / this.fps) {
+            this.track.render(this.ctx);
+
+            return;
+        }
+
+        this.track.update(this.delta / (1000 / this.fps));
+        this.track.render(this.ctx);
+        this.lastTime = time;
+    }
+
     mouseDown(event) {
         this.track.cameraLock = true;
         this.track.cameraFocus = false;
@@ -126,6 +144,7 @@ export default class {
             }
         }
     }
+
     mouseMove(event) {
         if (this.track.toolHandler.selected !== "camera") {
             this.track.cameraFocus = false;
@@ -158,6 +177,7 @@ export default class {
         this.canvas.style.cursor = this.track.toolHandler.selected == "camera" ? "move" : ["boost", "gravity"].includes(this.track.toolHandler.selected) ? "crosshair" : "none";
 
     }
+
     mouseUp(event) {
         if (!Z)
             this.track.cameraLock = false;
@@ -166,12 +186,17 @@ export default class {
             return Hb = false;
 
         //if (this.track.cameraLock) {
-            if (["line", "scenery line", "brush", "scenery brush"].includes(this.track.toolHandler.selected)) {
+            if (["line", "brush"].includes(this.track.toolHandler.selected)) {
                 this.track.addLine(this.mouse.old, this.mouse.position, this.track.toolHandler.currentTool.scenery);
             } else if ("teleporter" === this.track.toolHandler.selected) {
                 this.mouse.old.copy(this.mouse.position);
                 if (this.track.teleporter) {
-                    this.track.teleporter.tpb(this.mouse.old.x, this.mouse.old.y);
+                    if (this.track.teleporter.position.distanceTo(this.mouse.old) > 40) {
+                        this.track.teleporter.tpb(this.mouse.old.x, this.mouse.old.y);
+                    } else {
+                        this.track.teleporter.remove();
+                    }
+                    
                     delete this.track.teleporter;
                 }
             } else if (this.canvas.style.cursor === "crosshair" && ["boost", "gravity"].includes(this.track.toolHandler.selected)) {
@@ -189,6 +214,7 @@ export default class {
             }
         //}
     }
+
     scroll(event) {
         if (Z) {
             if ("eraser" === this.track.toolHandler.selected) {
@@ -218,19 +244,7 @@ export default class {
         let y = new Vector(event.clientX - this.canvas.offsetLeft, event.clientY - this.canvas.offsetTop + window.pageYOffset).toCanvas();
         this.track.cameraFocus || this.track.camera.addToSelf(this.mouse.position.sub(y))
     }
-    render(time) {
-        this.lastFrame = requestAnimationFrame(this.render.bind(this));
-        this.delta = time - this.lastTime;
-        if (this.delta < 1000 / this.fps) {
-            this.track.render(this.ctx);
 
-            return;
-        }
-
-        this.track.update(this.delta / (1000 / this.fps));
-        this.track.render(this.ctx);
-        this.lastTime = time;
-    }
     load() {
         this.canvas.style.display = "block";
         document.querySelector("#track_menu").style.display = "none";
@@ -248,6 +262,7 @@ export default class {
             document.getElementById("track_menu").style.display = "block";
         }
     }
+
     save() {
         if (this.track.id === void 0) {
             const date = new Date();
@@ -265,6 +280,7 @@ export default class {
             }(new Blob([this.track.toString()], { type: "txt" }), `black_hat_rider_${date.getDate()}-${date.getMonth()}-${date.getFullYear()}`);
         }
     }
+
     saveGhost() {
         if (this.track.id === void 0) {
             const date = new Date();
@@ -280,6 +296,16 @@ export default class {
             }(new Blob([JSON.stringify(this.firstPlayer.gamepad.records)], { type: "txt" }), `black_hat_ghost-${date.getDate()}-${date.getMonth()}-${date.getFullYear()}`);
         }
     }
+
+    reset() {
+        if (confirm("Do you really want to start a new track?")) {
+            this.close();
+            this.init("-18 1i 18 1i###BMX");
+            document.querySelector("#charcount").innerHTML = "Trackcode";
+            document.querySelector("#trackcode").value = null;
+        }
+    }
+
     close() {
         this.track = null;
 
@@ -288,13 +314,5 @@ export default class {
         window.removeEventListener("resize", this.adjust);
 
         cancelAnimationFrame(this.lastFrame);
-    }
-    reset() {
-        if (confirm("Do you really want to start y new track?")) {
-            this.close();
-            this.init("-18 1i 18 1i###BMX");
-            document.querySelector("#charcount").innerHTML = "Trackcode";
-            document.querySelector("#trackcode").value = null;
-        }
     }
 }
