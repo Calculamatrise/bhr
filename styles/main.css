@@ -7,8 +7,8 @@ body {
 }
 
 canvas#view {
-    width: 900;
-    height: 500;
+    width: 100vw;
+    height: 100vh;
     background-color: white;
 }
 
@@ -49,7 +49,7 @@ toolbar settings, toolbar settings div[data-id=eraser] {
     margin-top: 25px;
 }
 
-toolbar :is(div.left, div.right) {
+toolbar div.left, toolbar div.right {
     width: 30px;
     position: absolute;
 }

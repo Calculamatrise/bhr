@@ -172,7 +172,7 @@ document.addEventListener("keyup", function(event) {
             window.game.track.firstPlayer.pastCheckpoint = false;
             break;
 
-        case "Escape":
+        case "escape":
             let overlay = window.game.container.querySelector("overlay");
             overlay.style.setProperty("display", overlay.style.display === "flex" ? (window.game.track.paused = !1, "none") : (window.game.track.paused = !0, "flex"));
 

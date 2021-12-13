@@ -17,7 +17,7 @@ export default class Sector {
     }
     za() {
         for (const t of this.physics) {
-            t.yb = !1;
+            t.collided = !1;
         }
     }
     remove() {

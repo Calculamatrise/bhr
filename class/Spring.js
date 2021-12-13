@@ -34,7 +34,8 @@ export default class Spring {
         b.addToSelf(a.scale(this.b.velocity.sub(this.a.velocity).dot(a) * this.dampConstant));
         this.b.velocity.addToSelf(b.scale(-1));
         this.a.velocity.addToSelf(b);
-        return this
+
+        return this;
     }
     
     swap() {

@@ -1,12 +1,12 @@
 import Mass from "./Mass.js";
 
 export default class extends Mass {
-    drive(t) {
-        this.position.addToSelf(t.scale(-t.dot(this.velocity) * this.friction));
+    drive(velocity) {
+        this.position.addToSelf(velocity.scale(-velocity.dot(this.velocity) * this.friction));
         this.touching = true;
     }
     
-    update() {
+    update(delta) {
         this.velocity.addToSelf(this.parent.parent.gravity).scaleSelf(.99);
         this.position.addToSelf(this.velocity);
         this.touching = false;
@@ -17,12 +17,12 @@ export default class extends Mass {
         this.velocity = this.position.sub(this.old);
         this.old.copy(this.position);
         
-        super.update();
+        super.update(delta);
     }
 
     clone() {
         const clone = new this.constructor(this.parent);
-        clone.size = this.size;
+        
         clone.position = this.position.clone();
         clone.old = this.old.clone();
         clone.velocity = this.velocity.clone();

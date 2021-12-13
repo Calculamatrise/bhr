@@ -227,7 +227,7 @@ export default class {
             return;
         }
 
-        this.track.update(this.delta);
+        this.track.update(this.delta / (1000 / this.fps));
         this.track.render(this.ctx);
         this.lastTime = time;
     }

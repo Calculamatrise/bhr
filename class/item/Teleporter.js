@@ -14,7 +14,10 @@ export default class Teleporter extends SingleUseItem {
 
     draw() {
         super.draw();
-        super.draw(this.d.toPixel());
+        
+        if (this.d) {
+            super.draw(this.d.toPixel());
+        }
     }
 
     tpb(t, e) {

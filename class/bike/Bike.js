@@ -61,7 +61,6 @@ export default class {
         let rearSpring = this.rearSpring.leff;
         this.rearSpring.leff = this.frontSpring.leff;
         this.frontSpring.leff = rearSpring;
-        this.parent.collide("turn");
     }
 
     update(delta) {
@@ -76,10 +75,11 @@ export default class {
             spring.update();
 
         for (const mass of this.masses)
-            mass.update();
+            mass.update(delta);
 
         if (!this.parent.slow && !this.parent.dead) {
             this.updateControls();
+
             for (const spring of this.springs)
                 spring.update();
 

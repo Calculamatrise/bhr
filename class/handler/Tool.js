@@ -20,7 +20,7 @@ export default class {
         line: new Line(this)
     }
     get currentTool() {
-        if (["goal", "checkpoint", "bomb", "slow-mo", "antigravity"].includes(this.selected)) {
+        if (["goal", "checkpoint", "bomb", "slow-mo", "antigravity", "teleporter"].includes(this.selected)) {
             return this.tools["powerup"];
         } else if (["boost", "gravity"].includes(this.selected)) {
             return this.tools["trianglePowerup"]

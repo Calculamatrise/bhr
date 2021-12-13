@@ -6,7 +6,7 @@ export default class Sector {
     }
     za() {
         for (var a = 0, b = this.physics.length; a < b; a++) {
-            this.physics[a].yb = !1;
+            this.physics[a].collided = !1;
         }
     }
     collide(a) {

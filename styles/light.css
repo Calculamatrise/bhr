@@ -18,7 +18,7 @@ tool *:not(wheel, line, eraser, svg, playpause, backtrack, rewind, brush, camera
     background-color: white;
 }
 
-tool svg {
+tool svg, tool svg circle {
     stroke: black;
 }
 
