@@ -28,8 +28,8 @@ export default class {
         return Math.sqrt(this.x * this.x + this.y * this.y);
     }
 
-    get absolute() {
-        return this.toPixel();
+    get pixel() {
+        return new this.constructor((this.x - window.game.track.camera.x) * window.game.track.zoom + window.game.canvas.width / 2 * window.devicePixelRatio, (this.y - window.game.track.camera.y) * window.game.track.zoom + window.game.canvas.height / 2 * window.devicePixelRatio);
     }
 
     toPixel() {
@@ -40,30 +40,30 @@ export default class {
         return new this.constructor(Math.round((this.x - window.game.canvas.width / 2) / window.game.track.zoom + window.game.track.camera.x), Math.round((this.y - window.game.canvas.height / 2) / window.game.track.zoom + window.game.track.camera.y)).scale(window.devicePixelRatio);
     }
 
-    copy(a) {
-        this.x = a.x;
-        this.y = a.y;
+    copy(vector) {
+        this.x = vector.x;
+        this.y = vector.y;
 
         return this;
     }
 
-    addToSelf(a) {
-        this.x += a.x;
-        this.y += a.y;
+    addToSelf(vector) {
+        this.x += vector.x;
+        this.y += vector.y;
 
         return this;
     }
 
-    subtractFromSelf(a) {
-        this.x -= a.x;
-        this.y -= a.y;
+    subtractFromSelf(vector) {
+        this.x -= vector.x;
+        this.y -= vector.y;
 
         return this;
     }
 
-    scaleSelf(a) {
-        this.x *= a;
-        this.y *= a;
+    scaleSelf(factor) {
+        this.x *= factor;
+        this.y *= factor;
 
         return this;
     }
@@ -79,36 +79,57 @@ export default class {
         return this.lerp(target, 1 - Math.pow(smoothing, delta));
     }
 
-    add(a) {
-        return new this.constructor(this.x + a.x, this.y + a.y);
+    add(vector) {
+        return new this.constructor(this.x + vector.x, this.y + vector.y);
     }
 
-    sub(a) {
-        return new this.constructor(this.x - a.x, this.y - a.y);
+    sub(vector) {
+        return new this.constructor(this.x - vector.x, this.y - vector.y);
     }
     
-    scale(a) {
-        return new this.constructor(this.x * a, this.y * a);
+    scale(vector) {
+        return new this.constructor(this.x * vector, this.y * vector);
     }
 
-    oppositeScale(a) {
-        return new this.constructor(this.x / a, this.y / a);
+    oppositeScale(vector) {
+        return new this.constructor(this.x / vector, this.y / vector);
     }
 
-    dot(a) {
-        return this.x * a.x + this.y * a.y;
+    dot(vector) {
+        return this.x * vector.x + this.y * vector.y;
     }
 
     lengthSquared() {
         return this.x * this.x + this.y * this.y;
     }
 
-    distanceTo(a) {
-        return Math.sqrt((this.x - a.x) ** 2 + (this.y - a.y) ** 2);
+    distanceTo(vector) {
+        return Math.sqrt((this.x - vector.x) ** 2 + (this.y - vector.y) ** 2);
     }
 
-    distanceToSquared(a) {
-        return (this.x - a.x) ** 2 + (this.y - a.y) ** 2;
+    distanceToSquared(vector) {
+        return (this.x - vector.x) ** 2 + (this.y - vector.y) ** 2;
+    }
+
+    floor() {
+        this.x = Math.floor(this.x);
+        this.y = Math.floor(this.y);
+
+        return this;
+    }
+
+    round() {
+        this.x = Math.round(this.x);
+        this.y = Math.round(this.y);
+
+        return this;
+    }
+
+    ceil() {
+        this.x = Math.ceil(this.x);
+        this.y = Math.ceil(this.y);
+
+        return this;
     }
 
     clone() {

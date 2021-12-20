@@ -48,7 +48,7 @@ export default class Shard extends Mass {
     
     update(delta) {
         this.rotation += this.rotationFactor;
-        this.velocity.addToSelf(this.parent.gravity).scaleSelf(0.99);
+        this.velocity.addToSelf(this.parent.gravity).scaleSelf(.99);
         this.position.addToSelf(this.velocity);
         
         this.touching = !1;

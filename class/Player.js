@@ -67,9 +67,6 @@ export default class Player {
     }
 
     update(delta) {
-        if (this.pastCheckpoint)
-            this.trackComplete();
-
         if (this.ghost) {
             if (this.ghostData[0][this.track.currentTime]) {
                 if (this.gamepad.downKeys.has("ArrowLeft")) {
@@ -117,7 +114,7 @@ export default class Player {
             this.explosion.update();
         } else {
             this.vehicle.update(delta);
-            if (this.dead && !this.explosion) {
+            if (this.dead) {
                 this.ragdoll.update();
                 this.hat.update();
             }
@@ -167,43 +164,43 @@ export default class Player {
         }
     }
 
-    collide(a) {
-        if (this.snapshots && this.snapshots[a]) {
-            for (const snapshot of this.snapshots) {
-                snapshot.apply(this, _slice.call(arguments, 1));
-            }
+    collide(powerup) {
+        switch(powerup) {
+            case "checkpoint":
+                for (const player of this.track.players) {
+                    player.snapshots.push(player.snapshot())
+                }
+
+                break;
+
+            case "target":
+                if (!this.ghost) {
+                    this.targetsCollected++;
+
+                    if (this.targetsCollected === this.track.targets) {
+                        this.trackComplete();
+                    }
+                }
+
+                break;
         }
     }
 
     trackComplete() {
-        let e = this.track;
-        this.collide("hitTarget");
-        if (this.pastCheckpoint & 2) {
-            this.collide("hitGoal");
-            if (this.track.targets && e.targetsCollected === e.targets && 0 < e.currentTime && (!e.time || this.time < e.time) && e.id !== void 0) {
-                const records = `${game.track.firstPlayer.gamepad.records.map(record => Object.keys(record).join(" ")).join(",")},${this.track.currentTime},${this.vehicle.name}`;
-
-                fetch("/tracks/ghost_save", {
-                    headers: {
-                        "Content-Type": "application/x-www-form-urlencoded"
-                    },
-                    body: new URLSearchParams({
-                        id: window.location.pathname.split("/")[2],
-                        vehicle: this.vehicle,
-                        time: this.track.currentTime,
-                        code: records
-                    }),
-                    method: "post"
-                });
-            }
-        } else if (this.pastCheckpoint & 1) {
-            this.collide("hitCheckpoint");
-            for (const player of this.track.players) {
-                player.snapshots.push(player.snapshot())
-            }
+        if (this.targetsCollected === this.track.targets && this.track.currentTime > 0 && !this.track.editor) {
+            fetch("/tracks/ghost_save", {
+                headers: {
+                    "Content-Type": "application/x-www-form-urlencoded"
+                },
+                body: new URLSearchParams({
+                    id: window.location.pathname.split("/")[2],
+                    vehicle: this.vehicle.name,
+                    time: this.track.currentTime,
+                    code: `${game.track.firstPlayer.gamepad.records.map(record => Object.keys(record).join(" ")).join(",")},${this.track.currentTime},${this.vehicle.name}`
+                }),
+                method: "post"
+            });
         }
-        
-        this.pastCheckpoint = 0;
     }
 
     snapshot() {

@@ -17,22 +17,19 @@ import Antigravity from "../item/Antigravity.js";
 import Slowmo from "../item/Slowmo.js";
 import Teleporter from "../item/Teleporter.js";
 
-export default class Track {
+export default class {
     constructor(parent, { id = null, code = "-18 1i 18 1i###BMX" }) {
         this.parent = parent;
 
-        if (id)
-            this.id = id;
-
+        this.id = id;
         this.editor = !this.id;
         if (this.editor) {
             this.toolHandler.setTool("line");
         }
 
         this.code = code;
-        this.read(this.code);
 
-        this.parent.watchGhost = this.watchGhost;
+        this.read(this.code);
     }
 
     code = null;
@@ -50,8 +47,7 @@ export default class Track {
     paused = false;
     currentTime = 0;
     pictureMode = false;
-    displayText = false;
-    camera = new Vector(0, 0);
+    camera = new Vector();
     cameraLock = false;
     cameraFocus = null;
     zoom = 0.6;
@@ -76,7 +72,7 @@ export default class Track {
     }
     
     switchBike() {
-        this.firstPlayer.vehicle.name = this.firstPlayer.vehicle.name === "BMX" ? "MTB" : "BMX"
+        this.firstPlayer.vehicle.name = this.firstPlayer.vehicle.name === "BMX" ? "MTB" : "BMX";
         this.reset();
         this.cameraFocus = this.firstPlayer.vehicle.head;
     }
@@ -133,37 +129,19 @@ export default class Track {
     }
 
     collectItems(items) {
-        for (const x in this.grid) {
-            if (this.grid.hasOwnProperty(x)) {
-                for (const y in this.grid[x]) {
-                    if (this.grid[x].hasOwnProperty(y)) {
-                        let sector = this.grid[x][y];
-                        for (const powerup of sector.powerups) {
-                            if (powerup.used !== void 0) {
-                                if (items.includes(powerup.id)) {
-                                    powerup.used = true;
-                                }
-                            }
-                        }
-                    }
+        for (const powerup of this.powerups) {
+            if (powerup.used !== void 0) {
+                if (items.includes(powerup.id)) {
+                    powerup.used = true;
                 }
             }
         }
     }
 
     removeCollectedItems() {
-        for (const x in this.grid) {
-            if (this.grid.hasOwnProperty(x)) {
-                for (const y in this.grid[x]) {
-                    if (this.grid[x].hasOwnProperty(y)) {
-                        let sector = this.grid[x][y];
-                        for (const powerup of sector.powerups) {
-                            if (powerup.used !== void 0) {
-                                powerup.used = false;
-                            }
-                        }
-                    }
-                }
+        for (const powerup of this.powerups) {
+            if (powerup.used !== void 0) {
+                powerup.used = false;
             }
         }
     }
@@ -183,60 +161,45 @@ export default class Track {
     collide(part) {
         let x = Math.floor(part.position.x / this.scale - 0.5);
         let y = Math.floor(part.position.y / this.scale - 0.5);
-        if (this.grid[x] !== void 0) {
-            if (this.grid[x][y] !== void 0) {
-                this.grid[x][y].fix()
-            }
-            if (this.grid[x][y + 1] !== void 0) {
-                this.grid[x][y + 1].fix()
-            }
+        let sectors = [
+            (this.grid[x] || {})[y],
+            (this.grid[x] || {})[y + 1],
+            (this.grid[x + 1] || {})[y],
+            (this.grid[x + 1] || {})[y + 1]
+        ].filter(sector => sector);
+
+        for (const sector of sectors) {
+            sector.fix();
         }
 
-        if (this.grid[x + 1] !== void 0) {
-            if (this.grid[x + 1][y] !== void 0) {
-                this.grid[x + 1][y].fix()
-            }
-            if (this.grid[x + 1][y + 1] !== void 0) {
-                this.grid[x + 1][y + 1].fix()
-            }
-        }
-
-        if (this.grid[x] !== void 0 && this.grid[x][y] !== void 0) {
-            this.grid[x][y].collide(part)
-        }
-
-        if (this.grid[x + 1] !== void 0) {
-            if (this.grid[x + 1][y] !== void 0) {
-                this.grid[x + 1][y].collide(part)
-            }
-            if (this.grid[x + 1][y + 1] !== void 0) {
-                this.grid[x + 1][y + 1].collide(part)
-            }
-        }
-
-        if (this.grid[x] !== void 0 && this.grid[x][y + 1] !== void 0) {
-            this.grid[x][y + 1].collide(part)
+        for (const sector of sectors) {
+            sector.collide(part);
         }
 
         return this;
     }
+    
     update(delta) {
         if (!this.paused) {
-            for (const player of this.players)
+            for (const player of this.players) {
                 player.update(delta);
+            }
 
             this.currentTime += 1000 / 25;
         }
 
-        if (this.cameraFocus)
-            this.camera.addToSelf(this.cameraFocus.position.sub(this.camera).scale(0.3));
+        if (this.cameraFocus) {
+            this.camera.addToSelf(this.cameraFocus.position.sub(this.camera).scale(.3));
+        }
 
         return this;
     }
+
     render(ctx) {
         this.draw(ctx);
-        for (const player of this.players)
+        for (const player of this.players) {
             player.draw(ctx);
+        }
         
         if (!this.cameraFocus) {
             ctx.save();
@@ -244,6 +207,7 @@ export default class Track {
             ctx.restore();
         }
     }
+
     draw(ctx) {
         ctx.clearRect(0, 0, this.parent.canvas.width, this.parent.canvas.height);
         ctx.lineWidth = Math.max(2 * this.zoom, 0.5);
@@ -270,67 +234,68 @@ export default class Track {
             position = this.parent.mouse.position.toPixel();
             old = this.parent.mouse.old.toPixel();
             
-            ctx.save();
-            ctx.strokeStyle = "#f00";
+            ctx.save(),
+            ctx.strokeStyle = "#f00",
             ctx.beginPath(),
             ctx.moveTo(old.x, old.y),
             ctx.lineTo(position.x, position.y),
-            ctx.stroke();
+            ctx.stroke(),
             ctx.restore();
         }
 
-        let i = new Vector().toCanvas(this.parent.canvas)
-        , l = new Vector(this.parent.canvas.width, this.parent.canvas.height).toCanvas(this.parent.canvas);
-        i.x = Math.floor(i.x / this.scale);
-        i.y = Math.floor(i.y / this.scale);
-        l.x = Math.floor(l.x / this.scale);
-        l.y = Math.floor(l.y / this.scale);
-        var m = [], n, x, w, y, C;
-        for (w = i.x; w <= l.x; w++) {
-            for (y = i.y; y <= l.y; y++) {
+        let i = new Vector().toCanvas(this.parent.canvas).oppositeScale(this.scale).floor();
+        let l = new Vector(this.parent.canvas.width, this.parent.canvas.height).toCanvas(this.parent.canvas).oppositeScale(this.scale).floor();
+        let sectors = [];
+        for (let w = i.x; w <= l.x; w++) {
+            for (let y = i.y; y <= l.y; y++) {
                 if (this.grid[w] !== void 0 && this.grid[w][y] !== void 0) {
-                    if (0 < this.grid[w][y].physics.length || 0 < this.grid[w][y].scenery.length) {
-                        m[C = w + "_" + y] = 1;
-                        if (this.sectors[C] === void 0) {
-                            n = this.sectors[C] = document.createElement("canvas");
-                            n.width = this.scale * this.zoom;
-                            n.height = this.scale * this.zoom;
-                            var M = n.getContext("2d");
-                            M.lineCap = "round";
-                            M.lineWidth = Math.max(2 * this.zoom, 0.5);
-                            M.strokeStyle = this.parent.theme === "dark" ? "#999" : "#aaa";
-                            n = 0;
-                            for (x = this.grid[w][y].scenery.length; n < x; n++)
-                                this.grid[w][y].scenery[n].draw(M, w * this.scale * this.zoom, y * this.scale * this.zoom);
-                            
-                            M.strokeStyle = this.parent.theme === "dark" ? "#fff" : "#000";
-                            n = 0;
-                            for (x = this.grid[w][y].physics.length; n < x; n++)
-                                this.grid[w][y].physics[n].draw(M, w * this.scale * this.zoom, y * this.scale * this.zoom)
+                    if (this.grid[w][y].physics.length > 0 || this.grid[w][y].scenery.length > 0) {
+                        let sector = `${w}_${y}`;
+                        sectors[sector] = 1;
+                        if (this.sectors[sector] === void 0) {
+                            const canvas = this.sectors[sector] = document.createElement("canvas");
+                            canvas.width = this.scale * this.zoom;
+                            canvas.height = this.scale * this.zoom;
+
+                            const context = canvas.getContext("2d");
+                            context.lineCap = "round";
+                            context.lineWidth = Math.max(2 * this.zoom, 0.5);
+                            context.strokeStyle = this.parent.theme === "dark" ? "#999" : "#aaa";
+                            for (const line of this.scenery) {
+                                line.draw(context, w * this.scale * this.zoom, y * this.scale * this.zoom);
+                            }
+
+                            context.strokeStyle = this.parent.theme === "dark" ? "#fff" : "#000";
+                            for (const line of this.grid[w][y].physics) {
+                                line.draw(context, w * this.scale * this.zoom, y * this.scale * this.zoom);
+                            }
                         }
-                        ctx.drawImage(this.sectors[C], Math.floor(this.parent.canvas.width / 2 - this.camera.x * this.zoom + w * this.scale * this.zoom), Math.floor(this.parent.canvas.height / 2 - this.camera.y * this.zoom + y * this.scale * this.zoom))
+
+                        ctx.drawImage(this.sectors[sector], Math.floor(this.parent.canvas.width / 2 - this.camera.x * this.zoom + w * this.scale * this.zoom), Math.floor(this.parent.canvas.height / 2 - this.camera.y * this.zoom + y * this.scale * this.zoom));
                     }
+
                     ctx.strokeStyle = "#000";
-                    n = 0;
-                    for (x = this.grid[w][y].powerups.length; n < x; n++) {
-                        this.grid[w][y].powerups[n].draw();
+                    for (const powerup of this.grid[w][y].powerups) {
+                        powerup.draw(ctx);
                     }
                 }
             }
         }
 
-        for (var X in this.sectors)
-            m[X] === void 0 && delete this.sectors[X];
+        for (const sector in this.sectors) {
+            sectors[sector] === void 0 && delete this.sectors[sector];
+        }
         
-        ctx.beginPath();
-        ctx.fillStyle = "#ff0";
-        ctx.lineWidth = 1;
-        ctx.arc(45, 12, 3.5, 0, 2 * Math.PI, true),
+        ctx.beginPath(),
+        ctx.lineWidth = 1,
+        ctx.fillStyle = "#ff0",
+        ctx.arc(45, 12, 3.5, 0, 2 * Math.PI),
         ctx.fill(),
-        ctx.stroke(),
-        ctx.beginPath();
-        ctx.lineWidth = 10;
-        ctx.strokeStyle = this.parent.theme === "dark" ? "#1b1b1b" : "#fff";
+        ctx.stroke();
+
+        ctx.beginPath(),
+        ctx.lineWidth = 10,
+        ctx.strokeStyle = this.parent.theme === "dark" ? "#1b1b1b" : "#fff",
         ctx.fillStyle = this.parent.theme === "dark" ? "#fbfbfb" : "#000";
 
         let e = Math.floor(this.currentTime / 6E4);
@@ -352,45 +317,23 @@ export default class Track {
             if (this.gridSize === 10 && ["line", "brush"].includes(this.toolHandler.selected)) {
                 i += " - Grid ";
             }
+
             i += " - " + this.toolHandler.selected;
             if (this.toolHandler.selected === "brush") {
                 i += " ( size " + this.toolHandler.currentTool.length + " )";
             }
         }
-        if (this.displayText) {
-            if (!this.displayText[0] && !this.displayText[1]) {
-                i += " - " + (this.paused ? "Unp" : "P") + "ause ( SPACE )";
-            }
-        }
+
         ctx.strokeText(i = ": " + this.firstPlayer.targetsCollected + " / " + this.targets + "  -  " + i, 55, 16);
         ctx.fillText(i, 55, 16);
         if (this.players.length > 1) {
             for (i = 1; i < this.players.length; i++) {
-                ctx.fillStyle = this.parent.theme === "dark" ? "#999" : "#aaa";
-                ctx.textAlign = "right";
+                ctx.textAlign = "right",
+                ctx.fillStyle = this.parent.theme === "dark" ? "#999" : "#aaa",
                 ctx.strokeText(i = (this.players[i].name || "Ghost") + (this.players[i].targetsCollected === this.targets ? " finished!" : ": " + this.players[i].targetsCollected + " / " + this.targets), this.parent.canvas.width - 7, 16);
-                ctx.fillText(i, this.parent.canvas.width - 7, 16);
-                ctx.textAlign = "left";
+                ctx.fillText(i, this.parent.canvas.width - 7, 16),
+                ctx.textAlign = "left",
                 ctx.fillStyle = this.parent.theme === "dark" ? "#fbfbfb" : "#000";
-            }
-        }
-
-        if (this.displayText) {
-            if (this.displayText[2] !== void 0) {
-                if (this.displayText[0]) {
-                    ctx.textAlign = "right";
-                    if (document.documentElement.offsetHeight <= window.innerHeight) {
-                        ctx.strokeText(this.displayText[2], this.parent.canvas.width - 36, 15 + 25 * this.displayText[1]);
-                        ctx.fillText(this.displayText[2], this.parent.canvas.width - 36, 15 + 25 * this.displayText[1]);
-                    } else {
-                        ctx.strokeText(this.displayText[2], this.parent.canvas.width - 51, 15 + 25 * this.displayText[1]);
-                        ctx.fillText(this.displayText[2], this.parent.canvas.width - 51, 15 + 25 * this.displayText[1]);
-                    }
-                    ctx.textAlign = "left";
-                } else {
-                    ctx.strokeText(this.displayText[2], 36, 15 + 25 * this.displayText[1]);
-                    ctx.fillText(this.displayText[2], 36, 15 + 25 * this.displayText[1]);
-                }
             }
         }
 
@@ -409,93 +352,59 @@ export default class Track {
         }
 
     }
-    erase(a) {
-        function b(b) {
-            (b = b.erase(a)) && l.push(b)
-        }
-        var c = Math.floor(a.x / this.scale - 0.5), d = Math.floor(a.y / this.scale - 0.5), e = this.grid[c], c = this.grid[c + 1], f, h, i, l = [];
-        if (e !== void 0) {
-            f = e[d];
-            h = e[d + 1];
-            if (f !== void 0) {
-                if (this.toolHandler.currentTool.settings.physics) {
-                    for (e = 0, i = f.physics.length; e < i; e++) {
-                        f.physics[e] && b(f.physics[e]);
-                    }
-                }
-                if (this.toolHandler.currentTool.settings.scenery) {
-                    for (e = 0, i = f.scenery.length; e < i; e++) {
-                        f.scenery[e] && b(f.scenery[e]);
-                    }
-                }
-                if (this.toolHandler.currentTool.settings.powerups) {
-                    for (e = 0, i = f.powerups.length; e < i; e++) {
-                        f.powerups[e] && b(f.powerups[e]);
-                    }
-                }
-            }
-            if (h !== void 0) {
-                if (this.toolHandler.currentTool.settings.physics) {
-                    for (e = 0, i = h.physics.length; e < i; e++) {
-                        h.physics[e] && b(h.physics[e]);
-                    }
-                }
-                if (this.toolHandler.currentTool.settings.scenery) {
-                    for (e = 0, i = h.scenery.length; e < i; e++) {
-                        h.scenery[e] && b(h.scenery[e]);
-                    }
-                }
-                if (this.toolHandler.currentTool.settings.powerups) {
-                    for (e = 0, i = h.powerups.length; e < i; e++) {
-                        h.powerups[e] && b(h.powerups[e])
-                    }
-                }
+
+    erase(vector) {
+        let l = []
+        let x = Math.floor(vector.x / this.scale - 0.5);
+        let y = Math.floor(vector.y / this.scale - 0.5);
+        let e = this.grid[x] || {};
+        let c = this.grid[x + 1] || {};
+        let physics = [
+            ...((e[y] || {}).physics || []),
+            ...((e[y + 1] || {}).physics || []),
+            ...((c[y] || {}).physics || []),
+            ...((c[y + 1] || {}).physics || [])
+        ]
+
+        let scenery = [
+            ...((e[y] || {}).scenery || []),
+            ...((e[y + 1] || {}).scenery || []),
+            ...((c[y] || {}).scenery || []),
+            ...((c[y + 1] || {}).scenery || [])
+        ]
+
+        let powerups = [
+            ...((e[y] || {}).powerups || []),
+            ...((e[y + 1] || {}).powerups || []),
+            ...((c[y] || {}).powerups || []),
+            ...((c[y + 1] || {}).powerups || [])
+        ]
+
+        if (this.toolHandler.currentTool.settings.physics) {
+            for (let line of physics) {
+                (line = line.erase(vector)) && l.push(line);
             }
         }
-        if (c !== void 0) {
-            f = c[d];
-            d = c[d + 1];
-            if (f !== void 0) {
-                if (this.toolHandler.currentTool.settings.physics) {
-                    for (e = 0, i = f.physics.length; e < i; e++) {
-                        f.physics[e] && b(f.physics[e]);
-                    }
-                }
-                if (this.toolHandler.currentTool.settings.scenery) {
-                    for (e = 0, i = f.scenery.length; e < i; e++) {
-                        f.scenery[e] && b(f.scenery[e]);
-                    }
-                }
-                if (this.toolHandler.currentTool.settings.powerups) {
-                    for (e = 0, i = f.powerups.length; e < i; e++) {
-                        f.powerups[e] && b(f.powerups[e])
-                    }
-                }
-            }
-            if (d !== void 0) {
-                if (this.toolHandler.currentTool.settings.physics) {
-                    for (e = 0, i = d.physics.length; e < i; e++) {
-                        d.physics[e] && b(d.physics[e]);
-                    }
-                }
-                if (this.toolHandler.currentTool.settings.scenery) {
-                    for (e = 0, i = d.scenery.length; e < i; e++) {
-                        d.scenery[e] && b(d.scenery[e]);
-                    }
-                }
-                if (this.toolHandler.currentTool.settings.powerups) {
-                    for (i = d.powerups.length; e < i; e++) {
-                        d.powerups[e] && b(d.powerups[e]);
-                    }
-                }
+
+        if (this.toolHandler.currentTool.settings.scenery) {
+            for (let line of scenery) {
+                (line = line.erase(vector)) && l.push(line);
             }
         }
-        e = 0;
-        for (i = this.powerups.length; e < i; e++) {
-            this.powerups[e] && this.powerups[e].removed !== void 0 && l.push(this.powerups.splice(e--, 1)[0]);
+
+        if (this.toolHandler.currentTool.settings.powerups) {
+            for (let powerup of powerups) {
+                (powerup = powerup.erase(vector)) && l.push(powerup);
+            }
         }
-        return l
+
+        for (const powerup in this.powerups) {
+            this.powerups[powerup].removed !== void 0 && l.push(...this.powerups.splice(powerup, 1));
+        }
+
+        return l;
     }
+    
     addLine(a, b, c) {
         a = new (c ? SceneryLine : PhysicsLine)(a.x, a.y, b.x, b.y,this);
         if (2 <= a.len && 1E5 > a.len && (this.addLineInternal(a), ["line", "brush"].includes(this.toolHandler.selected))) {
@@ -511,9 +420,10 @@ export default class Track {
 
         return a
     }
+
     addLineInternal(a) {
         this[a.type].push(a);
-        var b = function(a, b, c) {
+        let b = function(a, b, c) {
             var zb = {};
             zb[c] || (zb[c] = {});
             var d = a + ";" + b;
@@ -525,7 +435,7 @@ export default class Track {
             , f = (b.y - a.y) / (b.x - a.x)
             , h = new Vector(a.x < b.x ? 1 : -1,a.y < b.y ? 1 : -1)
             , i = 0;
-            for (d.push(a); 5E3 > i && !(Math.floor(e.x / c) === Math.floor(b.x / c) && Math.floor(e.y / c) === Math.floor(b.y / c));) {
+            for (d.push(a); 5E3 > i && !(Math.floor(e.x / c) === Math.floor(b.x / c) && Math.floor(e.y / c) === Math.floor(b.y / c)); i++) {
                 var l = new Vector(0 > h.x ? Math.round(Math.ceil((e.x + 1) / c + h.x) * c) - 1 : Math.round(Math.floor(e.x / c + h.x) * c),0);
                 l.y = Math.round(a.y + (l.x - a.x) * f);
                 var m = new Vector(0,0 > h.y ? Math.round(Math.ceil((e.y + 1) / c + h.y) * c) - 1 : Math.round(Math.floor(e.y / c + h.y) * c));
@@ -537,19 +447,18 @@ export default class Track {
                     e = m;
                     d.push(m);
                 }
-                i++
             }
             return d
-        }(a.a, a.b, this.scale), c, d, e, f;
-        e = 0;
-        for (f = b.length; e < f; e++)
+        }(a.a, a.b, this.scale), c, d;
+        for (let e = 0; e < b.length; e++)
             c = Math.floor(b[e].x / this.scale),
             d = Math.floor(b[e].y / this.scale),
             this.grid[c] === void 0 && (this.grid[c] = {}),
             this.grid[c][d] === void 0 && (this.grid[c][d] = new Sector),
-            a.hb ? this.grid[c][d].scenery.push(a) : this.grid[c][d].physics.push(a),
+            a.type === "scenery" ? this.grid[c][d].scenery.push(a) : this.grid[c][d].physics.push(a),
             delete this.sectors[c + "_" + d]
     }
+
     read(a = "-18 1i 18 1i###BMX") {
         this.parent.ctx.fillText("Loading track... Please wait.", 36, 16);
         var e = a.split("#")
@@ -569,51 +478,53 @@ export default class Track {
             var d = parseInt(e[2], 32);
             switch (e[0]) {
                 case "T":
-                    i = new Target(b, d, this);
+                    i = new Target(this, b, d);
                     this.targets++;
                     this.powerups.push(i);
                     break;
 
                 case "C":
-                    i = new Checkpoint(b,d,this);
+                    i = new Checkpoint(this, b, d);
                     this.powerups.push(i);
                     break;
 
                 case "B":
-                    i = new Boost(b, d, parseInt(e[3], 32) + 180,this);
+                    i = new Boost(this, b, d, parseInt(e[3], 32) + 180);
                     break;
 
                 case "G":
-                    i = new Gravity(b, d, parseInt(e[3], 32) + 180,this);
+                    i = new Gravity(this, b, d, parseInt(e[3], 32) + 180);
                     break;
 
                 case "O":
-                    i = new Bomb(b, d, this);
+                    i = new Bomb(this, b, d);
                     break;
 
                 case "S":
-                    i = new Slowmo(b, d, this);
+                    i = new Slowmo(this, b, d);
                     break;
 
                 case "A":
-                    i = new Antigravity(b, d, this);
+                    i = new Antigravity(this, b, d);
                     break;
 
                 case "W":
-                    i = new Teleporter(b, d, this);
-                    i.tpb(parseInt(e[3], 32), parseInt(e[4], 32));
+                    i = new Teleporter(this, b, d);
+                    i.createAlt(parseInt(e[3], 32), parseInt(e[4], 32));
                     this.powerups.push(i);
                     break;
             }
+
             if (i) {
                 b = Math.floor(b / this.scale);
                 d = Math.floor(d / this.scale);
                 if (this.grid[b] === void 0) this.grid[b] = {};
-                if (this.grid[b][d] === void 0) this.grid[b][d] = new Sector;
+                if (this.grid[b][d] === void 0) this.grid[b][d] = new Sector();
                 this.grid[b][d].powerups.push(i);
             }
         }
     }
+
     addLines(t, e, scenery = false) {
         for (var i = t.length, s = 0; i > s; s++) {
             var n = t[s].split(" ")
@@ -630,6 +541,7 @@ export default class Track {
             }
         }
     }
+
     addToSelf(a, b) {
         for (var i = 0, d = a.length; i < d; i++) {
             if (a[i].type) {
@@ -638,10 +550,11 @@ export default class Track {
             if (b) {
                 this.addLineInternal(a[i])
             } else {
-                this.addLine(a[i].a, a[i].b, a[i].hb)
+                this.addLine(a[i].a, a[i].b, a[i].type === "scenery")
             }
         }
     }
+
     remove(a, b) {
         b === void 0 && (b = a);
         for (var c = function(a, b, c) {
@@ -655,7 +568,7 @@ export default class Track {
             , f = (b.y - a.y) / (b.x - a.x)
             , h = new Vector(a.x < b.x ? 1 : -1,a.y < b.y ? 1 : -1)
             , i = 0;
-            for (d.push(a); 5E3 > i && !(Math.floor(e.x / c) === Math.floor(b.x / c) && Math.floor(e.y / c) === Math.floor(b.y / c)); ) {
+            for (d.push(a); 5E3 > i && !(Math.floor(e.x / c) === Math.floor(b.x / c) && Math.floor(e.y / c) === Math.floor(b.y / c)); i++) {
                 var l = new Vector(0 > h.x ? Math.round(Math.ceil((e.x + 1) / c + h.x) * c) - 1 : Math.round(Math.floor(e.x / c + h.x) * c),0);
                 l.y = Math.round(a.y + (l.x - a.x) * f);
                 var m = new Vector(0,0 > h.y ? Math.round(Math.ceil((e.y + 1) / c + h.y) * c) - 1 : Math.round(Math.floor(e.y / c + h.y) * c));
@@ -663,8 +576,8 @@ export default class Track {
                 Math.pow(l.x - a.x, 2) + Math.pow(l.y - a.y, 2) < Math.pow(m.x - a.x, 2) + Math.pow(m.y - a.y, 2) ? (e = l,
                 d.push(l)) : (e = m,
                 d.push(m));
-                i++
             }
+            
             return d
         }(a, b, this.scale), d = [], e = 0, f = c.length; e < f; e++) {
             var h = Math.floor(c[e].x / this.scale),
@@ -672,24 +585,16 @@ export default class Track {
                 d = d.concat(this.grid[h][i].remove());
             delete this.sectors[h + "_" + i]
         }
-        e = 0;
     }
-    toString() {
-        let a = "", b = "", c = "";
-        for (const line of this.physics)
-            a += `${line.toString()},`;
 
-        for (const line of this.scenery)
-            b += `${line.toString()},`;
-
-        for (const item of this.powerups)
-            c += `${item.toString()},`;
-
-        return a.substr(0, a.length - 1) + "#" + b.substr(0, b.length - 1) + "#" + c.substr(0, c.length - 1) + "#" + this.firstPlayer.vehicle.name;
-    }
     reset() {
         this.currentTime = 0;
-        for (const player of this.players)
+        for (const player of this.players) {
             player.reset();
+        }
+    }
+
+    toString() {
+        return this.physics.map(line => line.toString()).join(",") + "#" + this.scenery.map(line => line.toString()).join(",") + "#" + this.powerups.map(powerup => powerup.toString()).join(",") + "#" + this.firstPlayer.vehicle.name;
     }
 }

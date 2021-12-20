@@ -2,28 +2,29 @@ import Vector from "../Vector.js";
 import Item from "./Item.js";
 
 export default class Triangle extends Item {
-    constructor(a, b, c, d) {
-        super(a, b, d);
+    constructor(track, x, y, d) {
+        super(track, x, y);
 
-        this.rotation = c;
-        this.dir = new Vector(-Math.sin(c * Math.PI / 180), Math.cos(c * Math.PI / 180));
+        this.rotation = d;
+        this.dir = new Vector(-Math.sin(this.rotation * Math.PI / 180), Math.cos(this.rotation * Math.PI / 180));
     }
     
-    draw() {
+    draw(ctx) {
         let position = this.position.toPixel();
-        this.ctx.strokeStyle = this.track.parent.theme === "dark" ? "#fbfbfb" : "#000000";
-        this.ctx.fillStyle = this.color;
-        this.ctx.beginPath(),
-        this.ctx.save();
-        this.ctx.translate(position.x, position.y);
-        this.ctx.rotate(this.rotation * Math.PI / 180);
-        this.ctx.moveTo(-7 * this.track.zoom, -10 * this.track.zoom),
-        this.ctx.lineTo(0, 10 * this.track.zoom),
-        this.ctx.lineTo(7 * this.track.zoom, -10 * this.track.zoom),
-        this.ctx.lineTo(-7 * this.track.zoom, -10 * this.track.zoom),
-        this.ctx.fill(),
-        this.ctx.stroke(),
-        this.ctx.restore()
+
+        ctx.save(),
+        ctx.beginPath(),
+        ctx.fillStyle = this.color,
+        ctx.strokeStyle = this.track.parent.theme === "dark" ? "#fbfbfb" : "#000000",
+        ctx.translate(position.x, position.y),
+        ctx.rotate(this.rotation * Math.PI / 180),
+        ctx.moveTo(-7 * this.track.zoom, -10 * this.track.zoom),
+        ctx.lineTo(0, 10 * this.track.zoom),
+        ctx.lineTo(7 * this.track.zoom, -10 * this.track.zoom),
+        ctx.lineTo(-7 * this.track.zoom, -10 * this.track.zoom),
+        ctx.fill(),
+        ctx.stroke(),
+        ctx.restore()
     }
 
     collide(part) {

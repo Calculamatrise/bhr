@@ -5,24 +5,85 @@
         <meta name="viewport" content="width=device-width, initial-scale=1.0">
         <title>Black Hat Rider - Calculamatrise</title>
         <link rel="stylesheet" href="styles/main.css">
-        <link rel="stylesheet" href="styles/light.css" onload="localStorage.getItem('theme') === 'dark' && (this.href = 'styles/dark.css')">
+        <link rel="stylesheet" href="styles/light.css" onload="
+        localStorage.getItem('theme') === 'dark' && (this.href = 'styles/dark.css') || localStorage.getItem('theme') === 'midnight' && (this.href = 'styles/dark.css')
+        ">
     </head>
     <body>
         <container>
             <interface>
                 <overlay>
-                    <div id="track_menu">
-                        <div class="span12" id="charcount">Trackcode - CTRL + V to paste</div>
-                        <input id="trackcode" style="width:250px" spellcheck="false" oninput="
-                            if (event.target.value.startsWith('GHOST:')) {
-                                document.querySelector('#track_menu').style.display = 'none';
-                                document.querySelector('#view').style.display = 'block';
-                                game.watchGhost(event.target.value);
-                            } else {
-                                game.loadRide(event.target.value);
-                            }
-                        ">
-                    </div>
+                    <nav onclick="event.target.tagName !== 'NAV' && ([...this.children].forEach(element => element.classList[event.target.dataset.id === element.dataset.id ? 'add' : 'remove']('active')),
+                    document.querySelectorAll('options').forEach(element => element.style.setProperty('display', 'none')),
+                    document.querySelector('options#' + event.target.dataset.id).style.setProperty('display',
+                    document.querySelector('options#' + event.target.dataset.id).style.display === 'flex' ? 'none' : 'flex'))">
+                        <button class="active" data-id="track">Track</button>
+                        <button data-id="ghost">Ghost</button>
+                        <button data-id="theme">Theme</button>
+                    </nav>
+                    <options id="track" style="display: flex;">
+                        <button onclick="confirm('Are you sure you\'d like to clear the track?') && game.init()">Clear</button>
+                        <button onclick="game.init(document.querySelector('textarea#code').value)">Load</button>
+                        <button onclick="
+                        let picker = document.createElement('input');
+                        picker.type = 'file';
+                        picker.accept = 'text/plain';
+                        picker.addEventListener('change', function(event) {
+                            const reader = new FileReader();
+                            reader.addEventListener('load', function() {
+                                game.init(this.result);
+                            });
+                            reader.readAsText(this.files[0]);
+                        });
+                        picker.click();
+                        ">Load File...</button>
+                        <button onclick="document.querySelector('textarea#code').value = game.track.toString()">Save</button>
+                        <button onclick="
+                        let date = new Date(new Date().setHours(new Date().getHours() - new Date().getTimezoneOffset() / 60)).toISOString().split(/t/i);
+                        let link = document.createElement('a');
+                        let file = new Blob([game.track.toString()], {
+                            type: 'text/plain'
+                        });
+                        link.href = window.URL.createObjectURL(file);
+                        link.download = 'bhr_track_' + date[0] + '_' + date[1].replace(/\..+/, '').replace(/:/g, '-');
+                        link.click();
+                        ">Save As...</button>
+                        <textarea id="code" cols="30" rows="10"></textarea>
+                    </options>
+                    <options id="ghost">
+                        <button onclick="game.track.players.splice(1, game.track.players.length)">Clear Ghosts</button>
+                        <button onclick="game.track.watchGhost(document.querySelector('textarea#gcode').value)">Load</button>
+                        <button onclick="
+                        let picker = document.createElement('input');
+                        picker.type = 'file';
+                        picker.accept = 'text/plain';
+                        picker.addEventListener('change', function(event) {
+                            const reader = new FileReader();
+                            reader.addEventListener('load', function() {
+                                game.track.watchGhost(this.result);
+                            });
+                            reader.readAsText(this.files[0]);
+                        });
+                        picker.click();
+                        ">Load File...</button>
+                        <button onclick="document.querySelector('textarea#gcode').value = game.track.firstPlayer.gamepad.records.map(record => Object.keys(record).join(' ')).join(',')">Save</button>
+                        <button onclick="
+                        let date = new Date(new Date().setHours(new Date().getHours() - new Date().getTimezoneOffset() / 60)).toISOString().split(/t/i);
+                        let link = document.createElement('a');
+                        let file = new Blob([game.track.firstPlayer.gamepad.records.map(record => Object.keys(record).join(' ')).join(',')], {
+                            type: 'text/plain'
+                        });
+                        link.href = window.URL.createObjectURL(file);
+                        link.download = 'bhr_track_' + date[0] + '_' + date[1].replace(/\..+/, '').replace(/:/g, '-');
+                        link.click();
+                        ">Save As...</button>
+                        <textarea id="gcode" cols="30" rows="10"></textarea>
+                    </options>
+                    <options id="theme">
+                        <button onclick="localStorage.setItem('theme', 'light')">Light</button>
+                        <button onclick="localStorage.setItem('theme', 'midnight')">Midnight</button>
+                        <button onclick="localStorage.setItem('theme', 'dark')">Dark</button>
+                    </options>
                 </overlay>
                 <toolbar>
                     <div class="left">

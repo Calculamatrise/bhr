@@ -16,14 +16,7 @@ export default class Line {
 
     //     ctx.save();
 
-    //     if (this.track.lineShading) {
-    //         ctx.shadowOffsetX = 2;
-    //         ctx.shadowOffsetY = 2;
-    //         ctx.shadowBlur = Math.max(2, this.track.zoom * 10);
-    //         ctx.shadowColor = this.type === "scenery" ? this.parent.track.parent.theme === "dark" ? "#999" : "#aaa" : this.parent.track.parent.theme === "dark" ? "#fff" : "#000";
-    //     }
-
-    //     ctx.strokeStyle = this.type === "scenery" ? this.parent.track.parent.theme === "dark" ? "#999" : "#aaa" : this.parent.track.parent.theme === "dark" ? "#fff" : "#000";
+    //     ctx.strokeStyle = this.type === "scenery" ? this.track.parent.theme === "dark" ? "#999" : "#aaa" : this.track.parent.theme === "dark" ? "#fff" : "#000";
     //     ctx.lineWidth = Math.max(this.track.zoom * 2, 0.5);
     //     ctx.lineCap = "round";
     //     ctx.beginPath();
@@ -39,8 +32,8 @@ export default class Line {
         ctx.stroke()
     }
 
-    erase(t) {
-        let b = t.sub(this.a).dot(this.vector.oppositeScale(this.len));
+    erase(vector) {
+        let b = vector.sub(this.a).dot(this.vector.oppositeScale(this.len));
         let c = new Vector(0,0);
         if (b <= 0) {
             c.copy(this.a)
@@ -50,7 +43,7 @@ export default class Line {
             c.copy(this.a.add(this.vector.oppositeScale(this.len).scale(b)));
         }
 
-        return t.sub(c).length <= this.track.toolHandler.currentTool.size ? this.remove() : !1
+        return vector.sub(c).length <= this.track.toolHandler.currentTool.size ? this.remove() : !1
     }
 
     commit() {

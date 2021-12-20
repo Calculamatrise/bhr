@@ -48,6 +48,14 @@ export default class {
     }
 
     init(trackCode) {
+        if (trackCode === null) {
+            return;
+        }
+
+        if (this.lastFrame) {
+            this.close();
+        }
+
         this.track = new Track(this, {
             code: trackCode
         });
@@ -102,28 +110,28 @@ export default class {
                     break;
 
                 case "goal":
-                    x = new Target(this.mouse.old.x,this.mouse.old.y, this.track);
+                    x = new Target(this.track, this.mouse.old.x,this.mouse.old.y);
                     this.track.targets++;
                     break;
 
                 case "checkpoint":
-                    x = new Checkpoint(this.mouse.old.x,this.mouse.old.y, this.track);
+                    x = new Checkpoint(this.track, this.mouse.old.x,this.mouse.old.y);
                     break;
 
                 case "bomb":
-                    x = new Bomb(this.mouse.old.x,this.mouse.old.y, this.track);
+                    x = new Bomb(this.track, this.mouse.old.x,this.mouse.old.y);
                     break;
 
                 case "slow-mo":
-                    x = new Slowmo(this.mouse.old.x,this.mouse.old.y, this.track);
+                    x = new Slowmo(this.track, this.mouse.old.x,this.mouse.old.y);
                     break;
                     
                 case "antigravity":
-                    x = new Antigravity(this.mouse.old.x,this.mouse.old.y, this.track);
+                    x = new Antigravity(this.track, this.mouse.old.x,this.mouse.old.y);
                     break;
 
                 case "teleporter":
-                    x = new Teleporter(this.mouse.old.x,this.mouse.old.y, this.track);
+                    x = new Teleporter(this.track, this.mouse.old.x,this.mouse.old.y);
                     this.track.teleporter = x;
                     break;
 
@@ -192,7 +200,14 @@ export default class {
                 this.mouse.old.copy(this.mouse.position);
                 if (this.track.teleporter) {
                     if (this.track.teleporter.position.distanceTo(this.mouse.old) > 40) {
-                        this.track.teleporter.tpb(this.mouse.old.x, this.mouse.old.y);
+                        this.track.teleporter.createAlt(this.mouse.old.x, this.mouse.old.y);
+                    
+                        let x = Math.floor(this.track.teleporter.alt.x / this.track.scale);
+                        let y = Math.floor(this.track.teleporter.alt.y / this.track.scale);
+        
+                        this.track.grid[x] === void 0 && (this.track.grid[x] = []),
+                        this.track.grid[x][y] === void 0 && (this.track.grid[x][y] = new Sector()),
+                        this.track.grid[x][y].powerups.push(this.track.teleporter);
                     } else {
                         this.track.teleporter.remove();
                     }
@@ -203,12 +218,12 @@ export default class {
                 this.canvas.style.cursor = "none";
 
                 let d = Math.round(180 * Math.atan2(-(this.mouse.position.x - this.mouse.old.x), this.mouse.position.y - this.mouse.old.y) / Math.PI);
-                let c = "boost" === this.track.toolHandler.selected ? new Boost(this.mouse.old.x,this.mouse.old.y,d, this.track) : new Gravity(this.mouse.old.x,this.mouse.old.y,d, this.track);
+                let c = this.track.toolHandler.selected === "boost" ? new Boost(this.track, this.mouse.old.x,this.mouse.old.y,d) : new Gravity(this.track, this.mouse.old.x,this.mouse.old.y,d);
                 let y = Math.floor(c.position.x / this.track.scale);
                 let x = Math.floor(c.position.y / this.track.scale);
 
                 this.track.grid[y] === void 0 && (this.track.grid[y] = []),
-                this.track.grid[y][x] === void 0 && (this.track.grid[y][x] = new Sector),
+                this.track.grid[y][x] === void 0 && (this.track.grid[y][x] = new Sector()),
                 this.track.grid[y][x].powerups.push(c);
                 this.track.powerups.push(c);
             }

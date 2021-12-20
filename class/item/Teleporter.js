@@ -2,33 +2,68 @@ import Vector from "../Vector.js";
 import SingleUseItem from "./SingleUseItem.js";
 
 export default class Teleporter extends SingleUseItem {
-    constructor(a, b, c) {
-        super(a, b, c);
-        this.a = a;
-        this.b = b
-    }
-    
     type = "W";
 
     get color() {
         return this.used ? "#faf" : "#f0f";
     }
 
-    draw() {
-        super.draw();
+    createAlt(x, y) {
+        this.alt = new Vector(x, y);
+    }
 
-        if (this.d) {
-            super.draw(this.d.toPixel());
+    draw(ctx) {
+        super.draw(ctx);
+
+        if (this.alt) {
+            super.draw(ctx, this.alt.toPixel());
         }
     }
 
-    tpb(t, e) {
-        this.d = new Vector(t, e);
-        this.x = t;
-        this.y = e;
+    collide(part) {
+        if (part.position.distanceToSquared(this.alt) < 500) {
+            if (!this.used) {
+                part.parent.parent.powerupsConsumed.push(this.id);
+                if (part.parent.isGhost) {
+                    if (!part.parent.powerupsConsumed[this.id]) {
+                        part.parent.powerupsConsumed[this.id] = this;
+
+                        this.activate(part, true);
+                    }
+                } else {
+                    this.used = !0;
+
+                    this.activate(part, true);
+                }
+            }
+
+            return;
+        }
+
+        super.collide(part);
     }
 
-    activate(part) {
-        part.parent.move(this.x - this.a, this.y - this.b);
+    activate(part, alt = false) {
+        if (alt) {
+            part.parent.move(this.position.x - this.alt.x, this.position.y - this.alt.y);
+
+            return;
+        }
+        
+        part.parent.move(this.alt.x - this.position.x, this.alt.y - this.position.y);
+    }
+
+    erase(vector) {
+        if (vector.distanceTo(this.alt) < this.track.toolHandler.currentTool.size + 7) {
+            this.remove();
+
+            return this;
+        }
+
+        return super.erase(vector);
+    }
+
+    toString() {
+        return this.type + " " + this.position.toString() + " " + this.alt.toString();
     }
 }

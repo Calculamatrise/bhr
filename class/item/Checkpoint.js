@@ -8,10 +8,6 @@ export default class Checkpoint extends SingleUseItem {
     }
 
     activate(part) {
-        if (this.track.players.length > 1) {
-            this.track.players[1].pastCheckpoint |= 1;
-        } else
-            this.track.firstPlayer.pastCheckpoint |= 1;
-        //console.log("Checkpoint", a.parent.time, JSON.stringify(a.parent))
+        part.parent.parent.collide("checkpoint");
     }
 }
