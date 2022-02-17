@@ -9,7 +9,6 @@ export default class extends EventEmitter {
 
     downKeys = new Map();
     #records = Array.from({ length: 5 }, () => ({}));
-
     get records() {
         return this.#records;
     }
@@ -49,7 +48,7 @@ export default class extends EventEmitter {
 		event.preventDefault();
 
         const key = this.key(event);
-
+        
         if (this.downKeys.has(event.key)) {
             return;
         }
@@ -57,8 +56,12 @@ export default class extends EventEmitter {
         this.downKeys.set(event.key, true);
 
         if (this.#records.hasOwnProperty(key)) {
-            this.#records[key][this.parent.track.currentTime] = 1;
+            this.#records[key][this.parent.scene.currentTime] = 1;
         }
+
+        // if (this.parent.scene.paused) {
+        //     return;
+        // }
 
 		return this.emit("keydown", event.key);
 	}
@@ -71,18 +74,22 @@ export default class extends EventEmitter {
         this.downKeys.delete(event.key);
 
         if (this.#records.hasOwnProperty(key)) {
-            this.#records[key][this.parent.track.currentTime] = 1;
+            this.#records[key][this.parent.scene.currentTime] = 1;
         }
+
+        // if (this.parent.scene.paused) {
+        //     return;
+        // }
 
 		return this.emit("keyup", event.key);
 	}
 
     snapshot() {
-        return this.#records.map(records => ({...records}));
+        return [...this.#records.map(records => ({...records}))];
     }
 
     restore(records) {
-        this.#records = records.map(records => ({...records}));
+        this.#records = [...records.map(records => ({...records}))];
     }
 
     reset() {

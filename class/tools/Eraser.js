@@ -8,11 +8,11 @@ export default class extends Tool {
         powerups: !0
     }
     draw(ctx) {
-        const position = this.parent.track.parent.mouse.position.toPixel();
+        const position = this.parent.scene.parent.mouse.position.toPixel();
 
         ctx.beginPath();
         ctx.fillStyle = "#ffb6c199";
-        ctx.arc(position.x, position.y, (this.size - 1) * this.parent.track.zoom, 0, 2 * Math.PI);
+        ctx.arc(position.x, position.y, (this.size - 1) * this.parent.scene.zoom, 0, 2 * Math.PI);
         ctx.fill();
     }
 }

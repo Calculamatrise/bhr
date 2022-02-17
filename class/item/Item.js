@@ -1,19 +1,19 @@
 import Vector from "../Vector.js";
 
 export default class Item {
-    constructor(track, x, y) {
-        this.track = track;
+    constructor(scene, x, y) {
+        this.scene = scene;
         this.position = new Vector(x, y);
-        this.id = this.track.goals++
+        this.id = this.scene.goals++
     }
 
-    track = null;
+    scene = null;
     removed = false; 
     draw(ctx, position = this.position.toPixel()) {
         ctx.beginPath(),
         ctx.fillStyle = this.color,
-        ctx.strokeStyle = this.track.parent.theme === "dark" ? "#fbfbfb" : "#000",
-        ctx.arc(position.x, position.y, 7 * this.track.zoom, 0, 2 * Math.PI),
+        ctx.strokeStyle = this.scene.parent.theme === "dark" ? "#fbfbfb" : "#000",
+        ctx.arc(position.x, position.y, 7 * this.scene.zoom, 0, 2 * Math.PI),
         ctx.fill(),
         ctx.stroke();
     }
@@ -25,7 +25,7 @@ export default class Item {
     }
 
     erase(vector) {
-        if (vector.distanceTo(this.position) < this.track.toolHandler.currentTool.size + 7) {
+        if (vector.distanceTo(this.position) < this.scene.toolHandler.currentTool.size + 7) {
             this.remove();
             
             return this;
@@ -36,9 +36,9 @@ export default class Item {
 
     remove() {
         this.removed = true;
-        this.track.remove(this.position);
-        this.alt && this.track.remove(this.alt);
-        this.track.powerups.splice(this.track.powerups.indexOf(this), 1);
+        this.scene.remove(this.position);
+        this.alt && this.scene.remove(this.alt);
+        this.scene.powerups.splice(this.scene.powerups.indexOf(this), 1);
 
         return this;
     }

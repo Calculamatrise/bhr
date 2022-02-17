@@ -2,16 +2,16 @@ canvas#view {
     background-color: white;
 }
 
-overlay nav button {
+game-overlay nav button {
     color: black;
     background-color: rgba(0, 0, 0, .08);
 }
 
-overlay nav button:hover {
+game-overlay nav button:hover {
     background-color: rgba(0, 0, 0, .2);
 }
 
-overlay nav button.active {
+game-overlay nav button.active {
     background-color: rgba(0, 0, 0, .24);
 }
 

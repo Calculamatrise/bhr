@@ -1,5 +1,3 @@
-export const canvas = document.querySelector("#view");
-
 import Game from "./class/Game.js";
 
 export default window.game = new Game(document.querySelector("#view"));
@@ -12,44 +10,44 @@ document.addEventListener("keydown", function(event) {
     switch(event.key.toLowerCase()) {
         case "backspace":
             if (event.shiftKey) {
-                window.game.track.restoreCheckpoint();
+                window.game.scene.restoreCheckpoint();
                 break;
             }
 
-            window.game.track.removeCheckpoint();
+            window.game.scene.removeCheckpoint();
             break;
 
         case "enter":
-            window.game.track.gotoCheckpoint();
+            window.game.scene.gotoCheckpoint();
             break;
 
         case ".":
-            window.game.track.restoreCheckpoint();
+            window.game.scene.restoreCheckpoint();
             break;
 
         case "-":
-            window.game.track.zoomOut();
+            window.game.scene.zoomOut();
             break;
 
         case "+":
         case "=":
-            window.game.track.zoomIn();
+            window.game.scene.zoomIn();
             break;
 
         case "z":
-            if (!window.game.track.cameraFocus) {
-                if (window.game.track.id === void 0) {
+            if (!window.game.scene.cameraFocus) {
+                if (window.game.scene.id === void 0) {
                     if (event.ctrlKey) {
-                        window.game.track.undoManager.redo();
+                        window.game.scene.undoManager.redo();
 
                         break;
                     }
 
-                    window.game.track.undoManager.undo();
+                    window.game.scene.undoManager.undo();
                 }
 
                 if (window.autoPause) {
-                    window.game.track.paused = false, window.autoPause = false
+                    window.game.scene.paused = false, window.autoPause = false
                 }
             }
 
@@ -57,83 +55,83 @@ document.addEventListener("keydown", function(event) {
 
         case "p":
         case " ":
-            window.game.track.paused = window.autoPause ? true : !window.game.track.paused,
-            window.game.container.querySelector("playpause")?.classList[window.game.track.paused ? "remove" : "add"]("playing"),
+            window.game.scene.paused = window.autoPause ? true : !window.game.scene.paused,
+            window.game.container.querySelector("playpause")?.classList[window.game.scene.paused ? "remove" : "add"]("playing"),
             window.autoPause = false;
             break;
     }
 
-    if (window.game.track.editor) {
-        if (window.game.track.firstPlayer) {
-            window.game.track.cameraFocus = window.game.track.firstPlayer.vehicle.head;
+    if (window.game.scene.editor) {
+        if (window.game.scene.firstPlayer) {
+            window.game.scene.cameraFocus = window.game.scene.firstPlayer.vehicle.head;
         }
 
         switch(event.key.toLowerCase()) {
             case "a":
-                if (window.game.track.toolHandler.selected !== "brush" || window.game.track.toolHandler.currentTool.scenery) {
-                    window.game.track.toolHandler.setTool("brush");
-                    window.game.track.toolHandler.currentTool.scenery = !1;
+                if (window.game.scene.toolHandler.selected !== "brush" || window.game.scene.toolHandler.currentTool.scenery) {
+                    window.game.scene.toolHandler.setTool("brush");
+                    window.game.scene.toolHandler.currentTool.scenery = !1;
                     canvas.style.cursor = "none";
-                } else if (!window.game.track.cameraLock) {
-                    window.game.track.cameraLock = true;
+                } else if (!window.game.scene.cameraLock) {
+                    window.game.scene.cameraLock = true;
                 }
 
                 break;
 
             case "s":
-                if (window.game.track.toolHandler.selected !== "scenery brush" || !window.game.track.toolHandler.currentTool.scenery) {
-                    window.game.track.toolHandler.setTool("brush");
-                    window.game.track.toolHandler.currentTool.scenery = !0;
+                if (window.game.scene.toolHandler.selected !== "scenery brush" || !window.game.scene.toolHandler.currentTool.scenery) {
+                    window.game.scene.toolHandler.setTool("brush");
+                    window.game.scene.toolHandler.currentTool.scenery = !0;
                     canvas.style.cursor = "none";
-                } else if (!window.game.track.cameraLock) {
-                    window.game.track.cameraLock = true;
+                } else if (!window.game.scene.cameraLock) {
+                    window.game.scene.cameraLock = true;
                 }
 
                 break;
 
             case "q":
-                if (window.game.track.toolHandler.selected !== "line" || window.game.track.toolHandler.currentTool.scenery) {
-                    window.game.track.toolHandler.setTool("line");
-                    window.game.track.toolHandler.currentTool.scenery = !1;
+                if (window.game.scene.toolHandler.selected !== "line" || window.game.scene.toolHandler.currentTool.scenery) {
+                    window.game.scene.toolHandler.setTool("line");
+                    window.game.scene.toolHandler.currentTool.scenery = !1;
                     canvas.style.cursor = "none";
-                } else if (!window.game.track.cameraLock) {
-                    window.game.track.cameraLock = true;
+                } else if (!window.game.scene.cameraLock) {
+                    window.game.scene.cameraLock = true;
                 }
 
                 break;
 
             case "w":
-                if (window.game.track.toolHandler.selected !== "scenery line" || !window.game.track.toolHandler.currentTool.scenery) {
-                    window.game.track.toolHandler.setTool("line");
-                    window.game.track.toolHandler.currentTool.scenery = !0;
+                if (window.game.scene.toolHandler.selected !== "scenery line" || !window.game.scene.toolHandler.currentTool.scenery) {
+                    window.game.scene.toolHandler.setTool("line");
+                    window.game.scene.toolHandler.currentTool.scenery = !0;
                     canvas.style.cursor = "none";
-                } else if (!window.game.track.cameraLock) {
-                    window.game.track.cameraLock = true;
+                } else if (!window.game.scene.cameraLock) {
+                    window.game.scene.cameraLock = true;
                 }
 
                 break;
 
             case "e":
-                window.game.track.toolHandler.setTool("eraser");
+                window.game.scene.toolHandler.setTool("eraser");
                 canvas.style.cursor = "none";
                 break;
 
             case "r":
-                if (window.game.track.toolHandler.selected != "camera") {
-                    window.game.track.toolHandler.setTool("camera");
+                if (window.game.scene.toolHandler.selected != "camera") {
+                    window.game.scene.toolHandler.setTool("camera");
                     canvas.style.cursor = "move";
                 } else {
-                    window.game.track.toggleCamera = true;
+                    window.game.scene.toggleCamera = true;
                 }
 
                 break;
 
             case "m":
-                window.game.track.undoManager.undo();
+                window.game.scene.undoManager.undo();
                 break;
 
             case "n":
-                window.game.track.undoManager.redo();
+                window.game.scene.undoManager.redo();
                 break;
         }
     }
@@ -143,22 +141,22 @@ document.addEventListener("keyup", function(event) {
     switch (event.key.toLowerCase()) {
         case "b":
             if (event.ctrlKey) {
-                window.game.track.switchBike();
+                window.game.scene.switchBike();
             }
 
             break;
 
         case "g":
-            if (window.game.track.players.length <= 1) {
-                window.game.track.gridSize = 11 - window.game.track.gridSize;
+            if (window.game.scene.players.length <= 1) {
+                window.game.scene.gridSize = 11 - window.game.scene.gridSize;
             }
 
             break;
 
         case "r":
-            if (window.game.track.toggleCamera) {
+            if (window.game.scene.toggleCamera) {
                 canvas.style.cursor = "none";
-                window.game.track.toggleCamera = false;
+                window.game.scene.toggleCamera = false;
             }
 
             break;
@@ -169,12 +167,12 @@ document.addEventListener("keyup", function(event) {
             break;
 
         case "f2":
-            window.game.track.firstPlayer.pastCheckpoint = false;
+            window.game.scene.firstPlayer.pastCheckpoint = false;
             break;
 
         case "escape":
-            let overlay = window.game.container.querySelector("overlay");
-            overlay.style.setProperty("display", overlay.style.display === "flex" ? (window.game.track.paused = !1, "none") : (window.game.track.paused = !0, "flex"));
+            let overlay = window.game.container.querySelector("game-overlay");
+            overlay.style.setProperty("display", overlay.style.display === "flex" ? (window.game.scene.paused = !1, "none") : (window.game.scene.paused = !0, "flex"));
 
             break;
     }

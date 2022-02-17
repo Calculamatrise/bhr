@@ -3,7 +3,6 @@ import SingleUseItem from "./SingleUseItem.js";
 
 export default class Teleporter extends SingleUseItem {
     type = "W";
-
     get color() {
         return this.used ? "#faf" : "#f0f";
     }
@@ -22,20 +21,18 @@ export default class Teleporter extends SingleUseItem {
 
     collide(part) {
         if (part.position.distanceToSquared(this.alt) < 500) {
-            if (!this.used) {
-                part.parent.parent.powerupsConsumed.push(this.id);
-                if (part.parent.isGhost) {
-                    if (!part.parent.powerupsConsumed[this.id]) {
-                        part.parent.powerupsConsumed[this.id] = this;
-
-                        this.activate(part, true);
-                    }
-                } else {
-                    this.used = !0;
-
-                    this.activate(part, true);
-                }
+            if (this.used) {
+                return;
             }
+            
+            part.parent.parent.powerupsConsumed.push(this.id);
+
+            this.activate(part, true);
+            if (part.parent.parent.ghost) {
+                return;
+            }
+
+            this.used = true;
 
             return;
         }
@@ -54,7 +51,7 @@ export default class Teleporter extends SingleUseItem {
     }
 
     erase(vector) {
-        if (vector.distanceTo(this.alt) < this.track.toolHandler.currentTool.size + 7) {
+        if (vector.distanceTo(this.alt) < this.scene.toolHandler.currentTool.size + 7) {
             this.remove();
 
             return this;

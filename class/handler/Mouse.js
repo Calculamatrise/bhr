@@ -52,7 +52,7 @@ export default class extends EventEmitter {
         event.preventDefault();
 
         this.position.copy(new Vector(event.offsetX, event.offsetY).toCanvas());
-        
+
         return this.emit("mousemove", event);
     }
 

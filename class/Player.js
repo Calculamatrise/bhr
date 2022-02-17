@@ -14,7 +14,7 @@ const Bike = {
 
 export default class Player {
     constructor(parent, { vehicle, ghost }) {
-        this.track = parent;
+        this.scene = parent;
         this.ghostData = ghost;
         this.gamepad = new Gamepad(this);
         if (!this.ghost) {
@@ -25,6 +25,7 @@ export default class Player {
         
         this.createCosmetics();
         this.createVehicle(vehicle);
+        this.createRagdoll();
     }
     
     slow = false;
@@ -36,7 +37,6 @@ export default class Player {
     powerupsConsumed = [];
     gravity = new Vector(0, .3);
     snapshots = new SnapshotHandler();
-
     get ghost() {
         return !!this.ghostData;
     }
@@ -50,15 +50,17 @@ export default class Player {
     }
 
     createRagdoll() {
-        this.ragdoll = new Ragdoll(this, this.vehicle.rider);
-        this.ragdoll.setVelocity(this.vehicle.head.velocity, this.vehicle.rearWheel.velocity);
-        this.ragdoll.dir = this.vehicle.dir;
-        this.ragdoll.gravity = this.gravity;
+        if (this.dead) {
+            this.ragdoll.setVelocity(this.vehicle.head.velocity, this.vehicle.rearWheel.velocity);
+            this.hat = new Shard(this, this.vehicle.head.position.clone());
+            this.hat.velocity = this.vehicle.head.velocity.clone();
+            this.hat.size = 10;
+            this.hat.rotationFactor = .1;
 
-        this.hat = new Shard(this, this.vehicle.head.position.clone());
-        this.hat.velocity = this.vehicle.head.velocity.clone();
-        this.hat.size = 10;
-        this.hat.rotationFactor = .1;
+            return;
+        }
+        
+        this.ragdoll = new Ragdoll(this, this.vehicle.rider);
     }
 
     createExplosion(part) {
@@ -67,8 +69,14 @@ export default class Player {
     }
 
     update(delta) {
+        if (this.explosion) {
+            this.explosion.update();
+
+            return;
+        }
+
         if (this.ghost) {
-            if (this.ghostData[0][this.track.currentTime]) {
+            if (this.ghostData[0][this.scene.currentTime]) {
                 if (this.gamepad.downKeys.has("ArrowLeft")) {
                     this.gamepad.downKeys.delete("ArrowLeft");
                 } else {
@@ -76,7 +84,7 @@ export default class Player {
                 }
             }
 
-            if (this.ghostData[1][this.track.currentTime]) {
+            if (this.ghostData[1][this.scene.currentTime]) {
                 if (this.gamepad.downKeys.has("ArrowRight")) {
                     this.gamepad.downKeys.delete("ArrowRight");
                 } else {
@@ -84,7 +92,7 @@ export default class Player {
                 }
             }
 
-            if (this.ghostData[2][this.track.currentTime]) {
+            if (this.ghostData[2][this.scene.currentTime]) {
                 if (this.gamepad.downKeys.has("ArrowUp")) {
                     this.gamepad.downKeys.delete("ArrowUp");
                 } else {
@@ -92,7 +100,7 @@ export default class Player {
                 }
             }
 
-            if (this.ghostData[3][this.track.currentTime]) {
+            if (this.ghostData[3][this.scene.currentTime]) {
                 if (this.gamepad.downKeys.has("ArrowDown")) {
                     this.gamepad.downKeys.delete("ArrowDown");
                 } else {
@@ -100,24 +108,24 @@ export default class Player {
                 }
             }
 
-            if (this.ghostData[4][this.track.currentTime]) {
+            if (this.ghostData[4][this.scene.currentTime]) {
                 if (this.gamepad.downKeys.has("z")) {
                     this.gamepad.downKeys.delete("z");
                 } else {
                     this.gamepad.downKeys.set("z", true);
-                    this.vehicle.swap();
+                    if (!this.scene.paused) {
+                        this.vehicle.swap();
+                    }
                 }
             }
         }
 
-        if (this.explosion) {
-            this.explosion.update();
+        this.vehicle.update(delta);
+        if (this.dead) {
+            this.ragdoll.update();
+            this.hat.update();
         } else {
-            this.vehicle.update(delta);
-            if (this.dead) {
-                this.ragdoll.update();
-                this.hat.update();
-            }
+            this.ragdoll.updatePosition(this.vehicle.rider);
         }
     }
 
@@ -126,6 +134,11 @@ export default class Player {
             return;
 
         switch(key) {
+            case "z":
+                if (!this.scene.paused && this.gamepad.downKeys.has("z")) {
+                    this.vehicle.swap();
+                }
+
             case "a":
             case "ArrowLeft":
                 //break;
@@ -140,35 +153,33 @@ export default class Player {
 
             case "s":
             case "ArrowDown":
-                this.track.cameraFocus = this.vehicle.head;
+                this.scene.cameraFocus = this.vehicle.head;
                 //this.vehicle.updateControls();
                 break;
-
-            case "z":
-                this.track.cameraFocus = this.vehicle.head;
-                if (this.gamepad.downKeys.has("z"))
-                    this.vehicle.swap();
-            break;
         }
     }
 
     draw(ctx) {
+        ctx.save();
         if (this.explosion) {
             this.explosion.draw(ctx);
         } else {
             this.vehicle.draw(ctx);
+            // this.ragdoll.draw(ctx);
             if (this.dead) {
                 this.ragdoll.draw(ctx);
                 this.hat.draw(ctx);
             }
         }
+
+        ctx.restore();
     }
 
     collide(powerup) {
         switch(powerup) {
             case "checkpoint":
-                for (const player of this.track.players) {
-                    player.snapshots.push(player.snapshot())
+                for (const player of this.scene.players) {
+                    player.snapshots.push(player.snapshot());
                 }
 
                 break;
@@ -177,7 +188,7 @@ export default class Player {
                 if (!this.ghost) {
                     this.targetsCollected++;
 
-                    if (this.targetsCollected === this.track.targets) {
+                    if (this.targetsCollected === this.scene.targets) {
                         this.trackComplete();
                     }
                 }
@@ -187,7 +198,7 @@ export default class Player {
     }
 
     trackComplete() {
-        if (this.targetsCollected === this.track.targets && this.track.currentTime > 0 && !this.track.editor) {
+        if (this.targetsCollected === this.scene.targets && this.scene.currentTime > 0 && !this.scene.editor) {
             fetch("/tracks/ghost_save", {
                 headers: {
                     "Content-Type": "application/x-www-form-urlencoded"
@@ -195,8 +206,8 @@ export default class Player {
                 body: new URLSearchParams({
                     id: window.location.pathname.split("/")[2],
                     vehicle: this.vehicle.name,
-                    time: this.track.currentTime,
-                    code: `${game.track.firstPlayer.gamepad.records.map(record => Object.keys(record).join(" ")).join(",")},${this.track.currentTime},${this.vehicle.name}`
+                    time: this.scene.currentTime,
+                    code: `${game.scene.firstPlayer.gamepad.records.map(record => Object.keys(record).join(" ")).join(",")},${this.scene.currentTime},${this.vehicle.name}`
                 }),
                 method: "post"
             });
@@ -209,7 +220,7 @@ export default class Player {
             dead: this.dead,
             targetsCollected: this.targetsCollected,
             powerupsConsumed: [...this.powerupsConsumed],
-            currentTime: this.track.currentTime,
+            currentTime: this.scene.currentTime,
             gamepad: this.gamepad.snapshot(),
             gravity: this.gravity.clone(),
             vehicle: this.vehicle.clone()
@@ -230,7 +241,7 @@ export default class Player {
     reset() {
         this.slow = false;
         this.dead = false;
-        this.ragdoll = null;
+        this.hat = null;
         this.explosion = null;
         this.powerupsEnabled = true;
         this.targetsCollected = 0;
@@ -241,5 +252,6 @@ export default class Player {
 
         this.gravity = new Vector(0, .3);
         this.createVehicle(this.vehicle.name);
+        this.ragdoll.updatePosition(this.vehicle.rider);
     }
 }

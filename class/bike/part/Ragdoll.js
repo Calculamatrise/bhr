@@ -18,9 +18,7 @@ export default class {
             joint.dampConstant= 0.7;
         }
         
-        for (const part in stickman) {
-            this[part].position.copy(stickman[part]);
-        }
+        this.updatePosition(stickman);
     }
 
     points = [
@@ -48,12 +46,20 @@ export default class {
         new Spring(this.shadowKnee, this.shadowFoot, this)
     ]
 
+    updatePosition(stickman) {
+        for (const part in stickman) {
+            this[part].position.copy(stickman[part]);
+        }
+    }
+
     update() {
-        for (var a = this.joints.length - 1; a >= 0; a--)
-            this.joints[a].update();
-            
-        for (a = this.points.length - 1; a >= 0; a--)
-            this.points[a].update()
+        for (const joint of this.joints) {
+            joint.update();
+        }
+
+        for (const point of this.points) {
+            point.update();
+        }
     }
 
     draw(ctx) {
@@ -69,10 +75,10 @@ export default class {
         const hip = this.hip.position.toPixel();
         
         ctx.globalAlpha = this.parent.ghost ? .5 : 1;
-        ctx.lineWidth = 5 * this.parent.track.zoom;
+        ctx.lineWidth = 5 * this.parent.scene.zoom;
         ctx.lineJoin = "round";
-        ctx.strokeStyle = this.parent.track.parent.theme === "dark" ? "#fbfbfb80" : "rgba(0,0,0,0.5)";
         ctx.beginPath(),
+        ctx.strokeStyle = this.parent.scene.parent.theme === "dark" ? "#fbfbfb80" : "rgba(0,0,0,0.5)";
         ctx.moveTo(head.x, head.y),
         ctx.lineTo(shadowElbow.x, shadowElbow.y),
         ctx.lineTo(shadowHand.x, shadowHand.y),
@@ -80,8 +86,8 @@ export default class {
         ctx.lineTo(shadowKnee.x, shadowKnee.y),
         ctx.lineTo(shadowFoot.x, shadowFoot.y),
         ctx.stroke();
-        ctx.strokeStyle = this.parent.track.parent.theme === "dark" ? "#fbfbfb" : "#000000";
         ctx.beginPath(),
+        ctx.strokeStyle = this.parent.scene.parent.theme === "dark" ? "#fbfbfb" : "#000000";
         ctx.moveTo(head.x, head.y),
         ctx.lineTo(elbow.x, elbow.y),
         ctx.lineTo(hand.x, hand.y),
@@ -89,42 +95,57 @@ export default class {
         ctx.lineTo(knee.x, knee.y),
         ctx.lineTo(foot.x, foot.y),
         ctx.stroke();
-        ctx.lineWidth = 8 * this.parent.track.zoom;
+        ctx.lineWidth = 8 * this.parent.scene.zoom;
         ctx.beginPath(),
         ctx.moveTo(hip.x, hip.y),
         ctx.lineTo(head.x, head.y),
         ctx.stroke();
         head.addToSelf(head.sub(hip).scale(0.25));
-        ctx.lineWidth = 2 * this.parent.track.zoom;
+        ctx.lineWidth = 2 * this.parent.scene.zoom;
         ctx.beginPath(),
-        ctx.moveTo(head.x + 5 * this.parent.track.zoom, head.y),
-        ctx.arc(head.x, head.y, 5 * this.parent.track.zoom, 0, 2 * Math.PI, !0),
+        ctx.moveTo(head.x + 5 * this.parent.scene.zoom, head.y),
+        ctx.arc(head.x, head.y, 5 * this.parent.scene.zoom, 0, 2 * Math.PI),
         ctx.stroke()
     }
     
     setVelocity(a, b) {
         a.scaleSelf(0.7);
         b.scaleSelf(0.7);
-        var c, d, e, f;
-        c = 0;
-        for (d = this.joints.length; c < d; c++)
-            e = this.joints[c].length,
-            20 < e && (e = 20),
-            this.joints[c].lrest = this.joints[c].leff = e;
-        for (c = 1; 5 > c; c++)
+        for (const joint of this.joints) {
+            let len = joint.length;
+            len > 20 && (len = 20),
+            joint.lrest = joint.leff = len;
+        }
+
+        for (let c = 1; 5 > c; c++) {
             this.joints[c].lrest = 13,
             this.joints[c].leff = 13;
-        e = [this.head, this.elbow, this.shadowElbow, this.hand, this.shadowHand];
-        f = [this.hip, this.knee, this.shadowKnee, this.foot, this.shadowFoot];
-        c = 0;
-        for (d = e.length; c < d; c++)
-            e[c].old = e[c].position.sub(a);
-        c = 0;
-        for (d = f.length; c < d; c++)
-            f[c].old = f[c].position.sub(b);
-        for (c = this.points.length - 1; 0 <= c; c--)
-            this.points[c].velocity.copy(this.points[c].position.sub(this.points[c].old)),
-            this.points[c].velocity.x += Math.random() - Math.random(),
-            this.points[c].velocity.y += Math.random() - Math.random()
+        }
+        
+        let e = [this.head, this.elbow, this.shadowElbow, this.hand, this.shadowHand];
+        let f = [this.hip, this.knee, this.shadowKnee, this.foot, this.shadowFoot];
+        for (const point of e) {
+            point.old = point.position.sub(a);
+        }
+
+        for (const point of f) {
+            point.old = point.position.sub(b);
+        }
+
+        for (const point of this.points) {
+            point.velocity.copy(point.position.sub(point.old)),
+            point.velocity.x += Math.random() - Math.random(),
+            point.velocity.y += Math.random() - Math.random()
+        }
+    }
+    
+    clone() {
+        let clone = new this.constructor();
+        for (const point of this.points) {
+            clone.position.copy(point.position);
+            clone.old.copy(point.old);
+        }
+
+        return clone;
     }
 }

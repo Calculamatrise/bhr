@@ -6,29 +6,14 @@ export default class Line {
         this.b = e instanceof Vector ? e : new Vector(i, s);
         this.vector = this.b.sub(this.a);
         this.len = this.vector.length;
-        this.track = n;
+        this.scene = n;
     }
     
     removed = false;
-    // draw(ctx) {
-    //     let point1 = this.a.toPixel();
-    //     let point2 = this.b.toPixel();
-
-    //     ctx.save();
-
-    //     ctx.strokeStyle = this.type === "scenery" ? this.track.parent.theme === "dark" ? "#999" : "#aaa" : this.track.parent.theme === "dark" ? "#fff" : "#000";
-    //     ctx.lineWidth = Math.max(this.track.zoom * 2, 0.5);
-    //     ctx.lineCap = "round";
-    //     ctx.beginPath();
-    //     ctx.moveTo(point1.x, point1.y);
-    //     ctx.lineTo(point2.x, point2.y);
-    //     ctx.stroke();
-    //     ctx.restore();
-    // }
     draw(ctx, e, i) {
         ctx.beginPath();
-        ctx.moveTo(this.a.x * this.track.zoom - e, this.a.y * this.track.zoom - i);
-        ctx.lineTo(this.b.x * this.track.zoom - e, this.b.y * this.track.zoom - i);
+        ctx.moveTo(this.a.x * this.scene.zoom - e, this.a.y * this.scene.zoom - i);
+        ctx.lineTo(this.b.x * this.scene.zoom - e, this.b.y * this.scene.zoom - i);
         ctx.stroke()
     }
 
@@ -43,17 +28,17 @@ export default class Line {
             c.copy(this.a.add(this.vector.oppositeScale(this.len).scale(b)));
         }
 
-        return vector.sub(c).length <= this.track.toolHandler.currentTool.size ? this.remove() : !1
+        return vector.sub(c).length <= this.scene.toolHandler.currentTool.size ? this.remove() : !1
     }
 
     commit() {
-        this.track.addLineInternal(this);
+        this.scene.addLineInternal(this);
     }
 
     remove() {
         this.removed = true;
-        this.track.remove(this.a, this.b);
-        this.track[this.type].splice(this.track[this.type].indexOf(this), 1);
+        this.scene.remove(this.a, this.b);
+        this.scene[this.type].splice(this.scene[this.type].indexOf(this), 1);
         
         return this;
     }

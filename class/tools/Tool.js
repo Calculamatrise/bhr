@@ -4,7 +4,7 @@ export default class {
     }
 
     get track() {
-        return this.parent.track;
+        return this.parent.scene;
     }
 
     mouseDown() {}

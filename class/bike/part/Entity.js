@@ -11,7 +11,7 @@ export default class extends Mass {
         this.position.addToSelf(this.velocity);
         this.touching = false;
         if (this.collide) {
-            this.parent.parent.track.collide(this);
+            this.parent.parent.scene.collide(this);
         }
         
         this.velocity = this.position.sub(this.old);

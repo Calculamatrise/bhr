@@ -7,7 +7,7 @@ import TrianglePowerup from "../tools/TrianglePowerup.js";
 
 export default class {
     constructor(parent) {
-        this.track = parent;
+        this.scene = parent;
     }
 
     old = "camera";
@@ -32,11 +32,11 @@ export default class {
     }
 
     get ctx() {
-        return this.track.parent.ctx;
+        return this.scene.parent.ctx;
     }
 
     setTool(name) {
-        let settings = this.track.parent.container.querySelector("toolbar").querySelector("div.left settings");
+        let settings = this.scene.parent.container.querySelector("toolbar").querySelector("div.left settings");
         let eraserSettings = settings.querySelector("div[data-id=eraser]");
 
         this.selected = name;

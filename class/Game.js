@@ -1,6 +1,6 @@
 import Mouse from "./handler/Mouse.js";
 
-import Track from "./track/Track.js";
+import Main from "./scenes/Main.js";
 import Player from "./Player.js";
 
 import Vector from "./Vector.js";
@@ -13,8 +13,6 @@ import Gravity from "./item/Gravity.js";
 import Antigravity from "./item/Antigravity.js";
 import Slowmo from "./item/Slowmo.js";
 import Teleporter from "./item/Teleporter.js";
-
-let Z = false, Hb = false;
 
 export default class {
     constructor(canvas) {
@@ -47,230 +45,245 @@ export default class {
         this.setAttribute("width", parseFloat(getComputedStyle(this).width) * window.devicePixelRatio);
     }
 
-    init(trackCode) {
+    init(trackCode, { id = null, vehicle = "BMX" } = {}) {
         if (trackCode === null) {
             return;
+        }
+
+        if (typeof vehicle !== "string" || !["BMX", "MTB"].includes(vehicle.toUpperCase())) {
+            throw new Error("Invalid vehicle type.");
         }
 
         if (this.lastFrame) {
             this.close();
         }
 
-        this.track = new Track(this, {
-            code: trackCode
+        this.scene = new Main(this, {
+            code: trackCode,
+            id
         });
-        this.track.players.push(new Player(this.track, {
-            vehicle: "BMX"
-        }));
-        this.track.cameraFocus = this.track.firstPlayer.head;
+
+        this.scene.init([
+            {
+                vehicle: "BMX"
+            }
+        ]);
         
         this.lastFrame = requestAnimationFrame(this.render.bind(this));
     }
 
     initCursor() {
-        if (this.track)
-            this.track.displayText = false;
+        if (this.scene)
+            this.scene.displayText = false;
 
-        this.canvas.style.cursor = this.track.toolHandler.selected === "camera" ? "move" : "none";
+        this.canvas.style.cursor = this.scene.toolHandler.selected === "camera" ? "move" : "none";
     }
 
     render(time) {
         this.lastFrame = requestAnimationFrame(this.render.bind(this));
         this.delta = time - this.lastTime;
         if (this.delta < 1000 / this.fps) {
-            this.track.render(this.ctx);
+            this.scene.render(this.ctx);
 
             return;
         }
 
-        this.track.update(this.delta / (1000 / this.fps));
-        this.track.render(this.ctx);
+
+        this.scene.update(this.delta / (1000 / this.fps));
+        this.scene.render(this.ctx);
         this.lastTime = time;
     }
 
     mouseDown(event) {
-        this.track.cameraLock = true;
-        this.track.cameraFocus = false;
-        if (event.button === 2 && this.track.toolHandler.selected !== "camera") {
-            //this.track.erase(this.mouse.position);
+        this.scene.cameraLock = true;
+        this.scene.cameraFocus = false;
+        if (event.button === 2 && this.scene.toolHandler.selected !== "camera") {
+            //this.scene.erase(this.mouse.position);
             return;
-        } else if (this.track.firstPlayer.gamepad.downKeys.has("q") && this.track.toolHandler.selected === "line" && !this.track.toolHandler.currentTool.scenery) {
-            this.track.addLine(this.mouse.old, this.mouse.position, false);
+        } else if (this.scene.firstPlayer.gamepad.downKeys.has("q") && this.scene.toolHandler.selected === "line" && !this.scene.toolHandler.currentTool.scenery) {
+            this.scene.addLine(this.mouse.old, this.mouse.position, false);
         } else {
             let x;
-            Z || this.mouse.old.copy(this.mouse.position);
-            switch (this.track.toolHandler.selected) {
+            this.mouse.old.copy(this.mouse.position);
+            switch (this.scene.toolHandler.selected) {
                 case "boost":
                 case "gravity":
                     this.canvas.style.cursor = "crosshair";
                     break;
                     
                 case "eraser":
-                    this.track.erase(this.mouse.position);
+                    this.scene.erase(this.mouse.position);
                     break;
 
                 case "goal":
-                    x = new Target(this.track, this.mouse.old.x,this.mouse.old.y);
-                    this.track.targets++;
+                    x = new Target(this.scene, this.mouse.old.x,this.mouse.old.y);
+                    this.scene.targets++;
                     break;
 
                 case "checkpoint":
-                    x = new Checkpoint(this.track, this.mouse.old.x,this.mouse.old.y);
+                    x = new Checkpoint(this.scene, this.mouse.old.x,this.mouse.old.y);
                     break;
 
                 case "bomb":
-                    x = new Bomb(this.track, this.mouse.old.x,this.mouse.old.y);
+                    x = new Bomb(this.scene, this.mouse.old.x,this.mouse.old.y);
                     break;
 
                 case "slow-mo":
-                    x = new Slowmo(this.track, this.mouse.old.x,this.mouse.old.y);
+                    x = new Slowmo(this.scene, this.mouse.old.x,this.mouse.old.y);
                     break;
                     
                 case "antigravity":
-                    x = new Antigravity(this.track, this.mouse.old.x,this.mouse.old.y);
+                    x = new Antigravity(this.scene, this.mouse.old.x,this.mouse.old.y);
                     break;
 
                 case "teleporter":
-                    x = new Teleporter(this.track, this.mouse.old.x,this.mouse.old.y);
-                    this.track.teleporter = x;
+                    x = new Teleporter(this.scene, this.mouse.old.x,this.mouse.old.y);
+                    this.scene.teleporter = x;
                     break;
 
                 case "brush":
                 case "scenery brush":
-                    this.track.addLine(this.mouse.old, this.mouse.position, this.track.toolHandler.currentTool.scenery);
-                    this.track.cameraLock = true;
+                    this.scene.addLine(this.mouse.old, this.mouse.position, this.scene.toolHandler.currentTool.scenery);
+                    this.scene.cameraLock = true;
                     break;
             }
             
             if (x !== void 0) {
-                let c = Math.floor(x.position.x / this.track.scale)
-                , d = Math.floor(x.position.y / this.track.scale);
-                this.track.grid[c] === void 0 && (this.track.grid[c] = []);
-                this.track.grid[c][d] === void 0 && (this.track.grid[c][d] = new Sector);
-                this.track.grid[c][d].powerups.push(x);
-                this.track.powerups.push(x);
+                let c = Math.floor(x.position.x / this.scene.scale)
+                  , d = Math.floor(x.position.y / this.scene.scale);
+                this.scene.grid[c] === void 0 && (this.scene.grid[c] = []);
+                this.scene.grid[c][d] === void 0 && (this.scene.grid[c][d] = new Sector);
+                this.scene.grid[c][d].powerups.push(x);
             }
         }
     }
 
     mouseMove(event) {
-        if (this.track.toolHandler.selected !== "camera") {
-            this.track.cameraFocus = false;
+        if (this.scene.toolHandler.selected !== "camera") {
+            this.scene.cameraFocus = false;
         }
 
-        if (this.track.toolHandler.selected !== "eraser") {
+        if (this.scene.toolHandler.selected !== "eraser") {
             if (event.button !== 2) {
-                this.mouse.position.x = Math.round(this.mouse.position.x / this.track.gridSize) * this.track.gridSize;
-                this.mouse.position.y = Math.round(this.mouse.position.y / this.track.gridSize) * this.track.gridSize;
+                this.mouse.position.x = Math.round(this.mouse.position.x / this.scene.gridSize) * this.scene.gridSize;
+                this.mouse.position.y = Math.round(this.mouse.position.y / this.scene.gridSize) * this.scene.gridSize;
             }
         }
 
-        if (this.track.cameraLock) {
-            switch(this.track.toolHandler.selected) {
+        if (this.scene.cameraLock) {
+            switch(this.scene.toolHandler.selected) {
                 case "brush":
-                    this.mouse.old.distanceTo(this.mouse.position) >= this.track.toolHandler.currentTool.length && this.track.addLine(this.mouse.old, this.mouse.position, this.track.toolHandler.currentTool.scenery);
+                    this.mouse.old.distanceTo(this.mouse.position) >= this.scene.toolHandler.currentTool.length && this.scene.addLine(this.mouse.old, this.mouse.position, this.scene.toolHandler.currentTool.scenery);
                     break;
 
                 case "camera":
-                    this.track.camera.addToSelf(this.mouse.old.sub(this.mouse.position)),
+                    this.scene.camera.addToSelf(this.mouse.old.sub(this.mouse.position)),
                     this.mouse.position.copy(this.mouse.old);
                     break;
 
                 case "eraser":
-                    this.track.erase(this.mouse.position);
+                    this.scene.erase(this.mouse.position);
                     break;
             }
         }
 
-        this.canvas.style.cursor = this.track.toolHandler.selected == "camera" ? "move" : ["boost", "gravity"].includes(this.track.toolHandler.selected) ? "crosshair" : "none";
+        this.canvas.style.cursor = this.scene.toolHandler.selected == "camera" ? "move" : ["boost", "gravity"].includes(this.scene.toolHandler.selected) ? "crosshair" : "none";
 
     }
 
     mouseUp(event) {
-        if (!Z)
-            this.track.cameraLock = false;
+        if (!event.ctrlKey)
+            this.scene.cameraLock = false;
 
-        if (Hb)
-            return Hb = false;
-
-        //if (this.track.cameraLock) {
-            if (["line", "brush"].includes(this.track.toolHandler.selected)) {
-                this.track.addLine(this.mouse.old, this.mouse.position, this.track.toolHandler.currentTool.scenery);
-            } else if ("teleporter" === this.track.toolHandler.selected) {
+        //if (this.scene.cameraLock) {
+            if (["line", "brush"].includes(this.scene.toolHandler.selected)) {
+                this.scene.addLine(this.mouse.old, this.mouse.position, this.scene.toolHandler.currentTool.scenery);
+            } else if ("teleporter" === this.scene.toolHandler.selected) {
                 this.mouse.old.copy(this.mouse.position);
-                if (this.track.teleporter) {
-                    if (this.track.teleporter.position.distanceTo(this.mouse.old) > 40) {
-                        this.track.teleporter.createAlt(this.mouse.old.x, this.mouse.old.y);
+                if (this.scene.teleporter) {
+                    if (this.scene.teleporter.position.distanceTo(this.mouse.old) > 40) {
+                        this.scene.teleporter.createAlt(this.mouse.old.x, this.mouse.old.y);
                     
-                        let x = Math.floor(this.track.teleporter.alt.x / this.track.scale);
-                        let y = Math.floor(this.track.teleporter.alt.y / this.track.scale);
+                        let x = Math.floor(this.scene.teleporter.alt.x / this.scene.scale);
+                        let y = Math.floor(this.scene.teleporter.alt.y / this.scene.scale);
         
-                        this.track.grid[x] === void 0 && (this.track.grid[x] = []),
-                        this.track.grid[x][y] === void 0 && (this.track.grid[x][y] = new Sector()),
-                        this.track.grid[x][y].powerups.push(this.track.teleporter);
+                        this.scene.grid[x] === void 0 && (this.scene.grid[x] = []),
+                        this.scene.grid[x][y] === void 0 && (this.scene.grid[x][y] = new Sector()),
+                        this.scene.grid[x][y].powerups.push(this.scene.teleporter);
                     } else {
-                        this.track.teleporter.remove();
+                        this.scene.teleporter.remove();
                     }
                     
-                    delete this.track.teleporter;
+                    delete this.scene.teleporter;
                 }
-            } else if (this.canvas.style.cursor === "crosshair" && ["boost", "gravity"].includes(this.track.toolHandler.selected)) {
+            } else if (this.canvas.style.cursor === "crosshair" && ["boost", "gravity"].includes(this.scene.toolHandler.selected)) {
                 this.canvas.style.cursor = "none";
 
                 let d = Math.round(180 * Math.atan2(-(this.mouse.position.x - this.mouse.old.x), this.mouse.position.y - this.mouse.old.y) / Math.PI);
-                let c = this.track.toolHandler.selected === "boost" ? new Boost(this.track, this.mouse.old.x,this.mouse.old.y,d) : new Gravity(this.track, this.mouse.old.x,this.mouse.old.y,d);
-                let y = Math.floor(c.position.x / this.track.scale);
-                let x = Math.floor(c.position.y / this.track.scale);
+                let c = this.scene.toolHandler.selected === "boost" ? new Boost(this.scene, this.mouse.old.x,this.mouse.old.y,d) : new Gravity(this.scene, this.mouse.old.x,this.mouse.old.y,d);
+                let y = Math.floor(c.position.x / this.scene.scale);
+                let x = Math.floor(c.position.y / this.scene.scale);
 
-                this.track.grid[y] === void 0 && (this.track.grid[y] = []),
-                this.track.grid[y][x] === void 0 && (this.track.grid[y][x] = new Sector()),
-                this.track.grid[y][x].powerups.push(c);
-                this.track.powerups.push(c);
+                this.scene.grid[y] === void 0 && (this.scene.grid[y] = []),
+                this.scene.grid[y][x] === void 0 && (this.scene.grid[y][x] = new Sector()),
+                this.scene.grid[y][x].powerups.push(c);
             }
         //}
     }
 
     scroll(event) {
-        if (Z) {
-            if ("eraser" === this.track.toolHandler.selected) {
-                if ((0 < event.detail || 0 > event.wheelDelta) && 5 < this.track.toolHandler.currentTool.size) {
-                    this.track.toolHandler.currentTool.size -= 5;
+        if (event.ctrlKey) {
+            if ("eraser" === this.scene.toolHandler.selected) {
+                if ((0 < event.detail || 0 > event.wheelDelta) && 5 < this.scene.toolHandler.currentTool.size) {
+                    this.scene.toolHandler.currentTool.size -= 5;
                 } else {
-                    if ((0 > event.detail || 0 < event.wheelDelta) && 40 > this.track.toolHandler.currentTool.size) {
-                        this.track.toolHandler.currentTool.size += 5
+                    if ((0 > event.detail || 0 < event.wheelDelta) && 40 > this.scene.toolHandler.currentTool.size) {
+                        this.scene.toolHandler.currentTool.size += 5
                     }
                 }
             } else {
-                if ("brush" === this.track.toolHandler.selected || "scenery brush" === this.track.toolHandler.selected) {
-                    if ((0 < event.detail || 0 > event.wheelDelta) && 4 < this.track.toolHandler.currentTool.length) {
-                        this.track.toolHandler.currentTool.length -= 8;
-                    } else if ((0 > event.detail || 0 < event.wheelDelta) && 200 > this.track.toolHandler.currentTool.length) {
-                        this.track.toolHandler.currentTool.length += 8;
+                if ("brush" === this.scene.toolHandler.selected || "scenery brush" === this.scene.toolHandler.selected) {
+                    if ((0 < event.detail || 0 > event.wheelDelta) && 4 < this.scene.toolHandler.currentTool.length) {
+                        this.scene.toolHandler.currentTool.length -= 8;
+                    } else if ((0 > event.detail || 0 < event.wheelDelta) && 200 > this.scene.toolHandler.currentTool.length) {
+                        this.scene.toolHandler.currentTool.length += 8;
                     }
                 }
             }
         } else {
             if (0 < event.detail || 0 > event.wheelDelta) {
-                this.track.zoomOut()
+                this.scene.zoomOut()
             } else if (0 > event.detail || 0 < event.wheelDelta) {
-                this.track.zoomIn()
-            };
+                this.scene.zoomIn()
+            }
         }
+
         let y = new Vector(event.clientX - this.canvas.offsetLeft, event.clientY - this.canvas.offsetTop + window.pageYOffset).toCanvas();
-        this.track.cameraFocus || this.track.camera.addToSelf(this.mouse.position.sub(y))
+        this.scene.cameraFocus || this.scene.camera.addToSelf(this.mouse.position.sub(y))
     }
 
-    load() {
-        this.canvas.style.display = "block";
-        document.querySelector("#track_menu").style.display = "none";
-        const code = document.querySelector("#trackcode");
-        if (code.value.includes("#")) {
-            var t = this.track.editor;
+    load(code = null) {
+        if (code) {
+            let t = this.scene.editor;
             this.close();
             this.init(code.value);
             document.querySelector("#charcount").innerHTML = "Trackcode";
             code.value = null;
-            this.track.editor = t;
+            this.scene.editor = t;
+
+            return;
+        }
+
+        this.canvas.style.display = "block";
+        document.querySelector("#track_menu").style.display = "none";
+        code = document.querySelector("#trackcode");
+        if (code.value.includes("#")) {
+            let t = this.scene.editor;
+            this.close();
+            this.init(code.value);
+            document.querySelector("#charcount").innerHTML = "Trackcode";
+            code.value = null;
+            this.scene.editor = t;
         } else {
             alert("No trackcode to load!");
             this.canvas.style.display = "none";
@@ -279,7 +292,7 @@ export default class {
     }
 
     save() {
-        if (this.track.id === void 0) {
+        if (this.scene.id === void 0) {
             const date = new Date();
             !function(t, e) {
                 if (typeof navigator.msSaveBlob == "function")
@@ -292,12 +305,12 @@ export default class {
                 saver.dispatchEvent(new MouseEvent("click"));
                 document.body.removeChild(saver);
                 URL.revokeObjectURL(saver.href);
-            }(new Blob([this.track.toString()], { type: "txt" }), `black_hat_rider_${date.getDate()}-${date.getMonth()}-${date.getFullYear()}`);
+            }(new Blob([this.scene.toString()], { type: "txt" }), `black_hat_rider_${date.getDate()}-${date.getMonth()}-${date.getFullYear()}`);
         }
     }
 
     saveGhost() {
-        if (this.track.id === void 0) {
+        if (this.scene.id === void 0) {
             const date = new Date();
             !function(t, e) {
                 if (typeof navigator.msSaveBlob == "function")
@@ -308,7 +321,7 @@ export default class {
                 saver.download = e;
                 saver.dispatchEvent(new MouseEvent("click"));
                 URL.revokeObjectURL(saver.href);
-            }(new Blob([JSON.stringify(this.firstPlayer.gamepad.records)], { type: "txt" }), `black_hat_ghost-${date.getDate()}-${date.getMonth()}-${date.getFullYear()}`);
+            }(new Blob([this.scene.firstPlayer.gamepad.records.map(set => Object.keys(set).join(" ")).join(",") + "," + this.scene.firstPlayer.vehicle.name], { type: "txt" }), `black_hat_ghost-${date.getDate()}-${date.getMonth()}-${date.getFullYear()}`);
         }
     }
 
@@ -322,7 +335,7 @@ export default class {
     }
 
     close() {
-        this.track = null;
+        this.scene = null;
 
         this.mouse.close();
 

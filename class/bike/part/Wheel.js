@@ -17,7 +17,7 @@ export default class extends Entity {
         const position = this.position.toPixel();
 
         ctx.beginPath();
-        ctx.arc(position.x, position.y, this.parent.parent.track.zoom * size, 0, 2 * Math.PI);
+        ctx.arc(position.x, position.y, this.parent.parent.scene.zoom * size, 0, 2 * Math.PI);
         ctx.stroke();
     }
 
@@ -25,6 +25,7 @@ export default class extends Entity {
         const clone = super.clone();
         
         clone.motor = this.motor;
+        clone.pedalSpeed = this.pedalSpeed;
         
         return clone;
     }

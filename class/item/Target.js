@@ -14,6 +14,6 @@ export default class Target extends SingleUseItem {
     remove() {
         super.remove();
         
-        this.track.targets--
+        this.scene.targets--
     }
 }

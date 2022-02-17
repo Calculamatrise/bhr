@@ -1,10 +1,31 @@
 export default class Sector {
     physics = []
-    scenery= []
+    scenery = []
     powerups = []
+    render(parent, x, y) {
+        const canvas = document.createElement("canvas");
+        canvas.width = parent.scale * parent.zoom;
+        canvas.height = parent.scale * parent.zoom;
+
+        const context = canvas.getContext("2d");
+        context.lineCap = "round";
+        context.lineWidth = Math.max(2 * parent.zoom, 0.5);
+        context.strokeStyle = parent.parent.theme === "dark" ? "#999" : "#aaa";
+        for (const line of this.scenery) {
+            line.draw(context, x * parent.scale * parent.zoom, y * parent.scale * parent.zoom);
+        }
+
+        context.strokeStyle = parent.parent.theme === "dark" ? "#fff" : "#000";
+        for (const line of this.physics) {
+            line.draw(context, x * parent.scale * parent.zoom, y * parent.scale * parent.zoom);
+        }
+
+        return canvas;
+    }
+
     fix() {
         for (const line of this.physics) {
-            line.collided = !1;
+            line.collided = false;
         }
     }
 
@@ -24,7 +45,6 @@ export default class Sector {
 
     remove() {
         let a = []
-
         for (let b = 0; b < this.physics.length; b++) {
             this.physics[b] && this.physics[b].removed && a.push(this.physics.splice(b--, 1)[0]);
         }
@@ -40,9 +60,9 @@ export default class Sector {
         return a;
     }
 
-    search(a, type) {
-        for (const line of type === "scenery" ? this.scenery: this.physics) {
-            if (line.a.x === a.x && line.a.y === a.y && !line.ma) {
+    search(vector, type) {
+        for (const line of type === "scenery" ? this.scenery : this.physics) {
+            if (line.a.x === vector.x && line.a.y === vector.y && !line.collided) {
                 return line;
             }
         }

@@ -35,15 +35,15 @@ export default class {
         const rider = {};
 
         let t = this.frontWheel.position.sub(this.rearWheel.position);
-        let e = new Vector(t.y * this.dir, -t.x * this.dir);
-        let s = new Vector(Math.cos(this.pedalSpeed) * 6, Math.sin(this.pedalSpeed) * 6);
+        let e = new Vector(t.y, -t.x).scale(this.dir);
+        let s = new Vector(Math.cos(this.pedalSpeed), Math.sin(this.pedalSpeed)).scale(6);
 
         rider.head = this.rearWheel.position.add(t.scale(0.35)).add(this.head.position.sub(this.frontWheel.position.add(this.rearWheel.position).scale(0.5)).scale(1.2));
         rider.hand = this.rearWheel.position.add(t.scale(0.8)).add(e.scale(0.68));
         rider.shadowHand = rider.hand.clone();
 
         let i = rider.head.sub(rider.hand);
-        i = new Vector(i.y * this.dir, -i.x * this.dir);
+        i = new Vector(i.y, -i.x).scale(this.dir);
 
         rider.elbow = rider.head.add(rider.hand).scale(0.5).add(i.scale(130 / i.lengthSquared()));
         rider.shadowElbow = rider.elbow.clone();
@@ -51,13 +51,13 @@ export default class {
         rider.foot = this.rearWheel.position.add(t.scale(0.4)).add(e.scale(0.05)).add(s);
 
         i = rider.hip.sub(rider.foot);
-        i = new Vector(-i.y * this.dir, i.x * this.dir);
+        i = new Vector(-i.y, i.x).scale(this.dir);
 
         rider.knee = rider.hip.add(rider.foot).scale(0.5).add(i.scale(160 / i.lengthSquared()));
         rider.shadowFoot = this.rearWheel.position.add(t.scale(0.4)).add(e.scale(0.05)).sub(s);
 
         i = rider.hip.sub(rider.shadowFoot);
-        i = new Vector(-i.y * this.dir, i.x * this.dir);
+        i = new Vector(-i.y, i.x).scale(this.dir);
 
         rider.shadowKnee = rider.hip.add(rider.shadowFoot).scale(0.5).add(i.scale(160 / i.lengthSquared()));
 

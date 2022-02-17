@@ -1,0 +1,459 @@
+html {
+    font-family: Arial, Helvetica, sans-serif;
+}
+
+body {
+    margin: 0;
+}
+
+canvas#view {
+    width: 100vw;
+    height: 100vh;
+    background-color: white;
+}
+
+game-container {
+	display: block;
+	width: fit-content;
+	position: relative;
+    overflow: hidden;
+}
+
+game-container game-interface {
+	position: absolute;
+	display: block;
+	z-index: 1;
+	width: 100%;
+    height: 100%;
+	pointer-events: none;
+}
+
+game-interface game-overlay {
+    width: 100%;
+    height: 100%;
+    display: none;
+    align-items: center;
+    flex-direction: column;
+    justify-content: center;
+    backdrop-filter: blur(10px);
+    pointer-events: all;
+    position: absolute;
+}
+
+game-overlay nav {
+    width: 40vw;
+    display: flex;
+    justify-content: center;
+}
+
+game-overlay nav button {
+    width: 100%;
+    border: none;
+    color: white;
+    margin: 1px 2px;
+    padding: 5px 10px;
+    border-radius: 5px;
+    opacity: .8;
+    background-color: rgba(0, 0, 0, .4);
+    transition: background-color 80ms;
+    user-select: none;
+    -webkit-user-select: none;
+}
+
+game-overlay nav button:hover {
+    background-color: rgba(255, 255, 255, .1);
+}
+
+game-overlay nav button.active {
+    opacity: 1;
+    background-color: rgba(255, 255, 255, .08);
+}
+
+game-overlay options {
+    align-items: center;
+    display: none;
+    flex-direction: column;
+}
+
+options button {
+    border: none;
+    color: white;
+    margin: 1px 2px;
+    padding: 8px 14px;
+    border-radius: 5px;
+    background-color: rgba(255, 255, 255, .04);
+    transition: background-color 40ms;
+}
+
+options button:hover {
+    background-color: rgba(255, 255, 255, .14);
+}
+
+options textarea {
+    border: none;
+    padding: 5px;
+    outline: none;
+    color: white;
+    margin-top: 5px;
+    border-radius: 5px;
+    background-color: rgba(0, 0, 0, .4);
+    resize: none;
+}
+
+game-interface toolbar {
+    top: 0;
+    width: 100%;
+    display: block;
+    position: absolute;
+    user-select: none;
+    pointer-events: all;
+    -webkit-user-select: none;
+}
+
+toolbar settings, toolbar settings div[data-id=eraser] {
+    display: none;
+    margin-top: 25px;
+}
+
+toolbar div.left, toolbar div.right {
+    position: absolute;
+}
+
+toolbar div.left {
+    left: 0;
+}
+
+toolbar div.right {
+    right: 0;
+}
+
+toolbar tool {
+    width: 1em;
+    height: 1em;
+    padding: 8px;
+    outline: none;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    backdrop-filter: blur(2px);
+}
+
+tool:hover {
+    transition: all 40ms;
+    background-color: #333;
+}
+
+tool * {
+    display: block;
+    width: inherit;
+    height: inherit;
+    pointer-events: none;
+    transition: all 200ms;
+}
+
+tool.disabled {
+    opacity: .4;
+}
+
+tool.disabled:hover {
+    cursor: not-allowed;
+    pointer-events: none;
+}
+
+toolbar div.left tool {
+    border-right-width: 1px;
+    border-right-style: solid;
+}
+
+toolbar div.right tool {
+    border-left-width: 1px;
+    border-left-style: solid;
+}
+
+playpause {
+    clip-path: polygon(
+        0 0,
+        50% 25%,
+        50% 75%,
+        50% 75%,
+        50% 25%,
+        100% 50%,
+        100% 50%,
+        0 100%
+    );
+}
+
+playpause.playing {
+    clip-path: polygon(
+        0 0,
+        40% 0,
+        40% 100%,
+        60% 100%,
+        60% 0,
+        100% 0,
+        100% 100%,
+        0 100%
+    );
+}
+
+backtrack {
+    clip-path: polygon(
+        0 0,
+        20% 0,
+        20% 50%,
+        100% 0,
+        100% 100%,
+        20% 50%,
+        20% 100%,
+        0 100%
+    );
+}
+
+rewind {
+    clip-path: polygon(
+        0 0,
+        20% 0,
+        20% 50%,
+
+        /* arrow left midway end */
+        60% 0,
+        60% 50%,
+
+        /* arrow left midway arrow left*/
+        100% 0,
+        100% 100%,
+        50% 50%,
+        60% 50%,
+
+        60% 100%,
+        20% 50%,
+        20% 100%,
+        0 100%
+    );
+}
+
+@keyframes rotate {
+    0% {
+        transform: rotate(0);
+    }
+
+    100% {
+        transform: rotate(360deg);
+    }
+}
+
+wheel, line {
+    display: block;
+    background-color: transparent;
+}
+
+tool:active wheel {
+    animation: none;
+}
+
+tool:focus wheel {
+    animation: rotate 1s ease;
+}
+
+tool svg {
+    stroke: black;
+    stroke-linecap: round;
+    stroke-linejoin: round;
+    background-color: transparent;
+}
+
+wheel svg {
+    stroke: #777;
+}
+
+wheel svg circle {
+    fill: none;
+    stroke-width: 2.5;
+}
+
+brush {
+    clip-path: circle(20%);
+}
+
+brush.scenery {
+    background-color: #aaa;
+}
+
+line svg {
+    stroke-width: 4;
+}
+
+camera {
+    clip-path: polygon(
+        50% 0,
+        30% 25%,
+        45% 25%,
+        45% 45%,
+        25% 45%,
+        25% 30%,
+        0 50%,
+        25% 70%,
+        25% 55%,
+        45% 55%,
+        45% 75%,
+        30% 75%,
+        50% 100%,
+        70% 75%,
+        55% 75%,
+        55% 55%,
+        75% 55%,
+        75% 70%,
+        100% 50%,
+        75% 30%,
+        75% 45%,
+        55% 45%,
+        55% 25%,
+        70% 25%,
+        50% 0
+    );
+}
+
+powerup:not(.triangle) {
+	width: 50%;
+	height: 50%;
+	border-width: 1px;
+	border-style: solid;
+	border-radius: 50%;
+	clip-path: circle(60%);
+}
+
+powerup.triangle {
+    background-color: transparent;
+}
+
+powerup.target {
+    background-color: #ff0;
+}
+
+powerup.checkpoint {
+    background-color: #00f;
+}
+
+powerup.boost svg {
+    fill: #ff0;
+}
+
+powerup.gravity svg {
+    fill: #0f0;
+}
+
+powerup.bomb {
+    background-color: #f00;
+}
+
+powerup.slowmo {
+    background-color: #eee;
+}
+
+powerup.antigravity {
+    background-color: #0ff;
+}
+
+powerup.teleport {
+    background-color: #f0f;
+}
+
+eraser {
+    clip-path: circle(45%);
+    background-color: #ffb6c1;
+}
+
+fullscreen {
+    clip-path: polygon(
+        0 40%,
+        0 0,
+        40% 0,
+        40% 20%,
+        20% 20%,
+        20% 40%,
+        0 40%,
+        0 100%,
+        40% 100%,
+        40% 80%,
+        20% 80%,
+        20% 60%,
+        0 60%,
+        0 100%,
+        100% 100%,
+        100% 60%,
+        80% 60%,
+        80% 80%,
+        60% 80%,
+        60% 100%,
+        100% 100%,
+        100% 0,
+        60% 0,
+        60% 20%,
+        80% 20%,
+        80% 40%,
+        100% 40%,
+        100% 100%,
+        0 100%
+    );
+}
+
+fullscreen.active {
+    clip-path: polygon(
+        0 40%,
+        40% 40%,
+        40% 0,
+        20% 0,
+        20% 20%,
+        0 20%,
+        0 60%,
+        40% 60%,
+        40% 100%,
+        20% 100%,
+        20% 80%,
+        0 80%,
+        0 100%,
+        60% 100%,
+        60% 60%,
+        100% 60%,
+        100% 80%,
+        80% 80%,
+        80% 100%,
+        60% 100%,
+        100% 100%,
+        100% 40%,
+        60% 40%,
+        60% 0,
+        80% 0,
+        80% 20%,
+        100% 20%,
+        100% 40%,
+        100% 100%,
+        0 100%
+    );
+}
+
+increment {
+    clip-path: polygon(
+        40% 0,
+        40% 40%,
+        0 40%,
+        0 60%,
+        40% 60%,
+        40% 100%,
+        60% 100%,
+        60% 60%,
+        100% 60%,
+        100% 40%,
+        60% 40%,
+        60% 0
+    );
+}
+
+decrement {
+    clip-path: polygon(
+        0 40%,
+        100% 40%,
+        100% 60%,
+        0 60%
+    );
+}

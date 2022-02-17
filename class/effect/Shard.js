@@ -14,20 +14,20 @@ export default class Shard extends Mass {
     rotation = 6.2 * Math.random();
     rotationFactor = Math.random() - Math.random();
     friction = .05;
-    collide = !0;
+    collide = true;
     shape = [ 1, 0.7, 0.8, 0.9, 0.5, 1, 0.7, 1 ]
 
     draw(ctx) {
         var a = this.position.toPixel(),
-            b = this.shape[0] * this.size * this.parent.track.zoom,
+            b = this.shape[0] * this.size * this.parent.scene.zoom,
             d = a.x + b * Math.cos(this.rotation),
             c = a.y + b * Math.sin(this.rotation);
         ctx.save();
         ctx.beginPath(),
         ctx.moveTo(d, c),
-        ctx.fillStyle = this.parent.track.parent.theme === "dark" ? "#fbfbfb" : "#000000";
+        ctx.fillStyle = this.parent.scene.parent.theme === "dark" ? "#fbfbfb" : "#000000";
         for (let e = 2; 8 > e; e++)
-            c = this.shape[e - 1] * this.size * this.parent.track.zoom / 2,
+            c = this.shape[e - 1] * this.size * this.parent.scene.zoom / 2,
             d = a.x + c * Math.cos(this.rotation + 6.283 * e / 8),
             c = a.y + c * Math.sin(this.rotation + 6.283 * e / 8),
             ctx.lineTo(d, c);
@@ -53,7 +53,7 @@ export default class Shard extends Mass {
         
         this.touching = !1;
         if (this.collide) {
-            this.parent.track.collide(this);
+            this.parent.scene.collide(this);
         }
         this.velocity = this.position.sub(this.old);
         this.old.copy(this.position)
