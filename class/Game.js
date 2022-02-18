@@ -1,10 +1,8 @@
 import Mouse from "./handler/Mouse.js";
 
 import Main from "./scenes/Main.js";
-import Player from "./Player.js";
 
 import Vector from "./Vector.js";
-import Sector from "./sector/Sector.js";
 import Target from "./item/Target.js";
 import Checkpoint from "./item/Checkpoint.js";
 import Bomb from "./item/Bomb.js";
@@ -149,11 +147,9 @@ export default class {
             }
             
             if (x !== void 0) {
-                let c = Math.floor(x.position.x / this.scene.scale)
-                  , d = Math.floor(x.position.y / this.scene.scale);
-                this.scene.grid[c] === void 0 && (this.scene.grid[c] = []);
-                this.scene.grid[c][d] === void 0 && (this.scene.grid[c][d] = new Sector);
-                this.scene.grid[c][d].powerups.push(x);
+                let c = Math.floor(x.position.x / this.scene.grid.scale);
+                let d = Math.floor(x.position.y / this.scene.grid.scale);
+                this.scene.grid.sector(c, d, true).powerups.push(x);
             }
         }
     }
@@ -204,12 +200,9 @@ export default class {
                     if (this.scene.teleporter.position.distanceTo(this.mouse.old) > 40) {
                         this.scene.teleporter.createAlt(this.mouse.old.x, this.mouse.old.y);
                     
-                        let x = Math.floor(this.scene.teleporter.alt.x / this.scene.scale);
-                        let y = Math.floor(this.scene.teleporter.alt.y / this.scene.scale);
-        
-                        this.scene.grid[x] === void 0 && (this.scene.grid[x] = []),
-                        this.scene.grid[x][y] === void 0 && (this.scene.grid[x][y] = new Sector()),
-                        this.scene.grid[x][y].powerups.push(this.scene.teleporter);
+                        let x = Math.floor(this.scene.teleporter.alt.x / this.scene.grid.scale);
+                        let y = Math.floor(this.scene.teleporter.alt.y / this.scene.grid.scale);
+                        this.scene.grid.sector(x, y, true).powerups.push(this.scene.teleporter);
                     } else {
                         this.scene.teleporter.remove();
                     }
@@ -221,12 +214,9 @@ export default class {
 
                 let d = Math.round(180 * Math.atan2(-(this.mouse.position.x - this.mouse.old.x), this.mouse.position.y - this.mouse.old.y) / Math.PI);
                 let c = this.scene.toolHandler.selected === "boost" ? new Boost(this.scene, this.mouse.old.x,this.mouse.old.y,d) : new Gravity(this.scene, this.mouse.old.x,this.mouse.old.y,d);
-                let y = Math.floor(c.position.x / this.scene.scale);
-                let x = Math.floor(c.position.y / this.scene.scale);
-
-                this.scene.grid[y] === void 0 && (this.scene.grid[y] = []),
-                this.scene.grid[y][x] === void 0 && (this.scene.grid[y][x] = new Sector()),
-                this.scene.grid[y][x].powerups.push(c);
+                let x = Math.floor(c.position.x / this.scene.grid.scale);
+                let y = Math.floor(c.position.y / this.scene.grid.scale);
+                this.scene.grid.sector(x, y, true).powerups.push(c);
             }
         //}
     }
@@ -309,28 +299,11 @@ export default class {
         }
     }
 
-    saveGhost() {
-        if (this.scene.id === void 0) {
-            const date = new Date();
-            !function(t, e) {
-                if (typeof navigator.msSaveBlob == "function")
-                    return navigator.msSaveBlob(t, e);
-
-                var saver = document.createElementNS("http://www.w3.org/2000/svg", "a");
-                saver.href = URL.createObjectURL(t);
-                saver.download = e;
-                saver.dispatchEvent(new MouseEvent("click"));
-                URL.revokeObjectURL(saver.href);
-            }(new Blob([this.scene.firstPlayer.gamepad.records.map(set => Object.keys(set).join(" ")).join(",") + "," + this.scene.firstPlayer.vehicle.name], { type: "txt" }), `black_hat_ghost-${date.getDate()}-${date.getMonth()}-${date.getFullYear()}`);
-        }
-    }
-
     reset() {
         if (confirm("Do you really want to start a new track?")) {
             this.close();
             this.init("-18 1i 18 1i###BMX");
-            document.querySelector("#charcount").innerHTML = "Trackcode";
-            document.querySelector("#trackcode").value = null;
+            document.querySelector("textarea#code").value = null;
         }
     }
 

@@ -51,7 +51,7 @@
                     </options>
                     <options id="ghost">
                         <button onclick="game.scene.players.splice(1, game.scene.players.length)">Clear Ghosts</button>
-                        <button onclick="game.scene.watchGhost(document.querySelector('textarea#gcode').value)">Load</button>
+                        <button onclick="game.scene.watchGhost(document.querySelector('textarea#gcode').value), document.querySelector('game-overlay').style.setProperty('display', 'none')">Load</button>
                         <button onclick="
                         let picker = document.createElement('input');
                         picker.type = 'file';
@@ -65,10 +65,12 @@
                         });
                         picker.click();
                         ">Load File...</button>
-                        <button onclick="document.querySelector('textarea#gcode').value = game.scene.firstPlayer.gamepad.records.map(record => Object.keys(record).join(' ')).join(',')">Save</button>
+                        <button onclick="document.querySelector('textarea#gcode').value = game.scene.firstPlayer.gamepad.records.map(record => Object.keys(record).join(' ')).join(',') + ',' + game.scene.firstPlayer.vehicle.name">Save</button>
                         <button onclick="
                         let link = document.createElement('a');
-                        file = new Blob([game.scene.firstPlayer.gamepad.records.map(record => Object.keys(record).join(' ')).join(',')], {
+                        file = new Blob([
+                            game.scene.firstPlayer.gamepad.records.map(record => Object.keys(record).join(' ')).join(',')
+                        ], {
                             type: 'text/plain'
                         });
                         link.href = window.URL.createObjectURL(file);
@@ -115,7 +117,7 @@
                             </wheel>
                         </tool>
                         <br>
-                        <tool title="Fullscreen - F" style="border-bottom-width: 1px;border-bottom-style: solid;border-bottom-right-radius: 5px;border-top-width: 1px;border-top-style: solid;border-top-right-radius: 5px;" onclick="document.fullscreenElement ? (document.exitFullscreen(), this.firstElementChild.classList.remove('active')) : (window.game.game-container.requestFullscreen(), this.firstElementChild.classList.add('active'))">
+                        <tool title="Fullscreen - F" style="border-bottom-width: 1px;border-bottom-style: solid;border-bottom-right-radius: 5px;border-top-width: 1px;border-top-style: solid;border-top-right-radius: 5px;" onclick="document.fullscreenElement ? (document.exitFullscreen(), this.firstElementChild.classList.remove('active')) : (window.game.container.requestFullscreen(), this.firstElementChild.classList.add('active'))">
                             <fullscreen/>
                         </tool>
                         <settings>

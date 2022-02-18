@@ -1,4 +1,10 @@
 export default class Sector {
+    constructor(parent, row, column) {
+        this.parent = parent;
+        this.row = row;
+        this.column = column;
+    }
+
     physics = []
     scenery = []
     powerups = []
@@ -62,9 +68,17 @@ export default class Sector {
 
     search(vector, type) {
         for (const line of type === "scenery" ? this.scenery : this.physics) {
-            if (line.a.x === vector.x && line.a.y === vector.y && !line.collided) {
+            if (line.a.x === vector.x && line.a.y === vector.y) {
                 return line;
             }
         }
-    } 
+    }
+
+    delete() {
+        if (!this.parent.rows.has(this.row)) {
+            return true;
+        }
+
+        return this.parent.rows.get(this.row).delete(this.column);
+    }
 }

@@ -19,15 +19,16 @@ export default class Player {
         this.gamepad = new Gamepad(this);
         if (!this.ghost) {
             this.gamepad.init();
-            this.gamepad.on("keydown", this.updateControls.bind(this));
-            this.gamepad.on("keyup", this.updateControls.bind(this));
         }
+
+        this.gamepad.on("keydown", this.updateControls.bind(this));
+        this.gamepad.on("keyup", this.updateControls.bind(this));
         
         this.createCosmetics();
         this.createVehicle(vehicle);
         this.createRagdoll();
     }
-    
+
     slow = false;
     dead = false;
     ragdoll = null;
@@ -75,47 +76,44 @@ export default class Player {
             return;
         }
 
+        // don't want to record keys that press when paused, but we want them to remain after the user unpauses
+
         if (this.ghost) {
-            if (this.ghostData[0][this.scene.currentTime]) {
-                if (this.gamepad.downKeys.has("ArrowLeft")) {
-                    this.gamepad.downKeys.delete("ArrowLeft");
-                } else {
-                    this.gamepad.downKeys.set("ArrowLeft", true);
-                }
-            }
+            for (let key in this.ghostData) {
+                if (this.ghostData[key][this.scene.currentTime]) {
+                    switch(+key) {
+                        case 0:
+                            key = "ArrowLeft";
+                            break;
 
-            if (this.ghostData[1][this.scene.currentTime]) {
-                if (this.gamepad.downKeys.has("ArrowRight")) {
-                    this.gamepad.downKeys.delete("ArrowRight");
-                } else {
-                    this.gamepad.downKeys.set("ArrowRight", true);
-                }
-            }
+                        case 1:
+                            key = "ArrowRight";
+                            break;
 
-            if (this.ghostData[2][this.scene.currentTime]) {
-                if (this.gamepad.downKeys.has("ArrowUp")) {
-                    this.gamepad.downKeys.delete("ArrowUp");
-                } else {
-                    this.gamepad.downKeys.set("ArrowUp", true);
-                }
-            }
+                        case 2:
+                            key = "ArrowUp";
+                            break;
 
-            if (this.ghostData[3][this.scene.currentTime]) {
-                if (this.gamepad.downKeys.has("ArrowDown")) {
-                    this.gamepad.downKeys.delete("ArrowDown");
-                } else {
-                    this.gamepad.downKeys.set("ArrowDown", true);
-                }
-            }
+                        case 3:
+                            key = "ArrowDown";
+                            break;
 
-            if (this.ghostData[4][this.scene.currentTime]) {
-                if (this.gamepad.downKeys.has("z")) {
-                    this.gamepad.downKeys.delete("z");
-                } else {
-                    this.gamepad.downKeys.set("z", true);
-                    if (!this.scene.paused) {
-                        this.vehicle.swap();
+                        case 4:
+                            key = "z";
+                            break;
+
+                        default:
+                            key = null;
+                            break;
                     }
+
+                    if (this.gamepad.downKeys.has(key)) {
+                        this.gamepad.keyup({ preventDefault: () => {}, key });
+
+                        continue;
+                    }
+
+                    this.gamepad.keydown({ preventDefault: () => {}, key });
                 }
             }
         }
@@ -130,15 +128,11 @@ export default class Player {
     }
 
     updateControls(key) {
-        if (this.dead)
+        if (this.dead) {
             return;
+        }
 
         switch(key) {
-            case "z":
-                if (!this.scene.paused && this.gamepad.downKeys.has("z")) {
-                    this.vehicle.swap();
-                }
-
             case "a":
             case "ArrowLeft":
                 //break;
@@ -154,7 +148,23 @@ export default class Player {
             case "s":
             case "ArrowDown":
                 this.scene.cameraFocus = this.vehicle.head;
+                if (this.scene.paused) {
+                    return;
+                }
+
                 //this.vehicle.updateControls();
+                break;
+
+            case "z":
+                this.scene.cameraFocus = this.vehicle.head;
+                if (this.scene.paused) {
+                    return;
+                }
+                
+                if (this.gamepad.downKeys.has("z")) {
+                    this.vehicle.swap();
+                }
+
                 break;
         }
     }
@@ -186,9 +196,7 @@ export default class Player {
 
             case "target":
                 if (!this.ghost) {
-                    this.targetsCollected++;
-
-                    if (this.targetsCollected === this.scene.targets) {
+                    if (++this.targetsCollected === this.scene.targets) {
                         this.trackComplete();
                     }
                 }
@@ -200,16 +208,13 @@ export default class Player {
     trackComplete() {
         if (this.targetsCollected === this.scene.targets && this.scene.currentTime > 0 && !this.scene.editor) {
             fetch("/tracks/ghost_save", {
-                headers: {
-                    "Content-Type": "application/x-www-form-urlencoded"
-                },
+                method: "post",
                 body: new URLSearchParams({
                     id: window.location.pathname.split("/")[2],
                     vehicle: this.vehicle.name,
                     time: this.scene.currentTime,
                     code: `${game.scene.firstPlayer.gamepad.records.map(record => Object.keys(record).join(" ")).join(",")},${this.scene.currentTime},${this.vehicle.name}`
-                }),
-                method: "post"
+                })
             });
         }
     }

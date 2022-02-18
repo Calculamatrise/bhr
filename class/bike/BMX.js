@@ -11,79 +11,30 @@ export default class extends Bike {
 
         this.head.position = new Vector(0, -1);
         this.head.old = this.head.position.clone();
-        this.frontWheel.position = new Vector(21, 38);
-        this.frontWheel.old = this.frontWheel.position.clone();
         this.rearWheel.position = new Vector(-21, 38);
         this.rearWheel.old = this.rearWheel.position.clone();
+        this.frontWheel.position = new Vector(21, 38);
+        this.frontWheel.old = this.frontWheel.position.clone();
 
         this.rearSpring.lrest = 45;
         this.rearSpring.leff = 45;
-        this.rearSpring.springConstant = 0.35;
-        this.rearSpring.dampConstant = 0.3;
+        this.rearSpring.springConstant = .35;
+        this.rearSpring.dampConstant = .3;
 
         this.chasse.lrest = 42;
         this.chasse.leff = 42;
-        this.chasse.springConstant = 0.35;
-        this.chasse.dampConstant = 0.3;
+        this.chasse.springConstant = .35;
+        this.chasse.dampConstant = .3;
 
         this.frontSpring.lrest = 45;
         this.frontSpring.leff = 45;
-        this.frontSpring.springConstant = 0.35;
-        this.frontSpring.dampConstant = 0.3;
+        this.frontSpring.springConstant = .35;
+        this.frontSpring.dampConstant = .3;
+
+        this.rotationFactor = 6;
     }
     
     name = "BMX";
-    get rider() {
-        const rider = {};
-
-        let t = this.frontWheel.position.sub(this.rearWheel.position);
-        let e = new Vector(t.y, -t.x).scale(this.dir);
-        let s = new Vector(Math.cos(this.pedalSpeed), Math.sin(this.pedalSpeed)).scale(6);
-
-        rider.head = this.rearWheel.position.add(t.scale(0.35)).add(this.head.position.sub(this.frontWheel.position.add(this.rearWheel.position).scale(0.5)).scale(1.2)).add(new Vector(2, 1.5));
-        rider.hand = this.rearWheel.position.add(t.scale(0.8)).add(e.scale(0.68));
-        rider.shadowHand = rider.hand.clone();
-
-        let i = rider.head.sub(rider.hand);
-        i = new Vector(i.y, -i.x).scale(this.dir);
-
-        rider.elbow = rider.head.add(rider.hand).scale(0.5).add(i.scale(130 / i.lengthSquared()));
-        rider.shadowElbow = rider.elbow.clone();
-        rider.hip = this.rearWheel.position.add(t.scale(0.2).add(e.scale(0.5)));
-        rider.foot = this.rearWheel.position.add(t.scale(0.4)).add(e.scale(0.05)).add(s);
-
-        i = rider.hip.sub(rider.foot);
-        i = new Vector(-i.y, i.x).scale(this.dir);
-
-        rider.knee = rider.hip.add(rider.foot).scale(0.5).add(i.scale(160 / i.lengthSquared()));
-        rider.shadowFoot = this.rearWheel.position.add(t.scale(0.4)).add(e.scale(0.05)).sub(s);
-
-        i = rider.hip.sub(rider.shadowFoot);
-        i = new Vector(-i.y, i.x).scale(this.dir);
-
-        rider.shadowKnee = rider.hip.add(rider.shadowFoot).scale(0.5).add(i.scale(160 / i.lengthSquared()));
-
-        return rider;
-    }
-    
-    updateControls() {
-        this.rearWheel.motor += (this.parent.gamepad.downKeys.has("ArrowUp") - this.rearWheel.motor) / 10;
-        this.rearWheel.brake = this.frontWheel.brake = this.parent.gamepad.downKeys.has("ArrowDown");
-        
-        let rotate = this.parent.gamepad.downKeys.has("ArrowLeft") - this.parent.gamepad.downKeys.has("ArrowRight");
-        this.rearSpring.lean(rotate * this.dir * 5);
-        this.frontSpring.lean(-rotate * this.dir * 5);
-        this.chasse.rotate(rotate / 6);
-        
-        if (this.parent.gamepad.downKeys.has("ArrowUp")) {
-            this.pedalSpeed += this.rearWheel.pedalSpeed / 5;
-            if (!rotate) {
-                this.rearSpring.lean(-7);
-                this.frontSpring.lean(7);
-            }
-        }
-    }
-
     draw(ctx) {
         const rearWheel = this.rearWheel.position.toPixel();
         const frontWheel = this.frontWheel.position.toPixel();
@@ -94,8 +45,13 @@ export default class extends Bike {
         ctx.strokeStyle = this.parent.scene.parent.theme === "dark" ? "#fbfbfb" : "#000000";
         ctx.lineWidth = 3.5 * this.parent.scene.zoom;
 
-        this.rearWheel.draw(ctx, 10),
-        this.frontWheel.draw(ctx, 10);
+        ctx.beginPath();
+        ctx.arc(rearWheel.x, rearWheel.y, this.parent.scene.zoom * 10, 0, 2 * Math.PI);
+        ctx.stroke();
+
+        ctx.beginPath();
+        ctx.arc(frontWheel.x, frontWheel.y, this.parent.scene.zoom * 10, 0, 2 * Math.PI);
+        ctx.stroke();
         
         let l = frontWheel.sub(rearWheel);
         let i = new Vector((frontWheel.y - rearWheel.y) * this.dir, (rearWheel.x - frontWheel.x) * this.dir);

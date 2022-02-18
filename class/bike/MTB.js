@@ -30,32 +30,17 @@ export default class extends Bike {
         this.frontSpring.leff = 45;
         this.frontSpring.springConstant = 0.2;
         this.frontSpring.dampConstant = 0.3;
+
+        this.rotationFactor = 8;
     }
 
     name = "MTB";
-    updateControls() {
-        if (this.parent.gamepad.downKeys.has("ArrowUp"))
-            this.pedalSpeed += this.rearWheel.pedalSpeed / 5;
-
-        this.rearWheel.motor += (this.parent.gamepad.downKeys.has("ArrowUp") - this.rearWheel.motor) / 10;
-        this.rearWheel.brake = this.frontWheel.brake = this.parent.gamepad.downKeys.has("ArrowDown");
-        
-        let rotate = this.parent.gamepad.downKeys.has("ArrowLeft") - this.parent.gamepad.downKeys.has("ArrowRight");
-        this.rearSpring.lean(rotate * this.dir * 5);
-        this.frontSpring.lean(-rotate * this.dir * 5);
-        this.chasse.rotate(rotate / 8);
-        if (!rotate && this.parent.gamepad.downKeys.has("ArrowUp")) {
-            this.rearSpring.lean(-7);
-            this.frontSpring.lean(7);
-        }
-    }
-    
     draw(ctx) {
         var b = this.rearWheel.position.toPixel()
         , c = this.frontWheel.position.toPixel()
         , d = this.head.position.toPixel()
         , e = c.sub(b)
-        , f = new Vector((c.y - b.y) * this.dir,(b.x - c.x) * this.dir)
+        , f = new Vector((c.y - b.y) * this.dir, (b.x - c.x) * this.dir)
         , h = d.sub(b.add(e.scale(0.5)));
         ctx.globalAlpha = this.parent.ghost ? .5 : 1;
         ctx.lineCap = "round";
@@ -63,8 +48,13 @@ export default class extends Bike {
         ctx.strokeStyle = this.parent.scene.parent.theme === "dark" ? "#fbfbfb" : "#000000";
         ctx.lineWidth = 3.5 * this.parent.scene.zoom;
         
-        this.rearWheel.draw(ctx, 12.5),
-        this.frontWheel.draw(ctx, 12.5);
+        ctx.beginPath();
+        ctx.arc(b.x, b.y, this.parent.scene.zoom * 12.5, 0, 2 * Math.PI);
+        ctx.stroke();
+
+        ctx.beginPath();
+        ctx.arc(c.x, c.y, this.parent.scene.zoom * 12.5, 0, 2 * Math.PI);
+        ctx.stroke();
 
         ctx.beginPath(),
         ctx.fillStyle = "grey",

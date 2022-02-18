@@ -6,7 +6,6 @@ localStorage.setItem("theme", localStorage.getItem("theme") || (window.matchMedi
 
 document.addEventListener("keydown", function(event) {
     event.preventDefault();
-    
     switch(event.key.toLowerCase()) {
         case "backspace":
             if (event.shiftKey) {
@@ -71,7 +70,7 @@ document.addEventListener("keydown", function(event) {
                 if (window.game.scene.toolHandler.selected !== "brush" || window.game.scene.toolHandler.currentTool.scenery) {
                     window.game.scene.toolHandler.setTool("brush");
                     window.game.scene.toolHandler.currentTool.scenery = !1;
-                    canvas.style.cursor = "none";
+                    window.game.canvas.style.cursor = "none";
                 } else if (!window.game.scene.cameraLock) {
                     window.game.scene.cameraLock = true;
                 }
@@ -82,7 +81,7 @@ document.addEventListener("keydown", function(event) {
                 if (window.game.scene.toolHandler.selected !== "scenery brush" || !window.game.scene.toolHandler.currentTool.scenery) {
                     window.game.scene.toolHandler.setTool("brush");
                     window.game.scene.toolHandler.currentTool.scenery = !0;
-                    canvas.style.cursor = "none";
+                    window.game.canvas.style.cursor = "none";
                 } else if (!window.game.scene.cameraLock) {
                     window.game.scene.cameraLock = true;
                 }
@@ -93,7 +92,7 @@ document.addEventListener("keydown", function(event) {
                 if (window.game.scene.toolHandler.selected !== "line" || window.game.scene.toolHandler.currentTool.scenery) {
                     window.game.scene.toolHandler.setTool("line");
                     window.game.scene.toolHandler.currentTool.scenery = !1;
-                    canvas.style.cursor = "none";
+                    window.game.canvas.style.cursor = "none";
                 } else if (!window.game.scene.cameraLock) {
                     window.game.scene.cameraLock = true;
                 }
@@ -104,7 +103,7 @@ document.addEventListener("keydown", function(event) {
                 if (window.game.scene.toolHandler.selected !== "scenery line" || !window.game.scene.toolHandler.currentTool.scenery) {
                     window.game.scene.toolHandler.setTool("line");
                     window.game.scene.toolHandler.currentTool.scenery = !0;
-                    canvas.style.cursor = "none";
+                    window.game.canvas.style.cursor = "none";
                 } else if (!window.game.scene.cameraLock) {
                     window.game.scene.cameraLock = true;
                 }
@@ -113,13 +112,13 @@ document.addEventListener("keydown", function(event) {
 
             case "e":
                 window.game.scene.toolHandler.setTool("eraser");
-                canvas.style.cursor = "none";
+                window.game.canvas.style.cursor = "none";
                 break;
 
             case "r":
                 if (window.game.scene.toolHandler.selected != "camera") {
                     window.game.scene.toolHandler.setTool("camera");
-                    canvas.style.cursor = "move";
+                    window.game.canvas.style.cursor = "move";
                 } else {
                     window.game.scene.toggleCamera = true;
                 }
@@ -155,7 +154,7 @@ document.addEventListener("keyup", function(event) {
 
         case "r":
             if (window.game.scene.toggleCamera) {
-                canvas.style.cursor = "none";
+                window.game.canvas.style.cursor = "none";
                 window.game.scene.toggleCamera = false;
             }
 

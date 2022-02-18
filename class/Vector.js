@@ -68,17 +68,6 @@ export default class {
         return this;
     }
 
-    lerp(target, alpha) {
-        this.x = (1 - alpha) * this.x + alpha * target.x;
-        this.y = (1 - alpha) * this.y + alpha * target.y;
-
-        return this;
-    }
-
-    lerpTowards(target, smoothing, delta) {
-        return this.lerp(target, 1 - Math.pow(smoothing, delta));
-    }
-
     add(vector) {
         return new this.constructor(this.x + vector.x, this.y + vector.y);
     }
@@ -100,7 +89,7 @@ export default class {
     }
 
     lengthSquared() {
-        return this.x * this.x + this.y * this.y;
+        return this.x ** 2 + this.y ** 2;
     }
 
     distanceTo(vector) {

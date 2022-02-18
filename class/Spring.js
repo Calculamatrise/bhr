@@ -6,24 +6,23 @@ export default class Spring {
         this.b = b;
     }
 
-    leff = 45;
-    lrest = 45;
-    dampConstant= 0.3;
-    springConstant = 0.5;
-
+    leff = 40;
+    lrest = 40;
+    dampConstant = .5;
+    springConstant = .7;
     get length() {
         return this.b.position.sub(this.a.position).length;
     }
 
-    lean(a) {
-        this.leff += (this.lrest - a - this.leff) / 5;
+    lean(rotation) {
+        this.leff += (this.lrest - rotation - this.leff) / 5;
     }
 
     rotate(a) {
         let b = this.b.position.sub(this.a.position);
         b = new Vector(-b.y / this.leff, b.x / this.leff);
         this.a.position.addToSelf(b.scale(a));
-        this.b.position.addToSelf(b.scale(-a))
+        this.b.position.addToSelf(b.scale(-a));
     }
 
     update() {
