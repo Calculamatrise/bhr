@@ -279,11 +279,7 @@ export default class {
                 break;
         }
     
-        if (window.game.scene.editor) {
-            if (window.game.scene.firstPlayer) {
-                window.game.scene.cameraFocus = window.game.scene.firstPlayer.vehicle.head;
-            }
-    
+        if (window.game.scene.editor) {    
             switch(event.key.toLowerCase()) {
                 case "a":
                     if (window.game.scene.toolHandler.selected !== "brush" || window.game.scene.toolHandler.currentTool.scenery) {
@@ -391,7 +387,6 @@ export default class {
             case "escape":
                 let overlay = window.game.container.querySelector("game-overlay");
                 overlay.style.setProperty("display", overlay.style.display === "flex" ? (window.game.scene.paused = !1, "none") : (window.game.scene.paused = !0, "flex"));
-    
                 break;
         }
     }

@@ -83,36 +83,28 @@ export default class Player {
                 if (this.ghostData[key][this.scene.currentTime]) {
                     switch(+key) {
                         case 0:
-                            key = "ArrowLeft";
+                            this.gamepad.toggle("ArrowLeft");
                             break;
 
                         case 1:
-                            key = "ArrowRight";
+                            this.gamepad.toggle("ArrowRight");
                             break;
 
                         case 2:
-                            key = "ArrowUp";
+                            this.gamepad.toggle("ArrowUp");
                             break;
 
                         case 3:
-                            key = "ArrowDown";
+                            this.gamepad.toggle("ArrowDown");
                             break;
 
                         case 4:
-                            key = "z";
-                            break;
+                            this.vehicle.swap();
+                            continue;
 
                         default:
                             continue;
                     }
-
-                    if (this.gamepad.downKeys.has(key)) {
-                        this.gamepad.keyup({ preventDefault: () => {}, key });
-
-                        continue;
-                    }
-
-                    this.gamepad.keydown({ preventDefault: () => {}, key });
                 }
             }
         }

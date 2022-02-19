@@ -92,6 +92,16 @@ export default class extends EventEmitter {
 		return this.emit("keyup", event.key);
 	}
 
+    toggle(key) {
+        if (this.downKeys.has(key)) {
+            this.downKeys.delete(key);
+
+            return;
+        }
+
+        this.downKeys.add(key);
+    }
+
     record() {
         for (const key of this.pendingDownKeys) {
             if (this.downKeys.has(key)) {

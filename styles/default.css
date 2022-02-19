@@ -16,7 +16,7 @@ game-container {
 	display: block;
 	width: fit-content;
 	position: relative;
-    overflow: hidden;
+    margin: auto;
 }
 
 game-container game-interface {
