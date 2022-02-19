@@ -32,19 +32,19 @@ export default class {
     }
 
     fix() {
-        for (const line of this.physics) {
-            line.collided = false;
+        for (let line = 0; line < this.physics.length; line++) {
+            this.physics[line].collided = false;
         }
     }
 
     collide(part) {
-        for (const line of this.physics) {
-            line.collide(part);
+        for (let line = this.physics.length - 1; 0 <= line; line--) {
+            this.physics[line].collide(part);
         }
 
         if (!part.parent.dead) {
-            for (const powerup of this.powerups) {
-                powerup.collide(part);
+            for (let powerup = this.powerups.length - 1; 0 <= powerup; powerup--) {
+                this.powerups[powerup].collide(part);
             }
         }
 

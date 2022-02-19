@@ -31,7 +31,7 @@ export default class {
     }
 
     fps = 25;
-    lastTime = null;
+    lastTime = -1;
     lastFrame = null;
     progress = 0;
     get theme() {

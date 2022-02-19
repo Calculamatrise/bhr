@@ -50,9 +50,9 @@ export default class Spring {
         a.copy(this.a.velocity);
         this.a.velocity.copy(this.b.velocity);
         this.b.velocity.copy(a);
-        a = this.a.rotation;
-        this.a.rotation = this.b.rotation;
-        this.b.rotation = a
+        a = this.a.pedalSpeed;
+        this.a.pedalSpeed = this.b.pedalSpeed;
+        this.b.pedalSpeed = a
     }
 
     clone() {
