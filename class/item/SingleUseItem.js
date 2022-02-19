@@ -1,7 +1,8 @@
 import Item from "./Item.js";
 
 export default class SingleUseItem extends Item {
-	used = false;
+	id = ++super.constructor.count;
+    used = false;
 	collide(part) {
 		if (part.position.distanceToSquared(this.position) > 500) {
 			return;

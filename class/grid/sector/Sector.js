@@ -68,14 +68,6 @@ export default class {
         return a;
     }
 
-    search(vector, type) {
-        for (const line of type === "scenery" ? this.scenery : this.physics) {
-            if (line.a.x === vector.x && line.a.y === vector.y) {
-                return line;
-            }
-        }
-    }
-
     delete() {
         if (!this.parent.rows.has(this.row)) {
             return true;

@@ -81,22 +81,24 @@ export default class {
             this.parent.slow = false;
         }
 
-        for (const spring of this.springs) {
-            spring.update();
+        for (let a = this.springs.length - 1; a >= 0; a--) {
+            this.springs[a].update();
         }
-
-        for (const mass of this.masses) {
-            mass.update(delta);
+        
+        for (let a = this.masses.length - 1; a >= 0; a--) {
+            this.masses[a].update(delta);
         }
 
         if (!this.parent.slow && !this.parent.dead) {
             this.updateControls();
 
-            for (const spring of this.springs)
-                spring.update();
+            for (let a = this.springs.length - 1; a >= 0; a--) {
+                this.springs[a].update();
+            }
 
-            for (const mass of this.masses)
-                mass.update(delta);
+            for (let a = this.masses.length - 1; a >= 0; a--) {
+                this.masses[a].update(delta);
+            }
         }
     }
 

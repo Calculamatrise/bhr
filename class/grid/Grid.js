@@ -6,8 +6,8 @@ export default class {
         this.scene = parent;
     }
 
+    size = 1;
     scale = 100;
-
     rows = new Map();
 
     get sectors() {

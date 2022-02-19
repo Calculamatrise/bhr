@@ -31,17 +31,15 @@ export default class {
     }
 
     targets = 0;
-    players = []
-    powerups = []
+    players = [];
     editor = false;
-    gridSize = 1;
-    grid = new Grid(this);
     currentTime = 0;
-    collectables = []
+    collectables = [];
     pictureMode = false;
-    camera = new Vector();
     cameraLock = false;
     cameraFocus = null;
+    grid = new Grid(this);
+    camera = new Vector();
     zoom = 0.6 * window.devicePixelRatio;
     toolHandler = new ToolHandler(this);
     undoManager = new UndoManager();
@@ -151,19 +149,15 @@ export default class {
 
     collectItems(items) {
         for (const powerup of this.collectables) {
-            if (powerup.used !== void 0) {
-                if (items.includes(powerup.id)) {
-                    powerup.used = true;
-                }
+            if (items.includes(powerup.id)) {
+                powerup.used = true;
             }
         }
     }
 
     removeCollectedItems() {
         for (const powerup of this.collectables) {
-            if (powerup.used !== void 0) {
-                powerup.used = false;
-            }
+            powerup.used = false;
         }
     }
 
@@ -267,19 +261,17 @@ export default class {
         let i = new Vector().toCanvas(this.parent.canvas).oppositeScale(this.grid.scale).floor();
         let l = new Vector(this.parent.canvas.width, this.parent.canvas.height).toCanvas(this.parent.canvas).oppositeScale(this.grid.scale).floor();
         for (const sector of this.grid.range(i, l)) {
+            if (sector.physics.length > 0 || sector.scenery.length > 0) {
+                if (!sector.rendered) {
+                    sector.render();
+                }
+
+                ctx.drawImage(sector.canvas, Math.floor(this.parent.canvas.width / 2 - this.camera.x * this.zoom + sector.row * this.grid.scale * this.zoom), Math.floor(this.parent.canvas.height / 2 - this.camera.y * this.zoom + sector.column * this.grid.scale * this.zoom));
+            }
+
             for (const powerup of sector.powerups) {
                 powerup.draw(ctx);
             }
-
-            if (sector.physics.length === 0 && sector.scenery.length === 0) {
-                continue;
-            }
-
-            if (!sector.rendered) {
-                sector.render();
-            }
-
-            ctx.drawImage(sector.canvas, Math.floor(this.parent.canvas.width / 2 - this.camera.x * this.zoom + sector.row * this.grid.scale * this.zoom), Math.floor(this.parent.canvas.height / 2 - this.camera.y * this.zoom + sector.column * this.grid.scale * this.zoom));
         }
         
         ctx.beginPath(),
@@ -310,7 +302,7 @@ export default class {
                 i += " or BACKSPACE to cancel Checkpoint"
             }
         } else if (this.id === void 0) {
-            if (this.gridSize === 10 && ["line", "brush"].includes(this.toolHandler.selected)) {
+            if (this.grid.size === 10 && ["line", "brush"].includes(this.toolHandler.selected)) {
                 i += " - Grid ";
             }
 
@@ -517,19 +509,6 @@ export default class {
                       , u = a + h + l + c;
                     isNaN(u) || e.call(this, { x: a, y: h }, { x: l, y: c }, scenery)
                 }
-            }
-        }
-    }
-
-    addToSelf(a, b) {
-        for (var i = 0, d = a.length; i < d; i++) {
-            if (a[i].type) {
-                a[i] = new a[i].type(a[i].x,a[i].y,this)
-            }
-            if (b) {
-                this.addLineInternal(a[i])
-            } else {
-                this.addLine(a[i].a, a[i].b, a[i].type === "scenery")
             }
         }
     }
