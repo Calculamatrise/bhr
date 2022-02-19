@@ -187,9 +187,9 @@ export default class {
         this.grid.sector(x + 1, y).fix();
         this.grid.sector(x + 1, y + 1).fix();
         this.grid.sector(x, y).collide(part);
-        this.grid.sector(x, y + 1).collide(part);
         this.grid.sector(x + 1, y).collide(part);
         this.grid.sector(x + 1, y + 1).collide(part);
+        this.grid.sector(x, y + 1).collide(part);
 
         return this;
     }

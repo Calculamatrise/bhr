@@ -103,8 +103,7 @@ export default class Player {
                             break;
 
                         default:
-                            key = null;
-                            break;
+                            continue;
                     }
 
                     if (this.gamepad.downKeys.has(key)) {

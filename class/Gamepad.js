@@ -118,7 +118,6 @@ export default class extends EventEmitter {
     }
 
     reset() {
-        this.downKeys.clear();
         this.#records = Array.from({ length: 5 }, () => ({}));
     }
     

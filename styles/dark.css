@@ -26,6 +26,10 @@ tool svg, tool svg circle {
     stroke: white;
 }
 
+playpause, backtrack, rewind, brush, camera, powerup, fullscreen, increment, decrement {
+    background-color: white;
+}
+
 powerup {
     border-color: white;
 }
