@@ -150,10 +150,9 @@ export default class {
         }
     }
 
-    watchGhost(data, { id = null, vehicle = "BMX" } = {}) {
-        data = data.split(/\u002C+/g).map(key => Object.fromEntries(key.split(/\s+/g).filter(keys => keys).map(input => [ input, 1 ])));
-
-        let v = Object.keys(data[data.length - 1])[0];
+    watchGhost(data, { id, vehicle = "BMX" } = {}) {
+        let records = data.split(/\s?\u002C\s?/g).map(item => new Set(item.split(/\s+/g).map(item => isNaN(+item) ? item : +item)));
+        let v = Array.from(records[records.length - 1])[0];
         if (["BMX", "MTB"].includes(v.toUpperCase())) {
             vehicle = v;
         }
@@ -162,7 +161,7 @@ export default class {
         let player = id && this.players.find(player => player.id === +id);
         if (!player) {
             this.players.push(new Player(this, {
-                ghost: data,
+                records,
                 vehicle
             }));
 

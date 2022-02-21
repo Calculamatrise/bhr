@@ -36,19 +36,30 @@ export default class {
 
 	keydown(event) {
 		event.preventDefault();
-        if (this.downKeys.has(this.mask(event.key))) {
+        
+        const key = this.mask(event.key);
+        if (key === null) {
             return;
         }
 
-        this.downKeys.add(this.mask(event.key));
-        this.parent.updateRecords(this.mask(event.key));
+        if (this.downKeys.has(key)) {
+            return;
+        }
+
+        this.downKeys.add(key);
+        this.parent.updateRecords(key);
 	}
 
 	keyup(event) {
 		event.preventDefault();
 
-        this.downKeys.delete(this.mask(event.key));
-        this.parent.updateRecords(this.mask(event.key));
+        const key = this.mask(event.key);
+        if (key === null) {
+            return;
+        }
+        
+        this.downKeys.delete(key);
+        this.parent.updateRecords(key);
 	}
 
     toggle(key) {

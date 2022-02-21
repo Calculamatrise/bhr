@@ -13,11 +13,12 @@ const Bike = {
 }
 
 export default class Player {
-    constructor(parent, { vehicle, ghost }) {
+    constructor(parent, { records, vehicle }) {
         this.scene = parent;
-        this.ghostData = ghost;
-        this.ghost = !!this.ghostData;
-        if (!this.ghost) {
+        if (records !== void 0) {
+            this.ghost = true;
+            this.records = records;
+        } else {
             this.gamepad.init();
         }
 
@@ -27,6 +28,7 @@ export default class Player {
     }
     dead = false;
     slow = false;
+    ghost = false;
     ragdoll = null;
     explosion = null;
     pendingConsumables = 0;
@@ -78,7 +80,6 @@ export default class Player {
             }
             
             this.pendingConsumables = 0;
-            return;
         }
 
         if (this.targetsCollected === this.scene.targets) {
@@ -91,23 +92,23 @@ export default class Player {
         }
 
         if (this.ghost) {
-            if (this.ghostData[0] && this.ghostData[0][this.scene.currentTime]) {
+            if (this.records[0].has(this.scene.currentTime)) {
                 this.gamepad.toggle("left");
             }
 
-            if (this.ghostData[1] && this.ghostData[1][this.scene.currentTime]) {
+            if (this.records[1].has(this.scene.currentTime)) {
                 this.gamepad.toggle("right");
             }
 
-            if (this.ghostData[2] && this.ghostData[2][this.scene.currentTime]) {
+            if (this.records[2].has(this.scene.currentTime)) {
                 this.gamepad.toggle("up");
             }
 
-            if (this.ghostData[3] && this.ghostData[3][this.scene.currentTime]) {
+            if (this.records[3].has(this.scene.currentTime)) {
                 this.gamepad.toggle("down");
             }
 
-            if (this.ghostData[4] && this.ghostData[4][this.scene.currentTime]) {
+            if (this.records[4].has(this.scene.currentTime)) {
                 this.vehicle.swap();
             }
         } else if (this.scene.currentTime === 0) {
@@ -132,7 +133,6 @@ export default class Player {
         //     }
             
         //     this.pendingConsumables = 0;
-        //     return;
         // }
     }
 
@@ -219,14 +219,29 @@ export default class Player {
         this.explosion = null;
         this.slow = snapshot.slow;
         this.dead = snapshot.dead;
-        this.updateRecords(snapshot.downKeys);
         this.itemsCollected = new Set(snapshot.itemsCollected);
         this.records = snapshot.records.map(record => new Set(record));
         this.gravity = snapshot.gravity.clone();
         this.vehicle = snapshot.vehicle.clone();
         if (this.ghost) {
-            this.gamepad.downKeys.clear();
+            this.gamepad.downKeys = new Set(snapshot.downKeys);
+            return;
         }
+
+        let changed = new Set();
+        for (const key of snapshot.downKeys) {
+            if (!this.gamepad.downKeys.has(key)) {
+                changed.add(key);
+            }
+        }
+
+        for (const key of this.gamepad.downKeys) {
+            if (!snapshot.downKeys.has(key)) {
+                changed.add(key);
+            }
+        }
+        
+        this.updateRecords(changed);
     }
 
     reset() {
@@ -238,10 +253,11 @@ export default class Player {
         this.pendingConsumables = 0;
         this.itemsCollected = new Set();
         this.gravity = new Vector(0, .3);
-        this.records = Array.from({ length: 5 }, () => new Set());
         this.snapshots.reset();
         if (this.ghost) {
             this.gamepad.downKeys.clear();
+        } else {
+            this.records = Array.from({ length: 5 }, () => new Set());
         }
 
         this.createVehicle(this.vehicle.name);
