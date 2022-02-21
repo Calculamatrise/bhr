@@ -336,42 +336,16 @@ export default class {
     }
 
     erase(vector) {
-        // let l = []
-        // let x = Math.floor(vector.x / this.grid.scale - 0.5);
-        // let y = Math.floor(vector.y / this.grid.scale - 0.5);
-        // let physics = []
-        // let scenery = []
-        // let powerups = []
-        // let sector1 = this.grid.sector(x, y);
-        // let sector2 = this.grid.sector(x, y + 1);
-        // let sector3 = this.grid.sector(x + 1, y);
-        // let sector4 = this.grid.sector(x + 1, y + 1);
-        // physics.push(...sector1.physics, ...sector2.physics, ...sector3.physics, ...sector4.physics);
-        // scenery.push(...sector1.scenery, ...sector2.scenery, ...sector3.scenery, ...sector4.scenery);
-        // powerups.push(...sector1.powerups, ...sector2.powerups, ...sector3.powerups, ...sector4.powerups);
-        // if (this.toolHandler.currentTool.settings.physics) {
-        //     for (let line of physics) {
-        //         (line = line.erase(vector)) && l.push(line);
-        //     }
-        // }
+        let x = Math.floor(vector.x / this.grid.scale - 0.5);
+        let y = Math.floor(vector.y / this.grid.scale - 0.5);
+        let cache = [];
 
-        // if (this.toolHandler.currentTool.settings.scenery) {
-        //     for (let line of scenery) {
-        //         (line = line.erase(vector)) && l.push(line);
-        //     }
-        // }
+        cache.push(...this.grid.sector(x, y).erase(vector));
+        cache.push(...this.grid.sector(x, y + 1).erase(vector));
+        cache.push(...this.grid.sector(x + 1, y).erase(vector));
+        cache.push(...this.grid.sector(x + 1, y + 1).erase(vector));
 
-        // if (this.toolHandler.currentTool.settings.powerups) {
-        //     for (let powerup of powerups) {
-        //         (powerup = powerup.erase(vector)) && l.push(powerup);
-        //     }
-        // }
-
-        // for (const powerup in this.collectables) {
-        //     this.collectables[powerup].removed !== void 0 && l.push(...this.collectables.splice(powerup, 1));
-        // }
-
-        // return l;
+        return cache;
     }
     
     addLine(start, end, type) {

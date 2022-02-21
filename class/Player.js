@@ -185,17 +185,21 @@ export default class Player {
                     code: `${game.scene.firstPlayer.records.map(record => [...record].join(" ")).join(",")},${this.scene.currentTime},${this.vehicle.name}`
                 })
             }).then(r => r.text()).then(function(response) {
-                if (response !== "Ghost saved!" && confirm(response)) {
-                    return fetch("/tracks/ghosts/save", {
-                        method: "post",
-                        body: new URLSearchParams({
-                            id: window.location.pathname.split("/")[2],
-                            vehicle: this.vehicle.name,
-                            time: this.scene.currentTime,
-                            code: `${game.scene.firstPlayer.records.map(record => [...record].join(" ")).join(",")},${this.scene.currentTime},${this.vehicle.name}`,
-                            overwrite: true
-                        })
-                    }).then(r => r.text());
+                if (response !== "Ghost saved!") {
+                    if (confirm(response)) {
+                        return fetch("/tracks/ghosts/save", {
+                            method: "post",
+                            body: new URLSearchParams({
+                                id: window.location.pathname.split("/")[2],
+                                vehicle: this.vehicle.name,
+                                time: this.scene.currentTime,
+                                code: `${game.scene.firstPlayer.records.map(record => [...record].join(" ")).join(",")},${this.scene.currentTime},${this.vehicle.name}`,
+                                overwrite: true
+                            })
+                        }).then(r => r.text());
+                    } else {
+                        return "Ghost not saved.";
+                    }
                 }
 
                 return response;

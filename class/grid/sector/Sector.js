@@ -51,6 +51,33 @@ export default class {
         return this;
     }
 
+    erase(vector) {
+        let cache = [];
+        if (this.parent.scene.toolHandler.currentTool.settings.physics) {
+            for (let line of this.physics) {
+                (line = line.erase(vector)) && cache.push(line);
+            }
+        }
+
+        if (this.parent.scene.toolHandler.currentTool.settings.scenery) {
+            for (let line of this.scenery) {
+                (line = line.erase(vector)) && cache.push(line);
+            }
+        }
+
+        if (this.parent.scene.toolHandler.currentTool.settings.powerups) {
+            for (let powerup of this.powerups) {
+                (powerup = powerup.erase(vector)) && cache.push(powerup);
+            }
+        }
+
+        for (const powerup in this.parent.scene.collectables) {
+            this.parent.scene.collectables[powerup].removed && cache.push(this.parent.scene.collectables.splice(powerup, 1));
+        }
+
+        return cache;
+    }
+
     remove() {
         let a = []
         for (const line in this.physics) {
