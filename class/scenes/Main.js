@@ -29,7 +29,6 @@ export default class {
 
         this.read(code);
     }
-    // targets = 0;
     players = [];
     editor = false;
     paused = false;
@@ -415,7 +414,7 @@ export default class {
         this.addLines(s, this.addLine, 1);
         for (var t in n) {
             e = n[t].split(/\s+/g);
-            var i, b = parseInt(e[1], 32);
+            var i = null, b = parseInt(e[1], 32);
             var d = parseInt(e[2], 32);
             switch (e[0]) {
                 case "T":
@@ -532,6 +531,8 @@ export default class {
             scenery.push(...sector.scenery);
             powerups.push(...sector.powerups);
         }
+
+        console.log(powerups)
 
         return physics.map(line => line.toString()).join(",") + "#" + scenery.map(line => line.toString()).join(",") + "#" + powerups.map(powerup => powerup.toString()).join(",") + "#" + this.firstPlayer.vehicle.name;
     }

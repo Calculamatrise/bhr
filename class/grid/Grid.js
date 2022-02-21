@@ -24,7 +24,7 @@ export default class {
     sector(x, y, add) {
         if (!this.rows.has(x)) {
             if (!add) {
-                return new Sector(null, null, null);
+                return new Sector(this, null, null);
             }
 
             this.rows.set(x, new Map());
@@ -33,7 +33,7 @@ export default class {
         const row = this.rows.get(x);
         if (!row.has(y)) {
             if (!add) {
-                return new Sector(null, null, null);
+                return new Sector(this, null, null);
             }
 
             row.set(y, new Sector(this, x, y));
