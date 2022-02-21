@@ -25,11 +25,11 @@ export default class Player {
         this.createVehicle(vehicle);
         this.createRagdoll();
     }
-    hat = null;
-    slow = false;
     dead = false;
+    slow = false;
     ragdoll = null;
     explosion = null;
+    pendingConsumables = 0;
     itemsCollected = new Set();
     gravity = new Vector(0, .3);
     gamepad = new Gamepad(this);
@@ -68,13 +68,25 @@ export default class Player {
     }
 
     update(delta) {
+        if (this.pendingConsumables) {
+            if (this.pendingConsumables & 2) {
+                this.trackComplete();
+            } else if (this.pendingConsumables & 1) {
+                for (const player of this.scene.players) {
+                    player.snapshots.push(player.snapshot());
+                }
+            }
+            
+            this.pendingConsumables = 0;
+            return;
+        }
+
         if (this.targetsCollected === this.scene.targets) {
             return;
         }
 
         if (this.explosion) {
             this.explosion.update();
-
             return;
         }
 
@@ -109,6 +121,19 @@ export default class Player {
         } else {
             //this.ragdoll.updatePosition(this.vehicle.rider);
         }
+
+        // if (this.pendingConsumables) {
+        //     if (this.pendingConsumables & 2) {
+        //         this.trackComplete();
+        //     } else if (this.pendingConsumables & 1) {
+        //         for (const player of this.scene.players) {
+        //             player.snapshots.push(player.snapshot());
+        //         }
+        //     }
+            
+        //     this.pendingConsumables = 0;
+        //     return;
+        // }
     }
 
     updateRecords(keys) {
@@ -161,43 +186,15 @@ export default class Player {
         ctx.restore();
     }
 
-    collect(powerup) {
-        switch(powerup) {
-            case "checkpoint":
-                if (this.ghost) {
-                    break;
-                }
-
-                for (const player of this.scene.players) {
-                    player.snapshots.push(player.snapshot());
-                }
-
-                // this.scene.gotoCheckpoint();
-                break;
-
-            case "target":
-                if (this.ghost) {
-                    break;
-                }
-
-                if (this.targetsCollected !== this.scene.targets) {
-                    break;
-                }
-
-                this.trackComplete();
-                break;
-        }
-    }
-
     trackComplete() {
         if (this.targetsCollected === this.scene.targets && this.scene.currentTime > 0 && !this.scene.editor) {
-            fetch("/tracks/ghost_save", {
+            fetch("/tracks/ghosts/save", {
                 method: "post",
                 body: new URLSearchParams({
                     id: window.location.pathname.split("/")[2],
                     vehicle: this.vehicle.name,
                     time: this.scene.currentTime,
-                    code: `${game.scene.firstPlayer.gamepad.records.map(record => Object.keys(record).join(" ")).join(",")},${this.scene.currentTime},${this.vehicle.name}`
+                    code: `${game.scene.firstPlayer.records.map(record => [...record].join(" ")).join(",")},${this.scene.currentTime},${this.vehicle.name}`
                 })
             });
         }
@@ -205,26 +202,31 @@ export default class Player {
 
     snapshot() {
         return {
-            slow: this.slow,
-            dead: this.dead,
-            gravity: this.gravity.clone(),
             currentTime: this.scene.currentTime,
-            itemsCollected: new Set([...this.itemsCollected]),
-            records: [...this.records.map(record => new Set([...record]))],
+            dead: this.dead,
+            downKeys: new Set(this.gamepad.downKeys),
+            gravity: this.gravity.clone(),
+            itemsCollected: new Set(this.itemsCollected),
+            records: this.records.map(record => new Set(record)),
+            slow: this.slow,
             vehicle: this.vehicle.clone()
         }
     }
 
     restore(snapshot) {
-        this.dead = false;
+        this.scene.currentTime = snapshot.currentTime;
         this.ragdoll = null;
         this.explosion = null;
         this.slow = snapshot.slow;
         this.dead = snapshot.dead;
-        this.records = [...snapshot.records.map(record => new Set([...record]))];
-        this.itemsCollected = new Set([...snapshot.itemsCollected]);
+        this.updateRecords(snapshot.downKeys);
+        this.itemsCollected = new Set(snapshot.itemsCollected);
+        this.records = snapshot.records.map(record => new Set(record));
         this.gravity = snapshot.gravity.clone();
         this.vehicle = snapshot.vehicle.clone();
+        if (this.ghost) {
+            this.gamepad.downKeys.clear();
+        }
     }
 
     reset() {
@@ -233,14 +235,15 @@ export default class Player {
         this.dead = false;
         this.ragdoll = null;
         this.explosion = null;
+        this.pendingConsumables = 0;
         this.itemsCollected = new Set();
+        this.gravity = new Vector(0, .3);
         this.records = Array.from({ length: 5 }, () => new Set());
         this.snapshots.reset();
         if (this.ghost) {
             this.gamepad.downKeys.clear();
         }
 
-        this.gravity = new Vector(0, .3);
         this.createVehicle(this.vehicle.name);
         // this.ragdoll.updatePosition(this.vehicle.rider);
     }

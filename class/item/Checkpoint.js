@@ -7,6 +7,10 @@ export default class Checkpoint extends SingleUseItem {
     }
 
     activate(part) {
-        part.parent.parent.collect("checkpoint");
+        if (part.parent.parent.ghost) {
+            return;
+        }
+
+        part.parent.parent.pendingConsumables |= 1;
     }
 }

@@ -1,7 +1,7 @@
 import Vector from "../Vector.js";
 import Entity from "./part/Entity.js";
 import Wheel from "./part/Wheel.js";
-import Spring from "../Spring.js";
+import Spring from "./physics/Spring.js";
 
 export default class {
     constructor(parent) {
@@ -69,16 +69,16 @@ export default class {
         if (!this.parent.dead)
             this.updateControls();
 
-        if (this.rearWheel.touching && this.frontWheel.touching) {
-            this.parent.slow = false;
-        }
-
         for (let a = this.springs.length - 1; a >= 0; a--) {
             this.springs[a].update();
         }
 
         for (let a = this.masses.length - 1; a >= 0; a--) {
             this.masses[a].update(delta);
+        }
+
+        if (this.rearWheel.touching && this.frontWheel.touching) {
+            this.parent.slow = false;
         }
 
         if (!this.parent.slow && !this.parent.dead) {

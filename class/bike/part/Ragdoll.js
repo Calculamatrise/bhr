@@ -1,4 +1,4 @@
-import Spring from "../../Spring.js";
+import Spring from "../physics/Spring.js";
 import Entity from "./Entity.js";
 
 export default class {

@@ -7,7 +7,15 @@ export default class Target extends SingleUseItem {
     }
 
     activate(part) {
-        part.parent.parent.collect("target");
+        if (part.parent.parent.ghost) {
+            return;
+        }
+
+        if (part.parent.parent.targetsCollected !== part.parent.parent.scene.targets) {
+            return;
+        }
+
+        part.parent.parent.pendingConsumables |= 2;
     }
     
     remove() {

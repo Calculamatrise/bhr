@@ -69,12 +69,12 @@
                         <button onclick="
                         let link = document.createElement('a');
                         file = new Blob([
-                            game.scene.firstPlayer.gamepad.records.map(record => Object.keys(record).join(' ')).join(',')
+                            game.scene.firstPlayer.records.map(record => [...record].join(' ')).join(',')
                         ], {
                             type: 'text/plain'
                         });
                         link.href = window.URL.createObjectURL(file);
-                        link.download = 'bhr_track_' + new Date(new Date().setHours(new Date().getHours() - new Date().getTimezoneOffset() / 60)).toISOString().split(/t/i).join('_').replace(/\..+/, '').replace(/:/g, '-');
+                        link.download = 'bhr_ghost_' + new Date(new Date().setHours(new Date().getHours() - new Date().getTimezoneOffset() / 60)).toISOString().split(/t/i).join('_').replace(/\..+/, '').replace(/:/g, '-');
                         link.click();
                         ">Save As...</button>
                         <textarea id="gcode" cols="30" rows="10"></textarea>

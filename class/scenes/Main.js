@@ -91,11 +91,11 @@ export default class {
         this.paused = false; // JSON.parse(localStorage.pauseOnEnter) ? true : false;
         this.parent.container.querySelector("playpause")?.classList[this.paused ? "remove" : "add"]("playing");
         if (this.firstPlayer.snapshots.length > 0) {
-            const snapshot = this.firstPlayer.snapshots[this.firstPlayer.snapshots.length - 1];
-            this.currentTime = snapshot.currentTime;
-            this.firstPlayer.restore(snapshot);
-            
-            this.collectItems(snapshot.itemsCollected);
+            for (const player of this.players) {
+                player.restore(player.snapshots[player.snapshots.length - 1]);
+            }
+
+            this.collectItems(this.firstPlayer.snapshots[this.firstPlayer.snapshots.length - 1].itemsCollected);
         } else {
             for (const player of this.players) {
                 player.reset();
