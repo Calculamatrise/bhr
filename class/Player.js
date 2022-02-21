@@ -122,18 +122,6 @@ export default class Player {
         } else {
             //this.ragdoll.updatePosition(this.vehicle.rider);
         }
-
-        // if (this.pendingConsumables) {
-        //     if (this.pendingConsumables & 2) {
-        //         this.trackComplete();
-        //     } else if (this.pendingConsumables & 1) {
-        //         for (const player of this.scene.players) {
-        //             player.snapshots.push(player.snapshot());
-        //         }
-        //     }
-            
-        //     this.pendingConsumables = 0;
-        // }
     }
 
     updateRecords(keys) {
@@ -186,9 +174,9 @@ export default class Player {
         ctx.restore();
     }
 
-    trackComplete() {
+    async trackComplete() {
         if (this.targetsCollected === this.scene.targets && this.scene.currentTime > 0 && !this.scene.editor) {
-            fetch("/tracks/ghosts/save", {
+            alert(await fetch("/tracks/ghosts/save", {
                 method: "post",
                 body: new URLSearchParams({
                     id: window.location.pathname.split("/")[2],
@@ -196,7 +184,22 @@ export default class Player {
                     time: this.scene.currentTime,
                     code: `${game.scene.firstPlayer.records.map(record => [...record].join(" ")).join(",")},${this.scene.currentTime},${this.vehicle.name}`
                 })
-            });
+            }).then(r => r.text()).then(function(response) {
+                if (response !== "Ghost saved!" && confirm(response)) {
+                    return fetch("/tracks/ghosts/save", {
+                        method: "post",
+                        body: new URLSearchParams({
+                            id: window.location.pathname.split("/")[2],
+                            vehicle: this.vehicle.name,
+                            time: this.scene.currentTime,
+                            code: `${game.scene.firstPlayer.records.map(record => [...record].join(" ")).join(",")},${this.scene.currentTime},${this.vehicle.name}`,
+                            overwrite: true
+                        })
+                    }).then(r => r.text());
+                }
+
+                return response;
+            }));
         }
     }
 

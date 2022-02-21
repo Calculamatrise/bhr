@@ -17,10 +17,4 @@ export default class Target extends SingleUseItem {
 
         part.parent.parent.pendingConsumables |= 2;
     }
-    
-    remove() {
-        super.remove();
-        
-        this.scene.targets--
-    }
 }
