@@ -112,7 +112,7 @@ export default class {
         a.scaleSelf(0.7);
         b.scaleSelf(0.7);
         for (const joint of this.joints) {
-            let len = joint.length;
+            let len = joint.getLength();
             len > 20 && (len = 20),
             joint.lrest = joint.leff = len;
         }

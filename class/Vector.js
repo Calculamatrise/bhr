@@ -24,10 +24,6 @@ export default class {
         }
     }
 
-    get length() {
-        return Math.sqrt(this.x * this.x + this.y * this.y);
-    }
-
     get pixel() {
         return new this.constructor((this.x - window.game.scene.camera.x) * window.game.scene.zoom + window.game.canvas.width / 2, (this.y - window.game.scene.camera.y) * window.game.scene.zoom + window.game.canvas.height / 2);
     }
@@ -38,6 +34,10 @@ export default class {
 
     toCanvas() {
         return new this.constructor(Math.round((this.x * window.devicePixelRatio - window.game.canvas.width / 2) / window.game.scene.zoom + window.game.scene.camera.x), Math.round((this.y * window.devicePixelRatio - window.game.canvas.height / 2) / window.game.scene.zoom + window.game.scene.camera.y));
+    }
+
+    getLength() {
+        return Math.sqrt(this.x * this.x + this.y * this.y);
     }
 
     copy(vector) {

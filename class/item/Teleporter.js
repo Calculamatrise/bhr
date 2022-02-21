@@ -25,7 +25,7 @@ export default class Teleporter extends SingleUseItem {
                 return;
             }
             
-            part.parent.parent.powerupsConsumed.push(this.id);
+            part.parent.parent.itemsCollected.add(this.id);
 
             this.activate(part, true);
             if (part.parent.parent.ghost) {

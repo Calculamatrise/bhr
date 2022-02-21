@@ -37,7 +37,6 @@ export default class Item {
         this.removed = true;
         this.scene.remove(this.position);
         this.alt && this.scene.remove(this.alt);
-        this.scene.powerups.splice(this.scene.powerups.indexOf(this), 1);
 
         return this;
     }

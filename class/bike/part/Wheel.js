@@ -12,13 +12,4 @@ export default class extends Entity {
         this.pedalSpeed = velocity.dot(this.velocity) / this.size;
         this.touching = true;
     }
-
-    clone() {
-        const clone = super.clone();
-        
-        clone.motor = this.motor;
-        clone.pedalSpeed = this.pedalSpeed;
-        
-        return clone;
-    }
 }

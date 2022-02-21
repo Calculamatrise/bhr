@@ -1,7 +1,7 @@
 import Bike from "./Bike.js";
 import Vector from "../Vector.js";
 
-export default class extends Bike {
+export default class BMX extends Bike {
     constructor(parent) {
         super(parent);
 

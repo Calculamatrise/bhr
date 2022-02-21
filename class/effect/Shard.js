@@ -39,7 +39,7 @@ export default class Shard extends Mass {
         this.pedalSpeed = velocity.dot(this.velocity) / this.size;
         this.position.addToSelf(velocity.scale(-velocity.dot(this.velocity) * this.friction));
         this.rotation += this.rotationFactor;
-        let b = velocity.length;
+        let b = velocity.getLength();
         if (b > 0) {
             velocity = new Vector(-velocity.y / b, velocity.x / b);
             this.old.addToSelf(velocity.scale(0.8 * velocity.dot(this.velocity)));

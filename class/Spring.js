@@ -5,13 +5,12 @@ export default class Spring {
         this.a = a;
         this.b = b;
     }
-
     leff = 40;
     lrest = 40;
     dampConstant = .5;
     springConstant = .7;
-    get length() {
-        return this.b.position.sub(this.a.position).length;
+    getLength() {
+        return this.b.position.sub(this.a.position).getLength();
     }
 
     lean(rotation) {
@@ -26,8 +25,8 @@ export default class Spring {
     }
 
     update() {
-        var a = this.b.position.sub(this.a.position),
-            b = a.length;
+        let a = this.b.position.sub(this.a.position),
+            b = a.getLength();
         if (1 > b)
             return this;
         a = a.scale(1 / b);
@@ -53,16 +52,5 @@ export default class Spring {
         a = this.a.pedalSpeed;
         this.a.pedalSpeed = this.b.pedalSpeed;
         this.b.pedalSpeed = a
-    }
-
-    clone() {
-        const clone = new this.constructor(this.a, this.b);
-        
-        clone.lrest = this.lrest;
-        clone.leff = this.leff;
-        clone.dampConstant= this.dampConstant;
-        clone.springConstant = this.springConstant;
-
-        return clone;
     }
 }

@@ -7,6 +7,6 @@ export default class Checkpoint extends SingleUseItem {
     }
 
     activate(part) {
-        part.parent.parent.collide("checkpoint");
+        part.parent.parent.collect("checkpoint");
     }
 }

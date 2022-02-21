@@ -29,10 +29,10 @@ export default class {
 
         this.read(code);
     }
-
-    targets = 0;
+    // targets = 0;
     players = [];
     editor = false;
+    paused = false;
     currentTime = 0;
     collectables = [];
     pictureMode = false;
@@ -43,22 +43,12 @@ export default class {
     zoom = 0.6 * window.devicePixelRatio;
     toolHandler = new ToolHandler(this);
     undoManager = new UndoManager();
+    get targets() {
+        return this.collectables.filter(item => item.type === "T").length;
+    }
+
     get firstPlayer() {
         return this.players[0];
-    }
-
-    #paused = false;
-    get paused() {
-        return this.#paused;
-    }
-
-    set paused(value) {
-        this.#paused = value;
-        if (!value) {
-            return;
-        }
-
-        this.firstPlayer.gamepad.record();
     }
 
     init(players = [{ vehicle: "BMX" }]) {
@@ -101,12 +91,11 @@ export default class {
         this.paused = false; // JSON.parse(localStorage.pauseOnEnter) ? true : false;
         this.parent.container.querySelector("playpause")?.classList[this.paused ? "remove" : "add"]("playing");
         if (this.firstPlayer.snapshots.length > 0) {
-            let snapshot = this.firstPlayer.snapshots[this.firstPlayer.snapshots.length - 1];
+            const snapshot = this.firstPlayer.snapshots[this.firstPlayer.snapshots.length - 1];
             this.currentTime = snapshot.currentTime;
-
             this.firstPlayer.restore(snapshot);
-
-            this.collectItems(snapshot.powerupsConsumed);
+            
+            this.collectItems(snapshot.itemsCollected);
         } else {
             for (const player of this.players) {
                 player.reset();
@@ -149,7 +138,7 @@ export default class {
 
     collectItems(items) {
         for (const powerup of this.collectables) {
-            if (items.includes(powerup.id)) {
+            if (items.has(powerup.id)) {
                 powerup.used = true;
             }
         }
@@ -161,7 +150,7 @@ export default class {
         }
     }
 
-    watchGhost(data, { vehicle = "BMX" } = {}) {
+    watchGhost(data, { id = null, vehicle = "BMX" } = {}) {
         data = data.split(/\u002C+/g).map(key => Object.fromEntries(key.split(/\s+/g).filter(keys => keys).map(input => [ input, 1 ])));
 
         let v = Object.keys(data[data.length - 1])[0];
@@ -170,12 +159,18 @@ export default class {
         }
 
         this.reset();
-        this.players.push(new Player(this, {
-            ghost: data,
-            vehicle
-        }));
-        this.cameraFocus = this.players[this.players.length - 1].vehicle.head;
+        let player = id && this.players.find(player => player.id === +id);
+        if (!player) {
+            this.players.push(new Player(this, {
+                ghost: data,
+                vehicle
+            }));
 
+            player = this.players[this.players.length - 1];
+            player.id = +id;
+        }
+
+        this.cameraFocus = player.vehicle.head;
         this.paused = false;
     }
 
@@ -196,7 +191,7 @@ export default class {
     
     update(delta) {
         if (!this.paused) {
-            for (const player of this.players) {
+            for (const player of this.players.filter(player => player.targetsCollected !== this.targets)) {
                 player.update(delta);
             }
 
@@ -315,11 +310,11 @@ export default class {
         ctx.strokeText(i = ": " + this.firstPlayer.targetsCollected + " / " + this.targets + "  -  " + i, 55, 16);
         ctx.fillText(i, 55, 16);
         if (this.players.length > 1) {
-            for (i = 1; i < this.players.length; i++) {
+            for (let p = 1; p < this.players.length; p++) {
                 ctx.textAlign = "right",
                 ctx.fillStyle = this.parent.theme === "dark" ? "#999" : "#aaa",
-                ctx.strokeText(i = (this.players[i].name || "Ghost") + (this.players[i].targetsCollected === this.targets ? " finished!" : ": " + this.players[i].targetsCollected + " / " + this.targets), this.parent.canvas.width - 7, 16);
-                ctx.fillText(i, this.parent.canvas.width - 7, 16),
+                ctx.strokeText(i = (this.players[p].name || "Ghost") + (this.players[p].targetsCollected === this.targets ? " finished!" : ": " + this.players[p].targetsCollected + " / " + this.targets), this.parent.canvas.width - 7, 16 * p + (p * 4));
+                ctx.fillText(i, this.parent.canvas.width - 7, 16 * p + (p * 4)),
                 ctx.textAlign = "left",
                 ctx.fillStyle = this.parent.theme === "dark" ? "#fbfbfb" : "#000";
             }
@@ -452,7 +447,7 @@ export default class {
             switch (e[0]) {
                 case "T":
                     i = new Target(this, b, d);
-                    this.targets++;
+                    // this.targets++;
                     this.collectables.push(i);
                     break;
 

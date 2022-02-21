@@ -5,7 +5,7 @@ export default class {
         this.a = t instanceof Vector ? t : new Vector(t, e);
         this.b = e instanceof Vector ? e : new Vector(i, s);
         this.vector = this.b.sub(this.a);
-        this.len = this.vector.length;
+        this.len = this.vector.getLength();
         this.scene = n;
     }
     removed = false;
@@ -27,7 +27,7 @@ export default class {
             c.copy(this.a.add(this.vector.oppositeScale(this.len).scale(b)));
         }
 
-        return vector.sub(c).length <= this.scene.toolHandler.currentTool.size ? this.remove() : !1
+        return vector.sub(c).getLength() <= this.scene.toolHandler.currentTool.size ? this.remove() : !1
     }
 
     commit() {

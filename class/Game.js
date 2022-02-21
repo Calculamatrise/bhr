@@ -116,12 +116,13 @@ export default class {
                     break;
 
                 case "goal":
-                    x = new Target(this.scene, this.mouse.old.x,this.mouse.old.y);
-                    this.scene.targets++;
+                    x = new Target(this.scene, this.mouse.old.x, this.mouse.old.y);
+                    this.scene.collectables.push(x);
                     break;
 
                 case "checkpoint":
                     x = new Checkpoint(this.scene, this.mouse.old.x,this.mouse.old.y);
+                    this.scene.collectables.push(x);
                     break;
 
                 case "bomb":
@@ -139,6 +140,7 @@ export default class {
                 case "teleporter":
                     x = new Teleporter(this.scene, this.mouse.old.x,this.mouse.old.y);
                     this.scene.teleporter = x;
+                    this.scene.collectables.push(x);
                     break;
 
                 case "brush":

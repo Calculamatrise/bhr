@@ -12,7 +12,7 @@
     <body>
         <game-container>
             <game-interface>
-                <game-overlay>
+                <game-overlay style="display: none;">
                     <nav onclick="event.target.tagName !== 'NAV' && ([...this.children].forEach(element => element.classList[event.target.dataset.id === element.dataset.id ? 'add' : 'remove']('active')),
                     document.querySelectorAll('options').forEach(element => element.style.setProperty('display', 'none')),
                     document.querySelector('options#' + event.target.dataset.id).style.setProperty('display',
@@ -65,7 +65,7 @@
                         });
                         picker.click();
                         ">Load File...</button>
-                        <button onclick="document.querySelector('textarea#gcode').value = game.scene.firstPlayer.gamepad.records.map(record => Object.keys(record).join(' ')).join(',') + ',' + game.scene.firstPlayer.vehicle.name">Save</button>
+                        <button onclick="document.querySelector('textarea#gcode').value = game.scene.firstPlayer.records.map(record => [...record].join(' ')).join(',') + ',' + game.scene.firstPlayer.vehicle.name">Save</button>
                         <button onclick="
                         let link = document.createElement('a');
                         file = new Blob([
@@ -225,7 +225,7 @@
                     </div>
                 </toolbar>
             </game-interface>
-            <canvas id="view" width="800" height="450"></canvas>
+            <canvas id="view" width="900" height="500"></canvas>
         </game-container>
         <script type="module" src="bootstrap.js"></script>
         <script type="module">

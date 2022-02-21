@@ -16,30 +16,27 @@ export default class Player {
     constructor(parent, { vehicle, ghost }) {
         this.scene = parent;
         this.ghostData = ghost;
-        this.gamepad = new Gamepad(this);
+        this.ghost = !!this.ghostData;
         if (!this.ghost) {
             this.gamepad.init();
         }
 
-        this.gamepad.on("keydown", this.updateControls.bind(this));
-        this.gamepad.on("keyup", this.updateControls.bind(this));
-        
         this.createCosmetics();
         this.createVehicle(vehicle);
         this.createRagdoll();
     }
-
+    hat = null;
     slow = false;
     dead = false;
     ragdoll = null;
     explosion = null;
-    powerupsEnabled = true;
-    targetsCollected = 0;
-    powerupsConsumed = [];
+    itemsCollected = new Set();
     gravity = new Vector(0, .3);
+    gamepad = new Gamepad(this);
     snapshots = new SnapshotHandler();
-    get ghost() {
-        return !!this.ghostData;
+    records = Array.from({ length: 5 }, () => new Set());
+    get targetsCollected() {
+        return this.scene.collectables.filter(item => item.type === "T" && this.itemsCollected.has(item.id)).length;
     }
     
     createCosmetics() {
@@ -52,6 +49,7 @@ export default class Player {
 
     createRagdoll() {
         if (this.dead) {
+            this.ragdoll = new Ragdoll(this, this.vehicle.rider);
             this.ragdoll.setVelocity(this.vehicle.head.velocity, this.vehicle.rearWheel.velocity);
             this.hat = new Shard(this, this.vehicle.head.position.clone());
             this.hat.velocity = this.vehicle.head.velocity.clone();
@@ -61,7 +59,7 @@ export default class Player {
             return;
         }
         
-        this.ragdoll = new Ragdoll(this, this.vehicle.rider);
+        // this.ragdoll = new Ragdoll(this, this.vehicle.rider);
     }
 
     createExplosion(part) {
@@ -70,43 +68,38 @@ export default class Player {
     }
 
     update(delta) {
+        if (this.targetsCollected === this.scene.targets) {
+            return;
+        }
+
         if (this.explosion) {
             this.explosion.update();
 
             return;
         }
 
-        // don't want to record keys that press when paused, but we want them to remain after the user unpauses
-
         if (this.ghost) {
-            for (let key in this.ghostData) {
-                if (this.ghostData[key][this.scene.currentTime]) {
-                    switch(+key) {
-                        case 0:
-                            this.gamepad.toggle("ArrowLeft");
-                            break;
-
-                        case 1:
-                            this.gamepad.toggle("ArrowRight");
-                            break;
-
-                        case 2:
-                            this.gamepad.toggle("ArrowUp");
-                            break;
-
-                        case 3:
-                            this.gamepad.toggle("ArrowDown");
-                            break;
-
-                        case 4:
-                            this.vehicle.swap();
-                            continue;
-
-                        default:
-                            continue;
-                    }
-                }
+            if (this.ghostData[0] && this.ghostData[0][this.scene.currentTime]) {
+                this.gamepad.toggle("left");
             }
+
+            if (this.ghostData[1] && this.ghostData[1][this.scene.currentTime]) {
+                this.gamepad.toggle("right");
+            }
+
+            if (this.ghostData[2] && this.ghostData[2][this.scene.currentTime]) {
+                this.gamepad.toggle("up");
+            }
+
+            if (this.ghostData[3] && this.ghostData[3][this.scene.currentTime]) {
+                this.gamepad.toggle("down");
+            }
+
+            if (this.ghostData[4] && this.ghostData[4][this.scene.currentTime]) {
+                this.vehicle.swap();
+            }
+        } else if (this.scene.currentTime === 0) {
+            this.updateRecords(this.gamepad.downKeys);
         }
 
         this.vehicle.update(delta);
@@ -114,49 +107,41 @@ export default class Player {
             this.ragdoll.update();
             this.hat.update();
         } else {
-            this.ragdoll.updatePosition(this.vehicle.rider);
+            //this.ragdoll.updatePosition(this.vehicle.rider);
         }
     }
 
-    updateControls(key) {
-        if (this.dead) {
+    updateRecords(keys) {
+        if (!keys) {
             return;
         }
 
-        switch(key) {
-            case "a":
-            case "ArrowLeft":
-                //break;
+        this.scene.cameraFocus = this.vehicle.head;
+        if (typeof keys === "string") {
+            keys = new Set([
+                keys
+            ]);
+        }
 
-            case "d":
-            case "ArrowRight":
-                //break;
+        if (keys.has("left") && !this.records[0].delete(this.scene.currentTime)) {
+            this.records[0].add(this.scene.currentTime);
+        }
 
-            case "w":
-            case "ArrowUp":
-                //break;
+        if (keys.has("right") && !this.records[1].delete(this.scene.currentTime)) {
+            this.records[1].add(this.scene.currentTime);
+        }
 
-            case "s":
-            case "ArrowDown":
-                this.scene.cameraFocus = this.vehicle.head;
-                if (this.scene.paused) {
-                    return;
-                }
+        if (keys.has("up") && !this.records[2].delete(this.scene.currentTime)) {
+            this.records[2].add(this.scene.currentTime);
+        }
 
-                //this.vehicle.updateControls();
-                break;
+        if (keys.has("down") && !this.records[3].delete(this.scene.currentTime)) {
+            this.records[3].add(this.scene.currentTime);
+        }
 
-            case "z":
-                this.scene.cameraFocus = this.vehicle.head;
-                if (this.scene.paused) {
-                    return;
-                }
-                
-                if (this.gamepad.downKeys.has("z")) {
-                    this.vehicle.swap();
-                }
-
-                break;
+        if (keys.has("z") && !this.records[4].delete(this.scene.currentTime) && this.gamepad.downKeys.has("z") && !this.scene.paused) {
+            this.records[4].add(this.scene.currentTime);
+            this.vehicle.swap();
         }
     }
 
@@ -176,22 +161,30 @@ export default class Player {
         ctx.restore();
     }
 
-    collide(powerup) {
+    collect(powerup) {
         switch(powerup) {
             case "checkpoint":
+                if (this.ghost) {
+                    break;
+                }
+
                 for (const player of this.scene.players) {
                     player.snapshots.push(player.snapshot());
                 }
 
+                // this.scene.gotoCheckpoint();
                 break;
 
             case "target":
-                if (!this.ghost) {
-                    if (++this.targetsCollected === this.scene.targets) {
-                        this.trackComplete();
-                    }
+                if (this.ghost) {
+                    break;
                 }
 
+                if (this.targetsCollected !== this.scene.targets) {
+                    break;
+                }
+
+                this.trackComplete();
                 break;
         }
     }
@@ -214,40 +207,41 @@ export default class Player {
         return {
             slow: this.slow,
             dead: this.dead,
-            targetsCollected: this.targetsCollected,
-            powerupsConsumed: [...this.powerupsConsumed],
-            currentTime: this.scene.currentTime,
-            gamepad: this.gamepad.snapshot(),
             gravity: this.gravity.clone(),
+            currentTime: this.scene.currentTime,
+            itemsCollected: new Set([...this.itemsCollected]),
+            records: [...this.records.map(record => new Set([...record]))],
             vehicle: this.vehicle.clone()
         }
     }
 
     restore(snapshot) {
+        this.dead = false;
+        this.ragdoll = null;
+        this.explosion = null;
         this.slow = snapshot.slow;
         this.dead = snapshot.dead;
-        this.targetsCollected = snapshot.targetsCollected;
-        this.powerupsConsumed = [...snapshot.powerupsConsumed];
+        this.records = [...snapshot.records.map(record => new Set([...record]))];
+        this.itemsCollected = new Set([...snapshot.itemsCollected]);
         this.gravity = snapshot.gravity.clone();
-
-        this.gamepad.restore(snapshot.gamepad);
-        this.vehicle.restore(snapshot.vehicle);
+        this.vehicle = snapshot.vehicle.clone();
     }
 
     reset() {
+        this.hat = null;
         this.slow = false;
         this.dead = false;
-        this.hat = null;
+        this.ragdoll = null;
         this.explosion = null;
-        this.powerupsEnabled = true;
-        this.targetsCollected = 0;
-        this.powerupsConsumed = [];
-
+        this.itemsCollected = new Set();
+        this.records = Array.from({ length: 5 }, () => new Set());
         this.snapshots.reset();
-        this.gamepad.reset();
+        if (this.ghost) {
+            this.gamepad.downKeys.clear();
+        }
 
         this.gravity = new Vector(0, .3);
         this.createVehicle(this.vehicle.name);
-        this.ragdoll.updatePosition(this.vehicle.rider);
+        // this.ragdoll.updatePosition(this.vehicle.rider);
     }
 }

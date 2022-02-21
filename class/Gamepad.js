@@ -1,45 +1,33 @@
-import EventEmitter from "./EventEmitter.js";
-
-export default class extends EventEmitter {
+export default class {
     constructor(parent) {
-        super();
-
         this.parent = parent;
     }
-
     downKeys = new Set();
-    pendingKeys = new Set();
-    pendingDownKeys = new Set();
-    #records = Array.from({ length: 5 }, () => ({}));
-    get records() {
-        return this.#records;
-    }
-
     init() {
         window.addEventListener("keydown", this.keydown.bind(this));
-		window.addEventListener("keyup", this.keyup.bind(this));
+        window.addEventListener("keyup", this.keyup.bind(this));
     }
 
-    key({ key } = {}) {
-        switch((typeof arguments[0] === "string" ? arguments[0] : key).toLowerCase()) {
+    mask(key) {
+        switch(key.toLowerCase()) {
             case "a":
             case "arrowleft":
-                return 0;
+                return "left";
             
             case "d":
             case "arrowright":
-                return 1;
+                return "right";
 
             case "w":
             case "arrowup":
-                return 2;
+                return "up";
 
             case "s":
             case "arrowdown":
-                return 3;
+                return "down";
 
             case "z":
-                return 4;
+                return "z";
 
             default:
                 return null;
@@ -48,87 +36,27 @@ export default class extends EventEmitter {
 
 	keydown(event) {
 		event.preventDefault();
-
-        if (this.downKeys.has(event.key)) {
+        if (this.downKeys.has(this.mask(event.key))) {
             return;
         }
 
-        this.downKeys.add(event.key);
-
-        const key = this.key(event);
-        if (this.#records.hasOwnProperty(key)) {
-            if (this.parent.scene.paused) {
-                !this.pendingKeys.has(event.key) && this.pendingDownKeys.add(event.key);
-            } else {
-                this.#records[key][this.parent.scene.currentTime] = 1;
-            }
-        }
-
-        // if (this.parent.scene.paused) {
-        //     return;
-        // }
-
-		return this.emit("keydown", event.key);
+        this.downKeys.add(this.mask(event.key));
+        this.parent.updateRecords(this.mask(event.key));
 	}
 
 	keyup(event) {
 		event.preventDefault();
 
-        this.downKeys.delete(event.key);
-
-        const key = this.key(event);
-        if (this.#records.hasOwnProperty(key)) {
-            if (this.parent.scene.paused) {
-                !this.pendingDownKeys.has(event.key) && this.pendingKeys.add(event.key);
-            } else {
-                this.#records[key][this.parent.scene.currentTime] = 1;
-            }
-        }
-
-        // if (this.parent.scene.paused) {
-        //     return;
-        // }
-
-		return this.emit("keyup", event.key);
+        this.downKeys.delete(this.mask(event.key));
+        this.parent.updateRecords(this.mask(event.key));
 	}
 
     toggle(key) {
-        if (this.downKeys.has(key)) {
-            this.downKeys.delete(key);
-
+        if (this.downKeys.delete(key)) {
             return;
         }
 
         this.downKeys.add(key);
-    }
-
-    record() {
-        for (const key of this.pendingDownKeys) {
-            if (this.downKeys.has(key)) {
-                this.#records[this.key({ key })][this.parent.scene.currentTime] = 1;
-            }
-        }
-
-        for (const key of this.pendingKeys) {
-            if (!this.downKeys.has(key)) {
-                this.#records[this.key({ key })][this.parent.scene.currentTime] = 1;
-            }
-        }
-        
-        this.pendingDownKeys.clear();
-        this.pendingKeys.clear();
-    }
-
-    snapshot() {
-        return [...this.#records.map(records => ({...records}))];
-    }
-
-    restore(records) {
-        this.#records = [...records.map(records => ({...records}))];
-    }
-
-    reset() {
-        this.#records = Array.from({ length: 5 }, () => ({}));
     }
     
     close() {

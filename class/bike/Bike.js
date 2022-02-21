@@ -16,22 +16,14 @@ export default class {
         this.chasse = new Spring(this.rearWheel, this.frontWheel);
         this.frontSpring = new Spring(this.frontWheel, this.head);
 
-        this.masses = [
-            this.head,
-            this.frontWheel,
-            this.rearWheel
-        ]
-
-        this.springs = [
-            this.rearSpring,
-            this.chasse,
-            this.frontSpring
-        ]
+        this.masses.push(this.head, this.frontWheel, this.rearWheel);
+        this.springs.push(this.rearSpring, this.chasse, this.frontSpring);
     }
-
     dir = 1;
     pedalSpeed = 0;
     rotationFactor = 0;
+    masses = [];
+    springs = [];
     get rider() {
         const rider = {};
 
@@ -65,7 +57,7 @@ export default class {
         return rider;
     }
     
-    swap() {
+    swap() {        
         this.dir *= -1;
         this.chasse.swap();
         let rearSpring = this.rearSpring.leff;
@@ -75,7 +67,7 @@ export default class {
 
     update(delta) {
         if (!this.parent.dead)
-            this.updateControls()
+            this.updateControls();
 
         if (this.rearWheel.touching && this.frontWheel.touching) {
             this.parent.slow = false;
@@ -84,7 +76,7 @@ export default class {
         for (let a = this.springs.length - 1; a >= 0; a--) {
             this.springs[a].update();
         }
-        
+
         for (let a = this.masses.length - 1; a >= 0; a--) {
             this.masses[a].update(delta);
         }
@@ -103,15 +95,14 @@ export default class {
     }
 
     updateControls() {
-        this.rearWheel.motor += (this.parent.gamepad.downKeys.has("ArrowUp") - this.rearWheel.motor) / 10;
-        this.rearWheel.brake = this.frontWheel.brake = this.parent.gamepad.downKeys.has("ArrowDown");
+        this.rearWheel.motor += (this.parent.gamepad.downKeys.has("up") - this.rearWheel.motor) / 10;
+        this.rearWheel.brake = this.frontWheel.brake = this.parent.gamepad.downKeys.has("down");
         
-        let rotate = this.parent.gamepad.downKeys.has("ArrowLeft") - this.parent.gamepad.downKeys.has("ArrowRight");
+        let rotate = this.parent.gamepad.downKeys.has("left") - this.parent.gamepad.downKeys.has("right");
         this.rearSpring.lean(rotate * this.dir * 5);
         this.frontSpring.lean(-rotate * this.dir * 5);
         this.chasse.rotate(rotate / this.rotationFactor);
-        
-        if (this.parent.gamepad.downKeys.has("ArrowUp")) {
+        if (this.parent.gamepad.downKeys.has("up")) {
             this.pedalSpeed += this.rearWheel.pedalSpeed / 5;
             if (!rotate) {
                 this.rearSpring.lean(-7);
@@ -143,33 +134,25 @@ export default class {
         const clone = new this.constructor(this.parent);
 
         clone.dir = this.dir;
-        clone.pedalSpeed = this.pedalSpeed;
-        clone.head = this.head.clone();
-        clone.frontWheel = this.frontWheel.clone();
-        clone.rearWheel = this.rearWheel.clone();
-        clone.rearSpring = this.rearSpring.clone();
-        clone.chasse = this.chasse.clone();
-        clone.frontSpring = this.frontSpring.clone();
+
+        clone.head.position.copy(this.head.position);
+        clone.head.old.copy(this.head.old);
+        clone.head.velocity.copy(this.head.velocity);
+        
+        clone.rearWheel.position.copy(this.rearWheel.position);
+        clone.rearWheel.old.copy(this.rearWheel.old);
+        clone.rearWheel.velocity.copy(this.rearWheel.velocity);
+        clone.rearWheel.motor = this.rearWheel.motor;
+
+        clone.frontWheel.position.copy(this.frontWheel.position);
+        clone.frontWheel.old.copy(this.frontWheel.old);
+        clone.frontWheel.velocity.copy(this.frontWheel.velocity);
+        clone.frontWheel.motor = this.frontWheel.motor;
+
+        clone.rearSpring.leff = this.rearSpring.leff;
+        clone.chasse.leff = this.chasse.leff;
+        clone.frontSpring.leff = this.frontSpring.leff;
 
         return clone;
-    }
-
-    restore(clone) {
-        this.dir = clone.dir;
-        this.pedalSpeed = clone.pedalSpeed;
-        this.head.collide = clone.head.collide;
-        this.head.position = clone.head.position.clone();
-        this.head.old = clone.head.old.clone();
-        this.head.velocity = clone.head.velocity.clone();
-        this.frontWheel.position = clone.frontWheel.position.clone();
-        this.frontWheel.old = clone.frontWheel.old.clone();
-        this.frontWheel.velocity = clone.frontWheel.velocity.clone();
-        this.rearWheel.position = clone.rearWheel.position.clone();
-        this.rearWheel.old = clone.rearWheel.old.clone();
-        this.rearWheel.velocity = clone.rearWheel.velocity.clone();
-        this.rearWheel.motor = clone.rearWheel.motor;
-        this.rearSpring.leff = clone.rearSpring.leff;
-        this.chasse.leff = clone.chasse.leff;
-        this.frontSpring.leff = clone.frontSpring.leff;
     }
 }
