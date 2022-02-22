@@ -150,7 +150,7 @@ export default class Player {
             this.records[3].add(this.scene.currentTime);
         }
 
-        if (keys.has("z") && this.gamepad.downKeys.has("z")) {
+        if (keys.has("z") && this.gamepad.downKeys.has("z") && !this.dead) {
             if (!this.records[4].delete(this.scene.currentTime)) {
                 this.records[4].add(this.scene.currentTime);
                 this.vehicle.swap();

@@ -16,12 +16,12 @@ export default class {
         const ctx = this.canvas.getContext("2d");
         ctx.lineCap = "round";
         ctx.lineWidth = Math.max(2 * this.parent.scene.zoom, 0.5);
-        ctx.strokeStyle = this.parent.scene.parent.theme === "dark" ? "#999" : "#aaa";
+        ctx.strokeStyle = (this.parent.scene.parent.theme === "dark" || this.parent.scene.parent.theme === "midnight") ? "#666" : "#aaa";
         for (const line of this.scenery) {
             line.draw(ctx, this.row * this.parent.scale * this.parent.scene.zoom, this.column * this.parent.scale * this.parent.scene.zoom);
         }
 
-        ctx.strokeStyle = this.parent.scene.parent.theme === "dark" ? "#fff" : "#000";
+        ctx.strokeStyle = this.parent.scene.parent.theme === "dark" ? "#fbfbfb" : this.parent.scene.parent.theme === "midnight" ? "#ccc" : "#000";
         for (const line of this.physics) {
             line.draw(ctx, this.row * this.parent.scale * this.parent.scene.zoom, this.column * this.parent.scale * this.parent.scene.zoom);
         }

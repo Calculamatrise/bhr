@@ -28,6 +28,7 @@ export default class {
         this.mouse.on("mousemove", this.mouseMove.bind(this));
         this.mouse.on("mouseup", this.mouseUp.bind(this));
         this.mouse.on("mousewheel", this.scroll.bind(this));
+
         document.addEventListener("keydown", this.keydown.bind(this));
         document.addEventListener("keyup", this.keyup.bind(this));
     }
@@ -37,15 +38,30 @@ export default class {
     lastFrame = null;
     progress = 0;
     get theme() {
-        return localStorage.getItem("theme");
+        const theme = localStorage.getItem("theme");
+        if (theme === null) {
+            localStorage.setItem("theme", window.matchMedia("(prefers-color-scheme: dark)").matches ? "dark" : "light");
+            return this.theme;
+        }
+
+        return theme;
     }
 
     get settings() {
-        return JSON.parse(localStorage.getItem("game-settings"));
+        let settings = JSON.parse(localStorage.getItem("game-settings"));
+        if (settings === null) {
+            localStorage.setItem("game-settings", JSON.stringify({
+                ap: false
+            }));
+
+            return this.settings;
+        }
+
+        return settings;
     }
 
     updateSettings(changed) {
-        let settings = JSON.parse(localStorage.getItem("game-settings"));
+        let settings = this.settings;
         for (const setting in changed) {
             settings[setting] = changed[setting];
         }

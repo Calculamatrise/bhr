@@ -37,6 +37,7 @@ export default class {
     currentTime = 0;
     processing = true;
     collectables = [];
+    freezeFrame = true;
     cameraLock = false;
     cameraFocus = null;
     pictureMode = false;
@@ -95,13 +96,10 @@ export default class {
                 player.restore(player.snapshots[player.snapshots.length - 1]);
             }
 
+            this.freezeFrame = this.parent.settings.ap;
             this.collectItems(this.firstPlayer.snapshots[this.firstPlayer.snapshots.length - 1].itemsCollected);
         } else {
-            for (const player of this.players) {
-                player.reset();
-            }
-
-            this.currentTime = 0;
+            this.reset();
         }
 
         this.cameraFocus = this.firstPlayer.vehicle.head,
@@ -151,7 +149,7 @@ export default class {
     }
 
     watchGhost(data, { id, vehicle = "BMX" } = {}) {
-        let records = data.split(/\s?\u002C\s?/g).map(item => new Set(item.split(/\s+/g).map(item => isNaN(+item) ? item : +item)));
+        let records = data.split(/\s?\u002C\s?/g).map(item => new Set(item.split(/\s+/g).filter(item => item).map(item => isNaN(+item) ? item : +item)));
         let v = Array.from(records[records.length - 1])[0];
         if (["BMX", "MTB"].includes(v.toUpperCase())) {
             vehicle = v;
@@ -189,6 +187,12 @@ export default class {
     }
     
     update(delta) {
+        if (this.freezeFrame && this.parent.settings.ap && this.firstPlayer.gamepad.downKeys.size > 0) {
+            this.freezeFrame = false;
+            this.paused = false;
+            this.parent.container.querySelector("playpause")?.classList[this.paused ? "remove" : "add"]("playing");
+        }
+
         if (!this.paused && !this.processing) {
             for (const player of this.players) {
                 player.update(delta);
@@ -288,7 +292,7 @@ export default class {
         10 > e && (e = "0" + e);
         10 > h && (h = "0" + h);
         i = e + ":" + h + "." + c;
-        if (this.paused && !window.autoPause) {
+        if (this.paused && !this.parent.settings.ap) {
             i += " - Game paused";
         } else if (this.firstPlayer && this.firstPlayer.dead) {
             i = "Press ENTER to restart";
@@ -466,7 +470,7 @@ export default class {
     // This breaks ghosts (order of lines matter.)
     processLines(array, scenery = false) {
         let index = 0;
-        function processChunk(callback) {
+        function processChunk() {
             let chunk = 100;
             while (chunk-- && index < array.length) {
                 let line = array[index].split(/\s+/g);
@@ -487,22 +491,15 @@ export default class {
 
             if (index < array.length) {
                 this.processing = true;
-                callback(index * 100 / array.length);
-                setTimeout(() => processChunk.call(this, ...arguments), 0);
+                this[(scenery ? "s" : "") + "progress"] = index * 100 / array.length
+                setTimeout(() => processChunk.call(this), 0);
                 return;
             }
 
             this.processing = false;
         }
 
-        processChunk.call(this, (progress) => {
-            if (scenery) {
-                this.sprogress = progress;
-                return;
-            }
-
-            this.progress = progress;
-        });
+        processChunk.call(this);
     }
 
     remove(a, b) {
@@ -545,6 +542,10 @@ export default class {
 
         for (const player of this.players) {
             player.reset();
+        }
+
+        if (this.parent.settings.ap) {
+            this.freezeFrame = true;
         }
     }
 

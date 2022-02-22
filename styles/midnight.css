@@ -1,0 +1,35 @@
+html {
+    color: #f0f3f5;
+}
+
+canvas#view {
+    background-color: #1d2328;
+}
+
+tool {
+    border-color: rgb(59, 67, 73);
+}
+
+tool:hover, tool.active:hover {
+    background-color: #2b353acc;
+}
+
+tool.active {
+    background-color: #242e3580;
+}
+
+tool *:not(wheel, line, eraser, svg) {
+    background-color: #eee;
+}
+
+tool svg, tool svg circle {
+    stroke: #eee;
+}
+
+playpause, backtrack, rewind, brush, camera, powerup, fullscreen, increment, decrement {
+    background-color: #eee;
+}
+
+powerup {
+    border-color: #eee;
+}
