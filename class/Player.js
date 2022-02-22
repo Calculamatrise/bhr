@@ -61,7 +61,7 @@ export default class Player {
             return;
         }
         
-        // this.ragdoll = new Ragdoll(this, this.vehicle.rider);
+        this.ragdoll = new Ragdoll(this, this.vehicle.rider);
     }
 
     createExplosion(part) {
@@ -111,8 +111,6 @@ export default class Player {
             if (this.records[4].has(this.scene.currentTime)) {
                 this.vehicle.swap();
             }
-        } else if (this.scene.currentTime === 0) {
-            this.updateRecords(this.gamepad.downKeys);
         }
 
         this.vehicle.update(delta);
@@ -120,7 +118,7 @@ export default class Player {
             this.ragdoll.update();
             this.hat.update();
         } else {
-            //this.ragdoll.updatePosition(this.vehicle.rider);
+            this.ragdoll.updatePosition(this.vehicle.rider);
         }
     }
 
@@ -152,9 +150,13 @@ export default class Player {
             this.records[3].add(this.scene.currentTime);
         }
 
-        if (keys.has("z") && !this.records[4].delete(this.scene.currentTime) && this.gamepad.downKeys.has("z") && !this.scene.paused) {
-            this.records[4].add(this.scene.currentTime);
-            this.vehicle.swap();
+        if (keys.has("z") && this.gamepad.downKeys.has("z")) {
+            if (!this.records[4].delete(this.scene.currentTime)) {
+                this.records[4].add(this.scene.currentTime);
+                this.vehicle.swap();
+            } else if (this.scene.paused) {
+                this.vehicle.swap();
+            }
         }
     }
 
@@ -164,7 +166,6 @@ export default class Player {
             this.explosion.draw(ctx);
         } else {
             this.vehicle.draw(ctx);
-            // this.ragdoll.draw(ctx);
             if (this.dead) {
                 this.ragdoll.draw(ctx);
                 this.hat.draw(ctx);
@@ -222,7 +223,6 @@ export default class Player {
 
     restore(snapshot) {
         this.scene.currentTime = snapshot.currentTime;
-        this.ragdoll = null;
         this.explosion = null;
         this.slow = snapshot.slow;
         this.dead = snapshot.dead;
@@ -255,7 +255,6 @@ export default class Player {
         this.hat = null;
         this.slow = false;
         this.dead = false;
-        this.ragdoll = null;
         this.explosion = null;
         this.pendingConsumables = 0;
         this.itemsCollected = new Set();
@@ -265,9 +264,10 @@ export default class Player {
             this.gamepad.downKeys.clear();
         } else {
             this.records = Array.from({ length: 5 }, () => new Set());
+            this.updateRecords(this.gamepad.downKeys);
         }
 
         this.createVehicle(this.vehicle.name);
-        // this.ragdoll.updatePosition(this.vehicle.rider);
+        this.ragdoll.updatePosition(this.vehicle.rider);
     }
 }

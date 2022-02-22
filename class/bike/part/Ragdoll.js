@@ -140,12 +140,13 @@ export default class {
     }
     
     clone() {
-        let clone = new this.constructor();
-        for (const point of this.points) {
-            clone.position.copy(point.position);
-            clone.old.copy(point.old);
+        const stickman = {};
+        for (const part in this) {
+            if (part instanceof Entity) {
+                stickman[part] = this[part].position.clone();
+            }
         }
 
-        return clone;
+        return new this.constructor(this.parent, stickman);
     }
 }

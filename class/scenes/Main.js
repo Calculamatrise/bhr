@@ -30,13 +30,16 @@ export default class {
         this.read(code);
     }
     players = [];
+    progress = 0;
+    sprogress = 0;
     editor = false;
     paused = false;
     currentTime = 0;
+    processing = true;
     collectables = [];
-    pictureMode = false;
     cameraLock = false;
     cameraFocus = null;
+    pictureMode = false;
     grid = new Grid(this);
     camera = new Vector();
     zoom = 0.6 * window.devicePixelRatio;
@@ -50,12 +53,10 @@ export default class {
         return this.players[0];
     }
 
-    init(players = [{ vehicle: "BMX" }]) {
-        for (const player of players) {
-            this.players.push(new Player(this, {
-                vehicle: player.vehicle
-            }));
-        }
+    init(vehicle = "BMX") {
+        this.players.push(new Player(this, {
+            vehicle: vehicle
+        }));
 
         this.cameraFocus = this.firstPlayer.head;
     }
@@ -87,7 +88,7 @@ export default class {
     gotoCheckpoint() {
         this.removeCollectedItems();
 
-        this.paused = false; // JSON.parse(localStorage.pauseOnEnter) ? true : false;
+        this.paused = this.parent.settings.ap;
         this.parent.container.querySelector("playpause")?.classList[this.paused ? "remove" : "add"]("playing");
         if (this.firstPlayer.snapshots.length > 0) {
             for (const player of this.players) {
@@ -188,7 +189,7 @@ export default class {
     }
     
     update(delta) {
-        if (!this.paused) {
+        if (!this.paused && !this.processing) {
             for (const player of this.players) {
                 player.update(delta);
             }
@@ -305,6 +306,10 @@ export default class {
             }
         }
 
+        if (this.processing) {
+            i = "Loading, please wait... " + Math.floor((this.progress + this.sprogress) / 2);
+        }
+
         ctx.strokeText(i = ": " + this.firstPlayer.targetsCollected + " / " + this.targets + "  -  " + i, 55, 16);
         ctx.fillText(i, 55, 16);
         if (this.players.length > 1) {
@@ -399,84 +404,105 @@ export default class {
             this.grid.sector(c, d).rendered = false;
     }
 
+    // Fix this garbage.
     read(a = "-18 1i 18 1i###BMX") {
         this.parent.ctx.fillText("Loading track... Please wait.", 36, 16);
-        var e = a.split("#")
-          , i = e[0].split(",")
-          , s = []
-          , n = [];
-        if (e.length > 2)
-            var s = e[1].split(",")
-              , n = e[2].split(",");
-        else if (e.length > 1)
-            var n = e[1].split(",");
-        this.addLines(i, this.addLine),
-        this.addLines(s, this.addLine, 1);
-        for (var t in n) {
-            e = n[t].split(/\s+/g);
-            var i = null, b = parseInt(e[1], 32);
-            var d = parseInt(e[2], 32);
-            switch (e[0]) {
+        
+        a = a.split("#");
+        this.processLines(a[0].split(","));
+        this.processLines(a[1].split(","), 1);
+        for (let powerup of a[2].split(",")) {
+            powerup = powerup.split(/\s+/g);
+            let x = parseInt(powerup[1], 32);
+            let y = parseInt(powerup[2], 32);
+            let a = parseInt(powerup[3], 32);
+            let b = parseInt(powerup[4], 32);
+            switch(powerup[0]) {
                 case "T":
-                    i = new Target(this, b, d);
-                    this.collectables.push(i);
+                    powerup = new Target(this, x, y);
+                    this.collectables.push(powerup);
                     break;
 
                 case "C":
-                    i = new Checkpoint(this, b, d);
-                    this.collectables.push(i);
+                    powerup = new Checkpoint(this, x, y);
+                    this.collectables.push(powerup);
                     break;
 
                 case "B":
-                    i = new Boost(this, b, d, parseInt(e[3], 32) + 180);
+                    powerup = new Boost(this, x, y, a + 180);
                     break;
 
                 case "G":
-                    i = new Gravity(this, b, d, parseInt(e[3], 32) + 180);
+                    powerup = new Gravity(this, x, y, a + 180);
                     break;
 
                 case "O":
-                    i = new Bomb(this, b, d);
+                    powerup = new Bomb(this, x, y);
                     break;
 
                 case "S":
-                    i = new Slowmo(this, b, d);
+                    powerup = new Slowmo(this, x, y);
                     break;
 
                 case "A":
-                    i = new Antigravity(this, b, d);
+                    powerup = new Antigravity(this, x, y);
                     break;
 
                 case "W":
-                    i = new Teleporter(this, b, d);
-                    i.createAlt(parseInt(e[3], 32), parseInt(e[4], 32));
-                    this.collectables.push(i);
+                    powerup = new Teleporter(this, x, y);
+                    powerup.createAlt(a, b);
+                    this.collectables.push(powerup);
                     break;
             }
 
-            if (i) {
-                b = Math.floor(b / this.grid.scale);
-                d = Math.floor(d / this.grid.scale);
-                this.grid.sector(b, d, true).powerups.push(i);
+            if (powerup) {
+                x = Math.floor(x / this.grid.scale);
+                y = Math.floor(y / this.grid.scale);
+                this.grid.sector(x, y, true).powerups.push(powerup);
             }
         }
     }
 
-    addLines(t, e, scenery = false) {
-        for (var i = t.length, s = 0; i > s; s++) {
-            var n = t[s].split(" ")
-              , r = n.length;
-            if (r > 3) {
-                for (var o = 0; r - 2 > o; o += 2) {
-                    var a = parseInt(n[o], 32)
-                      , h = parseInt(n[o + 1], 32)
-                      , l = parseInt(n[o + 2], 32)
-                      , c = parseInt(n[o + 3], 32)
-                      , u = a + h + l + c;
-                    isNaN(u) || e.call(this, { x: a, y: h }, { x: l, y: c }, scenery)
+    // This breaks ghosts (order of lines matter.)
+    processLines(array, scenery = false) {
+        let index = 0;
+        function processChunk(callback) {
+            let chunk = 100;
+            while (chunk-- && index < array.length) {
+                let line = array[index].split(/\s+/g);
+                if (line.length < 4) {
+                    return;
                 }
+
+                for (let o = 0; o < line.length - 2; o += 2) {
+                    let a = parseInt(line[o], 32),
+                        h = parseInt(line[o + 1], 32),
+                        l = parseInt(line[o + 2], 32),
+                        c = parseInt(line[o + 3], 32),
+                        u = a + h + l + c;
+                    isNaN(u) || this.addLine({ x: a, y: h }, { x: l, y: c }, scenery)
+                }
+                ++index;
             }
+
+            if (index < array.length) {
+                this.processing = true;
+                callback(index * 100 / array.length);
+                setTimeout(() => processChunk.call(this, ...arguments), 0);
+                return;
+            }
+
+            this.processing = false;
         }
+
+        processChunk.call(this, (progress) => {
+            if (scenery) {
+                this.sprogress = progress;
+                return;
+            }
+
+            this.progress = progress;
+        });
     }
 
     remove(a, b) {
@@ -531,8 +557,6 @@ export default class {
             scenery.push(...sector.scenery);
             powerups.push(...sector.powerups);
         }
-
-        console.log(powerups)
 
         return physics.map(line => line.toString()).join(",") + "#" + scenery.map(line => line.toString()).join(",") + "#" + powerups.map(powerup => powerup.toString()).join(",") + "#" + this.firstPlayer.vehicle.name;
     }

@@ -40,6 +40,21 @@ export default class {
         return localStorage.getItem("theme");
     }
 
+    get settings() {
+        return JSON.parse(localStorage.getItem("game-settings"));
+    }
+
+    updateSettings(changed) {
+        let settings = JSON.parse(localStorage.getItem("game-settings"));
+        for (const setting in changed) {
+            settings[setting] = changed[setting];
+        }
+    
+        localStorage.setItem("game-settings", JSON.stringify(settings));
+    
+        return settings;
+    }
+
     adjust() {
         this.setAttribute("height", parseFloat(getComputedStyle(this).height) * window.devicePixelRatio);
         this.setAttribute("width", parseFloat(getComputedStyle(this).width) * window.devicePixelRatio);
@@ -63,11 +78,7 @@ export default class {
             id
         });
 
-        this.scene.init([
-            {
-                vehicle: "BMX"
-            }
-        ]);
+        this.scene.init(vehicle);
         
         this.lastFrame = requestAnimationFrame(this.render.bind(this));
     }
@@ -243,6 +254,20 @@ export default class {
     
             case ".":
                 window.game.scene.restoreCheckpoint();
+                break;
+
+            case "tab":
+                if (!this.scene.cameraFocus) {
+                    this.scene.cameraFocus = this.scene.firstPlayer.vehicle.head;
+                    break;
+                }
+
+                let index = this.scene.players.indexOf(this.scene.cameraFocus.parent.parent) + 1;
+                if (this.scene.players.length <= index) {
+                    index = 0;
+                }
+
+                this.scene.cameraFocus = this.scene.players[index].vehicle.head;
                 break;
     
             case "-":

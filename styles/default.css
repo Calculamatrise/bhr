@@ -69,13 +69,14 @@ game-overlay nav button.active {
     background-color: rgba(255, 255, 255, .08);
 }
 
-game-overlay options {
+game-overlay div {
     align-items: center;
     display: none;
     flex-direction: column;
+    min-height: 34vh;
 }
 
-options button {
+div button {
     border: none;
     color: white;
     width: 100%;
@@ -86,11 +87,11 @@ options button {
     transition: background-color 40ms;
 }
 
-options button:hover {
+div button:hover {
     background-color: rgba(255, 255, 255, .14);
 }
 
-options textarea {
+div textarea {
     border: none;
     padding: 5px;
     outline: none;

@@ -14,14 +14,15 @@
             <game-interface>
                 <game-overlay style="display: none;">
                     <nav onclick="event.target.tagName !== 'NAV' && ([...this.children].forEach(element => element.classList[event.target.dataset.id === element.dataset.id ? 'add' : 'remove']('active')),
-                    document.querySelectorAll('options').forEach(element => element.style.setProperty('display', 'none')),
-                    document.querySelector('options#' + event.target.dataset.id).style.setProperty('display',
-                    document.querySelector('options#' + event.target.dataset.id).style.display === 'flex' ? 'none' : 'flex'))">
+                    document.querySelectorAll('div').forEach(element => element.style.setProperty('display', 'none')),
+                    document.querySelector('div#' + event.target.dataset.id).style.setProperty('display',
+                    document.querySelector('div#' + event.target.dataset.id).style.display === 'flex' ? 'none' : 'flex'))">
                         <button class="active" data-id="track">Track</button>
                         <button data-id="ghost">Ghost</button>
+                        <button data-id="settings">Settings</button>
                         <button data-id="theme">Theme</button>
                     </nav>
-                    <options id="track" style="display: flex;">
+                    <div id="track" style="display: flex;">
                         <button onclick="confirm('Are you sure you\'d like to clear the track?') && game.init()">Clear</button>
                         <button onclick="game.init(document.querySelector('textarea#code').value)">Load</button>
                         <button onclick="
@@ -47,9 +48,9 @@
                         link.download = 'bhr_track_' + new Date(new Date().setHours(new Date().getHours() - new Date().getTimezoneOffset() / 60)).toISOString().split(/t/i).join('_').replace(/\..+/, '').replace(/:/g, '-');
                         link.click();
                         ">Save As...</button>
-                        <textarea id="code" cols="30" rows="10"></textarea>
-                    </options>
-                    <options id="ghost">
+                        <textarea id="code" cols="30" rows="10" onkeydown="event.preventDefault()"></textarea>
+                    </div>
+                    <div id="ghost">
                         <button onclick="game.scene.players.splice(1, game.scene.players.length)">Clear Ghosts</button>
                         <button onclick="game.scene.watchGhost(document.querySelector('textarea#gcode').value), document.querySelector('game-overlay').style.setProperty('display', 'none')">Load</button>
                         <button onclick="
@@ -77,13 +78,16 @@
                         link.download = 'bhr_ghost_' + new Date(new Date().setHours(new Date().getHours() - new Date().getTimezoneOffset() / 60)).toISOString().split(/t/i).join('_').replace(/\..+/, '').replace(/:/g, '-');
                         link.click();
                         ">Save As...</button>
-                        <textarea id="gcode" cols="30" rows="10"></textarea>
-                    </options>
-                    <options id="theme">
-                        <button onclick="localStorage.setItem('theme', 'light'), document.querySelector('link#theme').href = 'styles/light.css', game.scene.sectors = {}">Light</button>
-                        <button onclick="localStorage.setItem('theme', 'midnight'), document.querySelector('link#theme').href = 'styles/dark.css', game.scene.sectors = {}">Midnight</button>
-                        <button onclick="localStorage.setItem('theme', 'dark'), document.querySelector('link#theme').href = 'styles/dark.css', game.scene.sectors = {}">Dark</button>
-                    </options>
+                        <textarea id="gcode" cols="30" rows="10" onkeydown="event.preventDefault()"></textarea>
+                    </div>
+                    <div id="settings">
+                        <label for="auto-pause">Auto pause&emsp;<input type="checkbox" id="auto-pause"></label>
+                    </div>
+                    <div id="theme">
+                        <button onclick="localStorage.setItem('theme', 'light'), document.querySelector('link#theme').href = 'styles/light.css', window.game.scene.grid.sectors.forEach(sector => sector.rendered = false);">Light</button>
+                        <button onclick="localStorage.setItem('theme', 'midnight'), document.querySelector('link#theme').href = 'styles/dark.css', window.game.scene.grid.sectors.forEach(sector => sector.rendered = false);">Midnight</button>
+                        <button onclick="localStorage.setItem('theme', 'dark'), document.querySelector('link#theme').href = 'styles/dark.css', window.game.scene.grid.sectors.forEach(sector => sector.rendered = false);">Dark</button>
+                    </div>
                 </game-overlay>
                 <toolbar>
                     <div class="left">
