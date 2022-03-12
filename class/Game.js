@@ -59,11 +59,7 @@ export default class {
 
     set settings(value) {
         localStorage.setItem("bhr-settings", JSON.stringify(Object.assign({
-            randomizeStyle: false,
-            styles: {
-                primary: "#87Ceeb",
-                secondary: "#967bb6"
-            },
+            ap: false,
             theme: window.matchMedia("(prefers-color-scheme: dark)").matches ? "dark" : "light"
         }, Object.assign(JSON.parse(localStorage.getItem("bhr-settings")) ?? {}, value ?? {}))));
     }
