@@ -1,28 +1,20 @@
-import Tool from "./Tool.js";
+import Line from "./Line.js";
 
-export default class extends Tool {
+export default class extends Line {
     length = 20;
-    scenery = false;
-    mouseDown() {
-        console.log("down")
-        this.scene.camera.addToSelf(this.mouse.old.sub(this.mouse.position)),
-        this.mouse.position.copy(this.mouse.old);
-    }
-    
-    mouseUp() {
-        console.log("up")
+    scroll(event) {
+        if (this.length > 4 && (0 < event.detail || event.wheelDelta < 0)) {
+            this.length -= 8;
+        } else if (this.length < 200 && (0 > event.detail || event.wheelDelta > 0)) {
+            this.length += 8;
+        }
     }
 
-    draw(ctx) {
-        const position = this.parent.scene.parent.mouse.position.toPixel();
+    stroke() {
+        if (!this.mouse.down) {
+            return;
+        }
 
-        ctx.beginPath(),
-        ctx.lineWidth = 1 * window.devicePixelRatio,
-        ctx.strokeStyle = this.parent.scene.parent.theme === "dark" ? "#ebebeb" : "#000",
-        ctx.moveTo(position.x - 10 * window.devicePixelRatio, position.y),
-        ctx.lineTo(position.x + 10 * window.devicePixelRatio, position.y),
-        ctx.moveTo(position.x, position.y + 10 * window.devicePixelRatio),
-        ctx.lineTo(position.x, position.y - 10 * window.devicePixelRatio),
-        ctx.stroke();
+        this.mouse.old.distanceTo(this.mouse.position) >= this.length && this.scene.addLine(this.mouse.old, this.mouse.position, this.scenery);
     }
 }

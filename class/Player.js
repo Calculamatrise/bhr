@@ -57,16 +57,15 @@ export default class Player {
             this.hat.velocity = this.vehicle.head.velocity.clone();
             this.hat.size = 10;
             this.hat.rotationFactor = .1;
-
             return;
         }
-        
+
         this.ragdoll = new Ragdoll(this, this.vehicle.rider);
     }
 
     createExplosion(part) {
-        this.dead = true;
         this.explosion = new Explosion(this, part);
+        this.dead = true;
     }
 
     update(delta) {
@@ -116,7 +115,7 @@ export default class Player {
         this.vehicle.update(delta);
         if (this.dead) {
             this.ragdoll.update();
-            this.hat.update();
+            this.hat && this.hat.update();
         } else {
             this.ragdoll.updatePosition(this.vehicle.rider);
         }
@@ -168,7 +167,7 @@ export default class Player {
             this.vehicle.draw(ctx);
             if (this.dead) {
                 this.ragdoll.draw(ctx);
-                this.hat.draw(ctx);
+                this.hat && this.hat.draw(ctx);
             }
         }
 

@@ -19,15 +19,16 @@ export default class {
     erase(vector) {
         let b = vector.sub(this.a).dot(this.vector.oppositeScale(this.len));
         let c = new Vector();
-        if (b <= 0) {
-            c.copy(this.a)
-        } else if (b >= this.len) {
+        if (b >= this.len) {
             c.copy(this.b)
         } else {
-            c.copy(this.a.add(this.vector.oppositeScale(this.len).scale(b)));
+            c.copy(this.a);
+            if (b > 0) {
+                c.addToSelf(this.vector.oppositeScale(this.len).scale(b));
+            }
         }
 
-        return vector.sub(c).getLength() <= this.scene.toolHandler.currentTool.size ? this.remove() : !1
+        return vector.sub(c).getLength() <= this.scene.toolHandler.currentTool.size && this.remove();
     }
 
     commit() {
@@ -36,9 +37,8 @@ export default class {
 
     remove() {
         this.removed = true;
-        this.scene.remove(this.a, this.b);
 
-        return this;
+        return this.scene.remove(this.a, this.b), this;
     }
 
     toString() {

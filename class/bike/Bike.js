@@ -57,7 +57,7 @@ export default class {
         return rider;
     }
     
-    swap() {        
+    swap() {
         this.dir *= -1;
         this.chasse.swap();
         let rearSpring = this.rearSpring.leff;
@@ -81,6 +81,7 @@ export default class {
             this.parent.slow = false;
         }
 
+        // this.parent.scene.parent.ups = this.parent.slow || this.parent.dead ? 25 : 50;
         if (!this.parent.slow && !this.parent.dead) {
             this.updateControls();
 
@@ -138,7 +139,7 @@ export default class {
         clone.head.position.copy(this.head.position);
         clone.head.old.copy(this.head.old);
         clone.head.velocity.copy(this.head.velocity);
-        
+
         clone.rearWheel.position.copy(this.rearWheel.position);
         clone.rearWheel.old.copy(this.rearWheel.old);
         clone.rearWheel.velocity.copy(this.rearWheel.velocity);

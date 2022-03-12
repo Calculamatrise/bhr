@@ -53,19 +53,19 @@ export default class {
 
     erase(vector) {
         let cache = [];
-        if (this.parent.scene.toolHandler.currentTool.settings.physics) {
+        if (!this.parent.scene.toolHandler.currentTool.ignoring.has("physics")) {
             for (let line of this.physics) {
                 (line = line.erase(vector)) && cache.push(line);
             }
         }
 
-        if (this.parent.scene.toolHandler.currentTool.settings.scenery) {
+        if (!this.parent.scene.toolHandler.currentTool.ignoring.has("scenery")) {
             for (let line of this.scenery) {
                 (line = line.erase(vector)) && cache.push(line);
             }
         }
 
-        if (this.parent.scene.toolHandler.currentTool.settings.powerups) {
+        if (!this.parent.scene.toolHandler.currentTool.ignoring.has("powerups")) {
             for (let powerup of this.powerups) {
                 (powerup = powerup.erase(vector)) && cache.push(powerup);
             }

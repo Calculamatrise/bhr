@@ -5,7 +5,7 @@ export default class extends Mass {
         this.position.addToSelf(velocity.scale(-velocity.dot(this.velocity) * this.friction));
         this.touching = true;
     }
-    
+
     update(delta) {
         this.velocity.addToSelf(this.parent.parent.gravity).scaleSelf(.99);
         this.position.addToSelf(this.velocity);

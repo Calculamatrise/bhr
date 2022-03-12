@@ -23,31 +23,11 @@
                         <button data-id="theme">Theme</button>
                     </nav>
                     <div id="track" style="display: flex;">
-                        <button onclick="confirm('Are you sure you\'d like to clear the track?') && game.init()">Clear</button>
-                        <button onclick="game.init(document.querySelector('textarea#code').value)">Load</button>
-                        <button onclick="
-                        let picker = document.createElement('input');
-                        picker.type = 'file';
-                        picker.accept = 'text/plain';
-                        picker.addEventListener('change', function(event) {
-                            const reader = new FileReader();
-                            reader.addEventListener('load', function() {
-                                game.init(this.result);
-                            });
-                            reader.readAsText(this.files[0]);
-                        });
-                        picker.click();
-                        ">Load File...</button>
+                        <button onclick="game.reset()">Clear</button>
+                        <button onclick="window.game.load(document.querySelector('textarea#code').value)">Load</button>
+                        <button onclick="window.game.load()">Load File...</button>
                         <button onclick="document.querySelector('textarea#code').value = game.scene.toString()">Save</button>
-                        <button onclick="
-                        let link = document.createElement('a');
-                        let file = new Blob([game.scene.toString()], {
-                            type: 'text/plain'
-                        });
-                        link.href = window.URL.createObjectURL(file);
-                        link.download = 'bhr_track_' + new Date(new Date().setHours(new Date().getHours() - new Date().getTimezoneOffset() / 60)).toISOString().split(/t/i).join('_').replace(/\..+/, '').replace(/:/g, '-');
-                        link.click();
-                        ">Save As...</button>
+                        <button onclick="window.game.saveAs()">Save As...</button>
                         <textarea id="code" cols="30" rows="10" onkeydown="event.stopPropagation()"></textarea>
                     </div>
                     <div id="ghost">
@@ -137,17 +117,17 @@
                             </tool>
                             <div data-id="eraser">
                                 <tool title="Erase physical lines - Enabled" class="active" style="border-top-width: 1px;border-top-style: solid;border-top-right-radius: 5px;" onclick="
-                                this.classList[(window.game.scene.toolHandler.currentTool.settings.physics = !window.game.scene.toolHandler.currentTool.settings.physics) ? 'add' : 'remove']('active');
+                                this.classList[!+window.game.scene.toolHandler.currentTool.ignoring[window.game.scene.toolHandler.currentTool.ignoring.has('physics') ? 'delete' : 'add']('physics') ? 'remove' : 'add']('active');
                                 ">
                                     <brush/>
                                 </tool>
                                 <tool title="Erase visual lines - Enabled" class="active" onclick="
-                                this.classList[(window.game.scene.toolHandler.currentTool.settings.scenery = !window.game.scene.toolHandler.currentTool.settings.scenery) ? 'add' : 'remove']('active');
+                                this.classList[!+window.game.scene.toolHandler.currentTool.ignoring[window.game.scene.toolHandler.currentTool.ignoring.has('scenery') ? 'delete' : 'add']('scenery') ? 'remove' : 'add']('active');
                                 ">
                                     <brush class="scenery"/>
                                 </tool>
                                 <tool title="Erase powerups - Enabled" class="active" style="border-bottom-width: 1px;border-bottom-style: solid;border-bottom-right-radius: 5px;" onclick="
-                                this.classList[(window.game.scene.toolHandler.currentTool.settings.powerups = !window.game.scene.toolHandler.currentTool.settings.powerups) ? 'add' : 'remove']('active');
+                                this.classList[!+window.game.scene.toolHandler.currentTool.ignoring[window.game.scene.toolHandler.currentTool.ignoring.has('powerups') ? 'delete' : 'add']('powerups') ? 'remove' : 'add']('active');
                                 ">
                                     <powerup class="target"/>
                                 </tool>

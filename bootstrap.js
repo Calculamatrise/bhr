@@ -194,8 +194,6 @@ settings: {
 
     autoPause.checked = window.game.settings.ap;
     autoPause.addEventListener("input", function() {
-        window.game.updateSettings({
-            ap: this.checked
-        });
+        window.game.settings.ap = !!this.checked;
     });
 }

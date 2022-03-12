@@ -3,12 +3,17 @@ export default class {
         this.parent = toolHandler;
     }
 
-    get track() {
+    get scene() {
         return this.parent.scene;
     }
 
-    mouseDown() {}
-    mouseMove() {}
-    mouseUp() {}
+    get mouse() {
+        return this.scene.parent.mouse;
+    }
+
+    scroll() {}
+    press() {}
+    stroke() {}
+    clip() {}
     draw() {}
 }

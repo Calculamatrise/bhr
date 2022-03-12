@@ -185,7 +185,7 @@ export default class {
 
         return this;
     }
-    
+
     update(delta) {
         if (this.freezeFrame && this.parent.settings.ap && this.firstPlayer.gamepad.downKeys.size > 0) {
             this.freezeFrame = false;
@@ -217,7 +217,7 @@ export default class {
         if (!this.cameraFocus) {
             ctx.save();
             ctx.strokeStyle = this.parent.theme === "dark" ? "#fff" : "#000";
-            this.toolHandler.currentTool && this.toolHandler.currentTool.draw(ctx);
+            this.toolHandler.draw(ctx);
             ctx.restore();
         }
     }
@@ -225,40 +225,11 @@ export default class {
     draw(ctx) {
         ctx.clearRect(0, 0, this.parent.canvas.width, this.parent.canvas.height);
         ctx.lineWidth = Math.max(2 * this.zoom, 0.5);
+        ctx.lineCap = "round";
 
-        let position = this.parent.mouse.position.toPixel();
-        let old = this.parent.mouse.old.toPixel();
-        if (this.cameraLock && ["line", "brush", "teleporter"].includes(this.toolHandler.selected)) {
-            if (position.x < 50) {
-                this.camera.x -= 4 / this.zoom;
-                this.parent.mouse.position.x -= 4 / this.zoom;
-            } else if (position.x > this.parent.canvas.width - 50) {
-                this.camera.x += 4 / this.zoom;
-                this.parent.mouse.position.x += 4 / this.zoom;
-            }
-
-            if (position.y < 50) {
-                this.camera.y -= 4 / this.zoom;
-                this.parent.mouse.position.y -= 4 / this.zoom;
-            } else if (position.y > this.parent.canvas.height - 50) {
-                this.camera.y += 4 / this.zoom;
-                this.parent.mouse.position.y += 4 / this.zoom;
-            }
-
-            position = this.parent.mouse.position.toPixel();
-            
-            ctx.save(),
-            ctx.beginPath(),
-            ctx.strokeStyle = "#f00",
-            ctx.moveTo(old.x, old.y),
-            ctx.lineTo(position.x, position.y),
-            ctx.stroke(),
-            ctx.restore();
-        }
-
-        let i = new Vector().toCanvas(this.parent.canvas).oppositeScale(this.grid.scale).floor();
-        let l = new Vector(this.parent.canvas.width, this.parent.canvas.height).toCanvas(this.parent.canvas).oppositeScale(this.grid.scale).floor();
-        for (const sector of this.grid.range(i, l)) {
+        let x = new Vector().toCanvas(this.parent.canvas).oppositeScale(this.grid.scale).floor();
+        let y = new Vector(this.parent.canvas.width, this.parent.canvas.height).toCanvas(this.parent.canvas).oppositeScale(this.grid.scale).floor();
+        for (const sector of this.grid.range(x, y)) {
             if (sector.physics.length > 0 || sector.scenery.length > 0) {
                 if (!sector.rendered) {
                     sector.render();
@@ -266,12 +237,14 @@ export default class {
 
                 ctx.drawImage(sector.canvas, Math.floor(this.parent.canvas.width / 2 - this.camera.x * this.zoom + sector.row * this.grid.scale * this.zoom), Math.floor(this.parent.canvas.height / 2 - this.camera.y * this.zoom + sector.column * this.grid.scale * this.zoom));
             }
+        }
 
+        for (const sector of this.grid.range(x, y)) {
             for (const powerup of sector.powerups) {
                 powerup.draw(ctx);
             }
         }
-        
+
         ctx.beginPath(),
         ctx.lineWidth = 1,
         ctx.fillStyle = "#ff0",
@@ -287,8 +260,7 @@ export default class {
         let e = Math.floor(this.currentTime / 6E4);
         let h = Math.floor(this.currentTime % 6E4 / 1E3);
         let c = Math.floor((this.currentTime - 6E4 * e - 1E3 * h) / 100);
-
-        i = "";
+        let i = "";
         10 > e && (e = "0" + e);
         10 > h && (h = "0" + h);
         i = e + ":" + h + "." + c;
@@ -300,7 +272,7 @@ export default class {
                 i += " or BACKSPACE to cancel Checkpoint"
             }
         } else if (this.id === void 0) {
-            if (this.grid.size === 10 && ["line", "brush"].includes(this.toolHandler.selected)) {
+            if (this.grid.size === 10 && new Set(["line", "brush"]).has(this.toolHandler.selected)) {
                 i += " - Grid ";
             }
 
@@ -360,7 +332,7 @@ export default class {
         const line = new (type ? SceneryLine : PhysicsLine)(start.x, start.y, end.x, end.y, this);
         if (line.len >= 2 && line.len < 1e5) {
             this.addLineInternal(line);
-            if (["line", "brush"].includes(this.toolHandler.selected)) {
+            if (new Set(["line", "brush"]).has(this.toolHandler.selected)) {
                 this.parent.mouse.old.copy(this.parent.mouse.position);
             }
         }
