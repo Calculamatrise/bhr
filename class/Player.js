@@ -81,7 +81,7 @@ export default class Player {
             this.pendingConsumables = 0;
         }
 
-        if (this.targetsCollected === this.scene.targets) {
+        if (this.scene.targets > 0 && this.targetsCollected === this.scene.targets) {
             return;
         }
 

@@ -45,7 +45,7 @@ export default class {
     camera = new Vector();
     zoom = 0.6 * window.devicePixelRatio;
     toolHandler = new ToolHandler(this);
-    undoManager = new UndoManager();
+    history = new UndoManager();
     get targets() {
         return this.collectables.filter(item => item.type === "T").length;
     }
@@ -79,7 +79,7 @@ export default class {
             }
         }
     }
-    
+
     switchBike() {
         this.firstPlayer.vehicle.name = this.firstPlayer.vehicle.name === "BMX" ? "MTB" : "BMX";
         this.reset();
@@ -337,7 +337,7 @@ export default class {
             }
         }
 
-        this.undoManager.push({
+        this.history.push({
             undo: line.remove.bind(line),
             redo: () =>  this.addLineInternal(line)
         });

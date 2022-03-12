@@ -399,7 +399,7 @@ fullscreen {
     );
 }
 
-fullscreen.active {
+:fullscreen fullscreen {
     clip-path: polygon(
         0 40%,
         40% 40%,

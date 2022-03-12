@@ -34,9 +34,12 @@ export default class {
         return this.scene.parent.ctx;
     }
 
-    setTool(name) {
+    setTool(name, style = null) {
         this.old = this.selected;
         this.selected = name;
+        if (style !== null) {
+            this.currentTool.scenery = style;
+        }
 
         let settings = this.scene.parent.container.querySelector("toolbar")?.querySelector("div.left settings");
         settings !== null && settings.style.setProperty("display", ["brush", "eraser"].includes(this.selected) ? "block" : "none");

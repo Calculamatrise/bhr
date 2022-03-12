@@ -3,14 +3,6 @@ import Mouse from "./handler/Mouse.js";
 import Main from "./scenes/Main.js";
 
 import Vector from "./Vector.js";
-import Target from "./item/Target.js";
-import Checkpoint from "./item/Checkpoint.js";
-import Bomb from "./item/Bomb.js";
-import Boost from "./item/Boost.js";
-import Gravity from "./item/Gravity.js";
-import Antigravity from "./item/Antigravity.js";
-import Slowmo from "./item/Slowmo.js";
-import Teleporter from "./item/Teleporter.js";
 
 export default class {
     constructor(canvas) {
@@ -20,7 +12,7 @@ export default class {
         this.container = this.canvas.parentElement;
         
         window.addEventListener("resize", this.adjust.bind(this.canvas));
-        this.adjust.bind(this.canvas)();
+        this.adjust.call(this.canvas);
 
         this.mouse = new Mouse(this.canvas);
         this.mouse.on("mouseover", this.initCursor.bind(this));
@@ -48,8 +40,8 @@ export default class {
     }
 
     get settings() {
-        let storage; this.storage = {};
-        return storage = new Proxy(JSON.parse(localStorage.getItem("bhr-settings")), {
+        let settings; this.settings = {};
+        return settings = new Proxy(JSON.parse(localStorage.getItem("bhr-settings")), {
             get(target, key) {
                 if (typeof target[key] === "object" && target[key] !== null) {
                     return new Proxy(target[key], this);
@@ -60,7 +52,7 @@ export default class {
             set(object, property, value) {
                 object[property] = value;
 
-                return localStorage.setItem("bhr-settings", JSON.stringify(storage)), true;
+                return localStorage.setItem("bhr-settings", JSON.stringify(settings)), true;
             }
         });
     }
@@ -205,76 +197,42 @@ export default class {
                 break;
 
             case "z":
-                if (!this.scene.cameraFocus) {
-                    if (this.scene.id === void 0) {
-                        if (event.ctrlKey) {
-                            this.scene.undoManager.redo();
-    
-                            break;
-                        }
-    
-                        this.scene.undoManager.undo();
-                    }
-    
-                    if (window.autoPause) {
-                        this.scene.paused = false, window.autoPause = false
-                    }
+                if (this.scene.cameraFocus || !this.scene.editor) {
+                    break;
                 }
+
+                if (event.ctrlKey) {
+                    this.scene.history.redo();
+                    break;
+                }
+
+                this.scene.history.undo();
 
                 break;
 
             case "p":
             case " ":
-                this.scene.paused = window.autoPause ? true : !this.scene.paused,
-                this.container.querySelector("playpause")?.classList[this.scene.paused ? "remove" : "add"]("playing"),
-                window.autoPause = false;
+                this.scene.paused = this.settings.ap ? true : !this.scene.paused,
+                this.container.querySelector("playpause")?.classList[this.scene.paused ? "remove" : "add"]("playing");
                 break;
         }
 
         if (this.scene.editor) {    
             switch(event.key.toLowerCase()) {
                 case "a":
-                    if (this.scene.toolHandler.selected !== "brush" || this.scene.toolHandler.currentTool.scenery) {
-                        this.scene.toolHandler.setTool("brush");
-                        this.scene.toolHandler.currentTool.scenery = !1;
-                        this.canvas.style.cursor = "none";
-                    } else if (!this.scene.cameraLock) {
-                        this.scene.cameraLock = true;
-                    }
-
+                    this.scene.toolHandler.setTool("brush", false);
                     break;
 
                 case "s":
-                    if (this.scene.toolHandler.selected !== "scenery brush" || !this.scene.toolHandler.currentTool.scenery) {
-                        this.scene.toolHandler.setTool("brush");
-                        this.scene.toolHandler.currentTool.scenery = !0;
-                        this.canvas.style.cursor = "none";
-                    } else if (!this.scene.cameraLock) {
-                        this.scene.cameraLock = true;
-                    }
-
+                    this.scene.toolHandler.setTool("brush", true);
                     break;
 
                 case "q":
-                    if (this.scene.toolHandler.selected !== "line" || this.scene.toolHandler.currentTool.scenery) {
-                        this.scene.toolHandler.setTool("line");
-                        this.scene.toolHandler.currentTool.scenery = !1;
-                        this.canvas.style.cursor = "none";
-                    } else if (!this.scene.cameraLock) {
-                        this.scene.cameraLock = true;
-                    }
-
+                    this.scene.toolHandler.setTool("line", false);
                     break;
 
                 case "w":
-                    if (this.scene.toolHandler.selected !== "scenery line" || !this.scene.toolHandler.currentTool.scenery) {
-                        this.scene.toolHandler.setTool("line");
-                        this.scene.toolHandler.currentTool.scenery = !0;
-                        this.canvas.style.cursor = "none";
-                    } else if (!this.scene.cameraLock) {
-                        this.scene.cameraLock = true;
-                    }
-
+                    this.scene.toolHandler.setTool("line", true);
                     break;
     
                 case "e":
@@ -286,11 +244,11 @@ export default class {
                     break;
     
                 case "m":
-                    this.scene.undoManager.undo();
+                    this.scene.history.undo();
                     break;
 
                 case "n":
-                    this.scene.undoManager.redo();
+                    this.scene.history.redo();
                     break;
             }
         }
@@ -299,38 +257,28 @@ export default class {
     keyup(event) {
         switch (event.key.toLowerCase()) {
             case "b":
-                if (event.ctrlKey) {
-                    this.scene.switchBike();
+                if (!event.ctrlKey) {
+                    break;
                 }
-    
+
+                this.scene.switchBike();
                 break;
-    
+
             case "g":
-                if (this.scene.players.length <= 1) {
-                    this.scene.grid.size = 11 - this.scene.grid.size;
-                }
-    
+                this.scene.players.length <= 1 && (this.scene.grid.size = 11 - this.scene.grid.size);
                 break;
-    
-            case "r":
-                if (this.scene.toggleCamera) {
-                    this.canvas.style.cursor = "none";
-                    this.scene.toggleCamera = false;
-                }
-    
-                break;
-    
+
             case "f":
             case "f11":
-                document.fullscreenElement ? (document.exitFullscreen(), this.container.querySelector("fullscreen")?.classList.remove("active")) : (this.container.requestFullscreen(), this.container.querySelector("fullscreen")?.classList.add("active"));
+                document.fullscreenElement ? document.exitFullscreen() : this.container.requestFullscreen();
                 break;
-    
-            case "f2":
-                this.scene.firstPlayer.pastCheckpoint = false;
-                break;
-    
+
             case "escape":
                 let overlay = this.container.querySelector("game-overlay");
+                if (overlay === null) {
+                    break;
+                }
+
                 overlay.style.setProperty("display", overlay.style.display === "flex" ? (this.scene.paused = !1, "none") : (this.scene.paused = !0, "flex"));
                 break;
         }

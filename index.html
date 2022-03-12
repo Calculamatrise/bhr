@@ -101,7 +101,7 @@
                             </wheel>
                         </tool>
                         <br>
-                        <tool title="Fullscreen - F" style="border-bottom-width: 1px;border-bottom-style: solid;border-bottom-right-radius: 5px;border-top-width: 1px;border-top-style: solid;border-top-right-radius: 5px;" onclick="document.fullscreenElement ? (document.exitFullscreen(), this.firstElementChild.classList.remove('active')) : (window.game.container.requestFullscreen(), this.firstElementChild.classList.add('active'))">
+                        <tool title="Fullscreen - F" style="border-bottom-width: 1px;border-bottom-style: solid;border-bottom-right-radius: 5px;border-top-width: 1px;border-top-style: solid;border-top-right-radius: 5px;" onclick="document.fullscreenElement ? document.exitFullscreen() : window.game.container.requestFullscreen()">
                             <fullscreen/>
                         </tool>
                         <settings>
