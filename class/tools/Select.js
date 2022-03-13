@@ -70,5 +70,7 @@ export default class extends Tool {
         for (const object of this.selected) {
             object.remove();
         }
+
+        this.selected = [];
     }
 }

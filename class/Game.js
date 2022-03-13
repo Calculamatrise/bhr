@@ -117,12 +117,14 @@ export default class {
     press(event) {
         this.scene.cameraLock = true;
         this.scene.cameraFocus = false;
-        this.mouse.old.copy(this.mouse.position);
-        if (event.shiftKey || event.ctrlKey || this.scene.processing) {
+        if (event.shiftKey || this.scene.processing) {
             return;
         }
 
-        if (!event.ctrlKey && this.scene.toolHandler.selected === "select") {
+        this.mouse.old.copy(this.mouse.position);
+        if (event.ctrlKey && this.scene.toolHandler.selected !== "select") {
+            this.scene.toolHandler.setTool("select");
+        } else if (!event.ctrlKey && this.scene.toolHandler.selected === "select") {
             this.scene.toolHandler.setTool(this.scene.toolHandler.old);
         }
 
@@ -134,18 +136,16 @@ export default class {
             this.scene.cameraFocus = false;
         }
 
-        if (this.scene.toolHandler.selected !== "eraser" && event.button !== 2) {
-            this.mouse.position.x = Math.round(this.mouse.position.x / this.scene.grid.size) * this.scene.grid.size;
-            this.mouse.position.y = Math.round(this.mouse.position.y / this.scene.grid.size) * this.scene.grid.size;
-        }
-
         if (this.scene.processing) {
             return;
         } else if (event.shiftKey) {
             this.scene.toolHandler.cache.get("camera").stroke(event);
             return;
-        } else if (event.ctrlKey && this.scene.toolHandler.selected !== "select") {
-            this.scene.toolHandler.setTool("select");
+        }
+
+        if (!new Set(["camera", "eraser", "select"]).has(this.scene.toolHandler.selected)) {
+            this.mouse.position.x = Math.round(this.mouse.position.x / this.scene.grid.size) * this.scene.grid.size;
+            this.mouse.position.y = Math.round(this.mouse.position.y / this.scene.grid.size) * this.scene.grid.size;
         }
 
         this.scene.toolHandler.stroke(event);
