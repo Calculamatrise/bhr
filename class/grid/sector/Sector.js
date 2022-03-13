@@ -51,6 +51,31 @@ export default class {
         return this;
     }
 
+    search(min, max) {
+        let objects = [];
+        objects.push(...this.physics.filter(function(line) {
+            if (min.x < line.a.x && line.a.x < max.x && min.y < line.a.y && line.a.y < max.y) {
+                return true;
+            } else if (min.x < line.b.x && line.b.x < max.x && min.y < line.b.y && line.b.y < max.y) {
+                return true;
+            }
+
+            return false;
+        }));
+
+        objects.push(...this.scenery.filter(function(line) {
+            if (min.x < line.a.x && line.a.x < max.x && min.y < line.a.y && line.a.y < max.y) {
+                return true;
+            } else if (min.x < line.b.x && line.b.x < max.x && min.y < line.b.y && line.b.y < max.y) {
+                return true;
+            }
+
+            return false;
+        }));
+
+        return objects;
+    }
+
     erase(vector) {
         let cache = [];
         if (!this.parent.scene.toolHandler.currentTool.ignoring.has("physics")) {

@@ -1,8 +1,13 @@
 import Line from "../tools/Line.js";
 import Brush from "../tools/Brush.js";
 import Camera from "../tools/Camera.js";
+import Circle from "../tools/Circle.js";
+import Curve from "../tools/Curve.js";
+import Ellipse from "../tools/Ellipse.js";
 import Eraser from "../tools/Eraser.js";
 import Powerup from "../tools/Powerup.js";
+import Rectangle from "../tools/Rectangle.js";
+import Select from "../tools/Select.js";
 import TrianglePowerup from "../tools/TrianglePowerup.js";
 
 export default class {
@@ -10,9 +15,14 @@ export default class {
         this.scene = parent;
         this.cache.set("brush", new Brush(this));
         this.cache.set("camera", new Camera(this));
+        this.cache.set("circle", new Circle(this));
+        this.cache.set("curve", new Curve(this));
+        this.cache.set("ellipse", new Ellipse(this));
         this.cache.set("eraser", new Eraser(this));
         this.cache.set("line", new Line(this));
         this.cache.set("powerup", new Powerup(this));
+        this.cache.set("rectangle", new Rectangle(this));
+        this.cache.set("select", new Select(this));
         this.cache.set("trianglepowerup", new TrianglePowerup(this));
     }
     old = "camera";
@@ -42,7 +52,7 @@ export default class {
         }
 
         let settings = this.scene.parent.container.querySelector("toolbar")?.querySelector("div.left settings");
-        settings !== null && settings.style.setProperty("display", ["brush", "eraser"].includes(this.selected) ? "block" : "none");
+        settings !== null && settings.style.setProperty("display", new Set(["brush", "circle", "eraser"]).has(this.selected) ? "block" : "none");
 
         settings = settings.querySelector("div[data-id=eraser]");
         settings !== null && settings.style.setProperty("display", this.selected === "eraser" ? "block" : "none");

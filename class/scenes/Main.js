@@ -227,9 +227,9 @@ export default class {
         ctx.lineWidth = Math.max(2 * this.zoom, 0.5);
         ctx.lineCap = "round";
 
-        let x = new Vector().toCanvas(this.parent.canvas).oppositeScale(this.grid.scale).floor();
-        let y = new Vector(this.parent.canvas.width, this.parent.canvas.height).toCanvas(this.parent.canvas).oppositeScale(this.grid.scale).floor();
-        for (const sector of this.grid.range(x, y)) {
+        let min = new Vector().toCanvas(this.parent.canvas).oppositeScale(this.grid.scale).floor();
+        let max = new Vector(this.parent.canvas.width, this.parent.canvas.height).toCanvas(this.parent.canvas).oppositeScale(this.grid.scale).floor();
+        for (const sector of this.grid.range(min, max)) {
             if (sector.physics.length > 0 || sector.scenery.length > 0) {
                 if (!sector.rendered) {
                     sector.render();
@@ -239,7 +239,7 @@ export default class {
             }
         }
 
-        for (const sector of this.grid.range(x, y)) {
+        for (const sector of this.grid.range(min, max)) {
             for (const powerup of sector.powerups) {
                 powerup.draw(ctx);
             }
@@ -508,6 +508,7 @@ export default class {
 
     reset() {
         this.currentTime = 0;
+        this.removeCollectedItems();
         for (const sector of this.grid.sectors) {
             sector.fix();
         }

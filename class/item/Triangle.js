@@ -8,8 +8,8 @@ export default class Triangle extends Item {
         this.rotation = arguments[3];
         this.dir = new Vector(-Math.sin(this.rotation * Math.PI / 180), Math.cos(this.rotation * Math.PI / 180));
     }
-    
-    draw(ctx) {
+
+    static draw(ctx) {
         let position = this.position.toPixel();
 
         ctx.save(),
@@ -24,7 +24,7 @@ export default class Triangle extends Item {
         ctx.closePath(),
         ctx.fill(),
         ctx.stroke(),
-        ctx.restore()
+        ctx.restore();
     }
 
     collide(part) {

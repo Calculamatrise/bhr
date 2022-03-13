@@ -1,5 +1,6 @@
 import Tool from "./Tool.js";
 
+import Item from "../item/Item.js";
 import Target from "../item/Target.js";
 import Checkpoint from "../item/Checkpoint.js";
 import Bomb from "../item/Bomb.js";
@@ -54,25 +55,13 @@ export default class extends Tool {
             return;
         }
 
-        this.mouse.old.copy(this.mouse.position);
-        if (this.teleporter !== null) {
-            if (this.teleporter.position.distanceTo(this.mouse.old) > 40) {
-                this.teleporter.createAlt(this.mouse.old.x, this.mouse.old.y);
-
-                let x = Math.floor(this.teleporter.alt.x / this.scene.grid.scale);
-                let y = Math.floor(this.teleporter.alt.y / this.scene.grid.scale);
-                this.scene.grid.sector(x, y, true).powerups.push(this.teleporter);
-            } else {
-                this.teleporter.remove();
-            }
-
-            this.teleporter = null;
-        }
+        Teleporter.clip.apply(this, arguments);
     }
 
     draw(ctx) {
         let position = this.mouse.position.toPixel();
         if (this.scene.cameraLock && this.parent.selected === "teleporter") {
+            let position = this.mouse.position.toPixel();
             let old = this.mouse.old.toPixel();
             let start = position.x < 50;
             let end = position.x > this.scene.parent.canvas.width - 50;
@@ -80,16 +69,16 @@ export default class extends Tool {
                 this.scene.camera.x += 4 / this.scene.zoom * (1 + (start && -2));
                 this.mouse.position.x += 4 / this.scene.zoom * (1 + (start && -2));
             }
-
+    
             start = position.y < 50;
             end = position.y > this.scene.parent.canvas.height - 50;
             if (start || end) {
                 this.scene.camera.y += 4 / this.scene.zoom * (1 + (start && -2));
                 this.mouse.position.y += 4 / this.scene.zoom * (1 + (start && -2));
             }
-
+    
             position = this.mouse.position.toPixel();
-
+    
             ctx.save(),
             ctx.beginPath(),
             ctx.lineWidth = Math.max(2 * this.parent.scene.zoom, 0.5),
@@ -99,7 +88,7 @@ export default class extends Tool {
             ctx.stroke(),
             ctx.restore();
         }
-        
+
         ctx.beginPath(),
         ctx.lineWidth = 2 * this.parent.scene.zoom,
         ctx.fillStyle = this.parent.selected == "goal" ? "#ff0" : this.parent.selected == "checkpoint" ? "#00f" : this.parent.selected == "bomb" ? "#f00" : this.parent.selected == "slow-mo" ? "#eee" : this.parent.selected == "antigravity" ? "#0ff" : "#f0f",

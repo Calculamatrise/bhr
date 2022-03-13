@@ -8,13 +8,17 @@ export default class Item {
     }
     scene = null;
     removed = false;
-    draw(ctx, position = this.position.toPixel()) {
+    static draw(ctx, position = this.position.toPixel()) {
         ctx.beginPath(),
         ctx.fillStyle = this.color,
         ctx.strokeStyle = this.scene.parent.theme === "dark" ? "#fbfbfb" : "#000",
         ctx.arc(position.x, position.y, 7 * this.scene.zoom, 0, 2 * Math.PI),
         ctx.fill(),
         ctx.stroke();
+    }
+
+    draw() {
+        this.constructor.draw.apply(this, arguments);
     }
 
     collide(part) {

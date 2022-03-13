@@ -32,8 +32,7 @@ export default class {
     get theme() {
         const theme = localStorage.getItem("theme");
         if (theme === null) {
-            localStorage.setItem("theme", window.matchMedia("(prefers-color-scheme: dark)").matches ? "dark" : "light");
-            return this.theme;
+            return localStorage.setItem("theme", window.matchMedia("(prefers-color-scheme: dark)").matches ? "dark" : "light"), this.theme;
         }
 
         return theme;
@@ -119,8 +118,12 @@ export default class {
         this.scene.cameraLock = true;
         this.scene.cameraFocus = false;
         this.mouse.old.copy(this.mouse.position);
-        if (event.shiftKey) {
+        if (event.shiftKey || event.ctrlKey || this.scene.processing) {
             return;
+        }
+
+        if (!event.ctrlKey && this.scene.toolHandler.selected === "select") {
+            this.scene.toolHandler.setTool(this.scene.toolHandler.old);
         }
 
         this.scene.toolHandler.press(event);
@@ -136,9 +139,13 @@ export default class {
             this.mouse.position.y = Math.round(this.mouse.position.y / this.scene.grid.size) * this.scene.grid.size;
         }
 
-        if (event.shiftKey) {
+        if (this.scene.processing) {
+            return;
+        } else if (event.shiftKey) {
             this.scene.toolHandler.cache.get("camera").stroke(event);
             return;
+        } else if (event.ctrlKey && this.scene.toolHandler.selected !== "select") {
+            this.scene.toolHandler.setTool("select");
         }
 
         this.scene.toolHandler.stroke(event);
@@ -146,6 +153,10 @@ export default class {
 
     clip(event) {
         this.scene.cameraLock = false;
+        if (this.scene.processing) {
+            return;
+        }
+
         this.scene.toolHandler.clip(event);
     }
 
@@ -160,7 +171,7 @@ export default class {
     
                 this.scene.removeCheckpoint();
                 break;
-    
+
             case "enter":
                 this.scene.gotoCheckpoint();
                 break;
@@ -215,6 +226,14 @@ export default class {
 
         if (this.scene.editor) {    
             switch(event.key.toLowerCase()) {
+                case "delete":
+                    if (this.scene.toolHandler.selected !== "select" || this.scene.toolHandler.currentTool.selected.length < 1) {
+                        break;
+                    }
+
+                    this.scene.toolHandler.currentTool.deleteSelected();
+                    break;
+
                 case "a":
                     this.scene.toolHandler.setTool("brush", false);
                     break;

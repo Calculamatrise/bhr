@@ -24,6 +24,10 @@ export default class {
         }
     }
 
+    static from() {
+        return new this.constructor(...arguments);
+    }
+
     get pixel() {
         return new this.constructor((this.x - window.game.scene.camera.x) * window.game.scene.zoom + window.game.canvas.width / 2, (this.y - window.game.scene.camera.y) * window.game.scene.zoom + window.game.canvas.height / 2);
     }
@@ -119,6 +123,10 @@ export default class {
         this.y = Math.ceil(this.y);
 
         return this;
+    }
+
+    map(callback = (value) => value) {
+        return new this.constructor(callback(this.x), callback(this.y));
     }
 
     clone() {
