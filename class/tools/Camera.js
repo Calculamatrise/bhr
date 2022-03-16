@@ -6,7 +6,7 @@ export default class extends Tool {
             return;
         }
 
-        this.scene.camera.addToSelf(this.mouse.old.sub(this.mouse.position)),
-        this.mouse.position.copy(this.mouse.old);
+        this.scene.camera.add(this.mouse.old.difference(this.mouse.position)),
+        this.mouse.position.set(this.mouse.old);
     }
 }

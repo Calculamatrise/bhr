@@ -1,64 +1,59 @@
 export default class {
     constructor(x = 0, y = 0) {
-        if (typeof x === "object") {
-            if (x.hasOwnProperty("x")) {
-                this.x = parseFloat(x.x);
-            }
-
-            if (x.hasOwnProperty("y")) {
-                this.y = parseFloat(x.y);
-            }
-        } else if (Array.isArray(x)) {
-            if (x.length > 0) {
-                if (typeof x[0] === "number" || typeof x[0] === "string") {
-                    this.x = parseFloat(x[0]);
+        if (typeof arguments[0] === "object") {
+            if (Array.isArray(arguments[0])) {
+                if (arguments[0].length > 0) {
+                    this.x = arguments[0][0];
+                    if (arguments[0].length > 1) {
+                        this.y = arguments[0][1];
+                    }
+                }
+            } else {
+                if (arguments[0].hasOwnProperty("x")) {
+                    this.x = parseFloat(arguments[0].x);
                 }
 
-                if (x.length > 1 && (typeof x[1] === "number" || typeof x[1] === "string")) {
-                    this.y = parseFloat(x[1]);
+                if (arguments[0].hasOwnProperty("y")) {
+                    this.y = parseFloat(arguments[0].y);
                 }
             }
-        } else {
-            this.x = parseFloat(x);
-            this.y = parseFloat(y);
         }
+
+        this.x = this.x || parseFloat(x);
+        this.y = this.y || parseFloat(y);
     }
 
     static from() {
-        return new this.constructor(...arguments);
+        return new this(...arguments);
     }
 
-    get pixel() {
-        return new this.constructor((this.x - window.game.scene.camera.x) * window.game.scene.zoom + window.game.canvas.width / 2, (this.y - window.game.scene.camera.y) * window.game.scene.zoom + window.game.canvas.height / 2);
+    toCanvas(canvas) {
+        return this.constructor.from(Math.round((this.x * window.devicePixelRatio - canvas.width / 2) / window.game.scene.zoom + window.game.scene.camera.x), Math.round((this.y * window.devicePixelRatio - canvas.height / 2) / window.game.scene.zoom + window.game.scene.camera.y));
     }
 
     toPixel() {
-        return new this.constructor((this.x - window.game.scene.camera.x) * window.game.scene.zoom + window.game.canvas.width / 2, (this.y - window.game.scene.camera.y) * window.game.scene.zoom + window.game.canvas.height / 2);
-    }
-
-    toCanvas() {
-        return new this.constructor(Math.round((this.x * window.devicePixelRatio - window.game.canvas.width / 2) / window.game.scene.zoom + window.game.scene.camera.x), Math.round((this.y * window.devicePixelRatio - window.game.canvas.height / 2) / window.game.scene.zoom + window.game.scene.camera.y));
+        return this.constructor.from((this.x - window.game.scene.camera.x) * window.game.scene.zoom + window.game.canvas.width / 2, (this.y - window.game.scene.camera.y) * window.game.scene.zoom + window.game.canvas.height / 2);
     }
 
     getLength() {
         return Math.sqrt(this.x * this.x + this.y * this.y);
     }
 
-    copy(vector) {
+    set(vector) {
         this.x = vector.x;
         this.y = vector.y;
 
         return this;
     }
 
-    addToSelf(vector) {
+    add(vector) {
         this.x += vector.x;
         this.y += vector.y;
 
         return this;
     }
 
-    subtractFromSelf(vector) {
+    subtract(vector) {
         this.x -= vector.x;
         this.y -= vector.y;
 
@@ -72,11 +67,11 @@ export default class {
         return this;
     }
 
-    add(vector) {
+    sum(vector) {
         return new this.constructor(this.x + vector.x, this.y + vector.y);
     }
 
-    sub(vector) {
+    difference(vector) {
         return new this.constructor(this.x - vector.x, this.y - vector.y);
     }
     
@@ -111,22 +106,8 @@ export default class {
         return this;
     }
 
-    round() {
-        this.x = Math.round(this.x);
-        this.y = Math.round(this.y);
-
-        return this;
-    }
-
-    ceil() {
-        this.x = Math.ceil(this.x);
-        this.y = Math.ceil(this.y);
-
-        return this;
-    }
-
     map(callback = (value) => value) {
-        return new this.constructor(callback(this.x), callback(this.y));
+        return this.constructor.from(callback(this.x), callback(this.y));
     }
 
     clone() {

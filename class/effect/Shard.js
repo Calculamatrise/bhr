@@ -8,7 +8,6 @@ export default class Shard extends Mass {
         this.position = new Vector(vector.x + 5 * (Math.random() - Math.random()), vector.y + 5 * (Math.random() - Math.random()));
         this.old = new Vector(this.position.x, this.position.y);
     }
-
     velocity = new Vector(11 * (Math.random() - Math.random()), 11 * (Math.random() - Math.random()));
     size = 2 + 9 * Math.random();
     rotation = 6.2 * Math.random();
@@ -16,7 +15,6 @@ export default class Shard extends Mass {
     friction = .05;
     collide = true;
     shape = [ 1, 0.7, 0.8, 0.9, 0.5, 1, 0.7, 1 ]
-
     draw(ctx) {
         var a = this.position.toPixel(),
             b = this.shape[0] * this.size * this.parent.scene.zoom,
@@ -37,25 +35,26 @@ export default class Shard extends Mass {
 
     drive(velocity) {
         this.pedalSpeed = velocity.dot(this.velocity) / this.size;
-        this.position.addToSelf(velocity.scale(-velocity.dot(this.velocity) * this.friction));
+        this.position.add(velocity.scale(-velocity.dot(this.velocity) * this.friction));
         this.rotation += this.rotationFactor;
         let b = velocity.getLength();
         if (b > 0) {
             velocity = new Vector(-velocity.y / b, velocity.x / b);
-            this.old.addToSelf(velocity.scale(0.8 * velocity.dot(this.velocity)));
+            this.old.add(velocity.scale(0.8 * velocity.dot(this.velocity)));
         }
     }
     
-    update(delta) {
+    update() {
         this.rotation += this.rotationFactor;
-        this.velocity.addToSelf(this.parent.gravity).scaleSelf(.99);
-        this.position.addToSelf(this.velocity);
+        this.velocity.add(this.parent.gravity).scaleSelf(.99);
+        this.position.add(this.velocity);
         
         this.touching = !1;
         if (this.collide) {
             this.parent.scene.collide(this);
         }
-        this.velocity = this.position.sub(this.old);
-        this.old.copy(this.position)
+        this.velocity = this.position.difference(this.old);
+        this.old.set(this.position);
+        // super.update();
     }
 }

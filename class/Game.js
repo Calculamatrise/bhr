@@ -15,7 +15,6 @@ export default class {
         this.adjust.call(this.canvas);
 
         this.mouse = new Mouse(this.canvas);
-        this.mouse.on("mouseover", this.initCursor.bind(this));
         this.mouse.on("mousedown", this.press.bind(this));
         this.mouse.on("mousemove", this.stroke.bind(this));
         this.mouse.on("mouseup", this.clip.bind(this));
@@ -24,11 +23,14 @@ export default class {
         document.addEventListener("keydown", this.keydown.bind(this));
         document.addEventListener("keyup", this.keyup.bind(this));
     }
-    fps = 25;
-    ups = 50;
-    lastTime = -1;
+    ups = 25;
+    lastTime = performance.now();
     lastFrame = null;
     progress = 0;
+    get max() {
+        return 1000 / this.ups;
+    }
+
     get theme() {
         const theme = localStorage.getItem("theme");
         if (theme === null) {
@@ -87,29 +89,22 @@ export default class {
         });
 
         this.scene.init(vehicle);
-        
+
         this.lastFrame = requestAnimationFrame(this.render.bind(this));
-    }
-
-    initCursor() {
-        if (this.scene)
-            this.scene.displayText = false;
-
-        this.canvas.style.cursor = this.scene.toolHandler.selected === "camera" ? "move" : "none";
     }
 
     render(time) {
         this.lastFrame = requestAnimationFrame(this.render.bind(this));
 
-        const delta = time - this.lastTime;
-        // const delta = Math.min(time - this.lastTime, 1000 / this.ups);
-        if (delta < 1000 / this.fps) {
-            // this.scene.update(delta / (1000 / this.ups));
+        this.delta = time - this.lastTime;
+        // this.delta = Math.min(time - this.lastTime, this.max);
+        if (this.delta < this.max) {
+            // this.scene.update();
             this.scene.render(this.ctx);
             return;
         }
 
-        this.scene.update(delta / (1000 / this.ups));
+        this.scene.update(this.delta / this.max);
         this.scene.render(this.ctx);
         this.lastTime = time;
     }
@@ -121,7 +116,7 @@ export default class {
             return;
         }
 
-        this.mouse.old.copy(this.mouse.position);
+        this.mouse.old.set(this.mouse.position);
         if (event.ctrlKey && this.scene.toolHandler.selected !== "select") {
             this.scene.toolHandler.setTool("select");
         } else if (!event.ctrlKey && this.scene.toolHandler.selected === "select") {
@@ -219,7 +214,7 @@ export default class {
 
             case "p":
             case " ":
-                this.scene.paused = this.settings.ap ? true : !this.scene.paused,
+                this.scene.paused = !this.scene.paused,
                 this.container.querySelector("playpause")?.classList[this.scene.paused ? "remove" : "add"]("playing");
                 break;
         }
@@ -310,8 +305,8 @@ export default class {
             }
         }
 
-        let y = new Vector(event.clientX - this.canvas.offsetLeft, event.clientY - this.canvas.offsetTop + window.pageYOffset).toCanvas();
-        this.scene.cameraFocus || this.scene.camera.addToSelf(this.mouse.position.sub(y))
+        let y = new Vector(event.clientX - this.canvas.offsetLeft, event.clientY - this.canvas.offsetTop + window.pageYOffset).toCanvas(this.canvas);
+        this.scene.cameraFocus || this.scene.camera.add(this.mouse.position.difference(y));
     }
 
     load(code = null) {

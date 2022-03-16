@@ -24,7 +24,7 @@ export default class extends Line {
 
         const points = [];
         for (let i = 0; i <= 360; i += this.length) {
-            points.push(this.mouse.old.add({
+            points.push(this.mouse.old.sum({
                 x: Math.sqrt((this.mouse.position.x - this.mouse.old.x) ** 2) * Math.cos(i * Math.PI / 180),
                 y: Math.sqrt((this.mouse.position.y - this.mouse.old.y) ** 2) * Math.sin(i * Math.PI / 180)
             }));

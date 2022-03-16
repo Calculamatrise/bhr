@@ -33,15 +33,14 @@ export default class MTB extends Bike {
 
         this.rotationFactor = 8;
     }
-
     name = "MTB";
     draw(ctx) {
         var b = this.rearWheel.position.toPixel()
         , c = this.frontWheel.position.toPixel()
         , d = this.head.position.toPixel()
-        , e = c.sub(b)
+        , e = c.difference(b)
         , f = new Vector((c.y - b.y) * this.dir, (b.x - c.x) * this.dir)
-        , h = d.sub(b.add(e.scale(0.5)));
+        , h = d.difference(b.sum(e.scale(0.5)));
         ctx.globalAlpha = this.parent.ghost ? .5 : 1;
         ctx.lineCap = "round";
         ctx.lineJoin = "round";
@@ -96,18 +95,18 @@ export default class MTB extends Bike {
         ctx.lineTo(b.x + 0.7 * e.x + 0.8 * h.x, b.y + 0.7 * e.y + 0.8 * h.y),
         ctx.stroke();
         if (!this.parent.dead) {
-            var f = d.sub(b.add(e.scale(0.5)))
-            , c = b.add(e.scale(0.3)).add(f.scale(0.25))
-            , h = b.add(e.scale(0.4)).add(f.scale(0.05))
-            , d = h.add(i)
-            , l = h.sub(i)
-            , b = b.add(e.scale(0.67)).add(f.scale(0.8))
-            , i = c.add(e.scale(-0.05)).add(f.scale(0.42))
-            , m = d.sub(i)
+            var f = d.difference(b.sum(e.scale(0.5)))
+            , c = b.sum(e.scale(0.3)).sum(f.scale(0.25))
+            , h = b.sum(e.scale(0.4)).sum(f.scale(0.05))
+            , d = h.sum(i)
+            , l = h.difference(i)
+            , b = b.sum(e.scale(0.67)).sum(f.scale(0.8))
+            , i = c.sum(e.scale(-0.05)).sum(f.scale(0.42))
+            , m = d.difference(i)
             , h = new Vector(m.y * this.dir,-m.x * this.dir).scaleSelf(this.parent.scene.zoom * this.parent.scene.zoom)
-            , n = i.add(m.scale(0.5)).add(h.scale(200 / m.lengthSquared()))
-            , m = l.sub(i)
-            , h = i.add(m.scale(0.5)).add(new Vector(m.y * this.dir, -m.x * this.dir).scaleSelf(this.parent.scene.zoom * this.parent.scene.zoom).scale(200 / m.lengthSquared()));
+            , n = i.sum(m.scale(0.5)).sum(h.scale(200 / m.lengthSquared()))
+            , m = l.difference(i)
+            , h = i.sum(m.scale(0.5)).sum(new Vector(m.y * this.dir, -m.x * this.dir).scaleSelf(this.parent.scene.zoom * this.parent.scene.zoom).scale(200 / m.lengthSquared()));
             ctx.beginPath(),ctx.lineWidth = 6 * this.parent.scene.zoom;
             ctx.strokeStyle = this.parent.scene.parent.theme === "dark" ? "#FBFBFB80" : "rgba(0, 0, 0, 0.5)";
             ctx.moveTo(l.x, l.y),
@@ -121,8 +120,8 @@ export default class MTB extends Bike {
             ctx.lineTo(i.x, i.y),
             ctx.stroke(),
             ctx.lineWidth = 8 * this.parent.scene.zoom;
-            h = c.add(e.scale(0.1)).add(f.scale(0.93));
-            d = c.add(e.scale(0.2)).add(f.scale(1.09));
+            h = c.sum(e.scale(0.1)).sum(f.scale(0.93));
+            d = c.sum(e.scale(0.2)).sum(f.scale(1.09));
             ctx.beginPath(),
             ctx.moveTo(i.x, i.y),
             ctx.lineTo(h.x, h.y),
@@ -135,18 +134,18 @@ export default class MTB extends Bike {
             ctx.beginPath();
             switch(this.parent.cosmetics.head) {
                 case "cap":
-                    ctx.moveTo(...Object.values(c.add(e.scale(0.4)).add(f.scale(1.15))));
-                    ctx.lineTo(...Object.values(c.add(e.scale(0.1)).add(f.scale(1.05))));
+                    ctx.moveTo(...Object.values(c.sum(e.scale(0.4)).sum(f.scale(1.15))));
+                    ctx.lineTo(...Object.values(c.sum(e.scale(0.1)).sum(f.scale(1.05))));
                     ctx.stroke();
                     break;
 
                 case "hat":
-                    d = c.add(e.scale(0.37)).add(f.scale(1.19)),
-                    i = c.sub(e.scale(0.02)).add(f.scale(1.14)),
-                    l = c.add(e.scale(0.28)).add(f.scale(1.17)),
-                    c = c.add(e.scale(0.09)).add(f.scale(1.15)),
-                    n = d.sub(e.scale(0.1)).addToSelf(f.scale(0.2)),
-                    e = i.add(e.scale(0.02)).addToSelf(f.scale(0.2)),
+                    d = c.sum(e.scale(0.37)).sum(f.scale(1.19)),
+                    i = c.difference(e.scale(0.02)).sum(f.scale(1.14)),
+                    l = c.sum(e.scale(0.28)).sum(f.scale(1.17)),
+                    c = c.sum(e.scale(0.09)).sum(f.scale(1.15)),
+                    n = d.difference(e.scale(0.1)).add(f.scale(0.2)),
+                    e = i.sum(e.scale(0.02)).add(f.scale(0.2)),
                     ctx.fillStyle = this.parent.scene.parent.theme === "dark" ? "#fbfbfb" : "#000000",
                     ctx.lineJoin = "round",
                     ctx.moveTo(d.x, d.y),
@@ -158,10 +157,10 @@ export default class MTB extends Bike {
                     ctx.stroke(),
                     ctx.fill()
             }
-            e = h.sub(b);
+            e = h.difference(b);
             f = new Vector(e.y * this.dir,-e.x * this.dir);
             f = f.scale(this.parent.scene.zoom * this.parent.scene.zoom);
-            e = b.add(e.scale(0.3)).add(f.scale(80 / e.lengthSquared()));
+            e = b.sum(e.scale(0.3)).sum(f.scale(80 / e.lengthSquared()));
             ctx.lineWidth = 5 * this.parent.scene.zoom;
             ctx.beginPath(),
             ctx.moveTo(h.x, h.y)

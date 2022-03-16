@@ -172,21 +172,21 @@ export default class {
     }
 
     collide(part) {
-        const x = Math.floor(part.position.x / this.grid.scale - .5);
-        const y = Math.floor(part.position.y / this.grid.scale - .5);
+        let x = Math.floor(part.position.x / this.grid.scale - .5);
+        let y = Math.floor(part.position.y / this.grid.scale - .5);
+
         this.grid.sector(x, y).fix();
         this.grid.sector(x, y + 1).fix();
         this.grid.sector(x + 1, y).fix();
         this.grid.sector(x + 1, y + 1).fix();
+
         this.grid.sector(x, y).collide(part);
         this.grid.sector(x + 1, y).collide(part);
         this.grid.sector(x + 1, y + 1).collide(part);
         this.grid.sector(x, y + 1).collide(part);
-
-        return this;
     }
 
-    update(delta) {
+    update() {
         if (this.freezeFrame && this.parent.settings.ap && this.firstPlayer.gamepad.downKeys.size > 0) {
             this.freezeFrame = false;
             this.paused = false;
@@ -195,17 +195,15 @@ export default class {
 
         if (!this.paused && !this.processing) {
             for (const player of this.players) {
-                player.update(delta);
+                player.update();
             }
 
-            this.currentTime += 1e3 / 25;
+            this.currentTime += this.parent.max;
         }
 
         if (this.cameraFocus) {
-            this.camera.addToSelf(this.cameraFocus.position.sub(this.camera).scale(.3));
+            this.camera.add(this.cameraFocus.position.difference(this.camera).scale(.3));
         }
-
-        return this;
     }
 
     render(ctx) {
@@ -213,7 +211,7 @@ export default class {
         for (const player of this.players) {
             player.draw(ctx);
         }
-        
+
         if (!this.cameraFocus) {
             ctx.save();
             ctx.strokeStyle = this.parent.theme === "dark" ? "#fff" : "#000";
@@ -227,8 +225,8 @@ export default class {
         ctx.lineWidth = Math.max(2 * this.zoom, 0.5);
         ctx.lineCap = "round";
 
-        let min = new Vector().toCanvas(this.parent.canvas).oppositeScale(this.grid.scale).floor();
-        let max = new Vector(this.parent.canvas.width, this.parent.canvas.height).toCanvas(this.parent.canvas).oppositeScale(this.grid.scale).floor();
+        let min = Vector.from().toCanvas(this.parent.canvas).oppositeScale(this.grid.scale).map((value) => Math.floor(value));
+        let max = new Vector(this.parent.canvas.width, this.parent.canvas.height).toCanvas(this.parent.canvas).oppositeScale(this.grid.scale).map((value) => Math.floor(value));
         for (const sector of this.grid.range(min, max)) {
             if (sector.physics.length > 0 || sector.scenery.length > 0) {
                 if (!sector.rendered) {
@@ -333,7 +331,7 @@ export default class {
         if (line.len >= 2 && line.len < 1e5) {
             this.addLineInternal(line);
             if (new Set(["line", "brush"]).has(this.toolHandler.selected)) {
-                this.parent.mouse.old.copy(this.parent.mouse.position);
+                this.parent.mouse.old.set(this.parent.mouse.position);
             }
         }
 

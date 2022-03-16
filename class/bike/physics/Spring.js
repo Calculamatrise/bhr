@@ -10,7 +10,7 @@ export default class Spring {
     dampConstant = .5;
     springConstant = .7;
     getLength() {
-        return this.b.position.sub(this.a.position).getLength();
+        return this.b.position.difference(this.a.position).getLength();
     }
 
     lean(rotation) {
@@ -18,37 +18,35 @@ export default class Spring {
     }
 
     rotate(a) {
-        let b = this.b.position.sub(this.a.position);
+        let b = this.b.position.difference(this.a.position);
         b = new Vector(-b.y / this.leff, b.x / this.leff);
-        this.a.position.addToSelf(b.scale(a));
-        this.b.position.addToSelf(b.scale(-a));
+        this.a.position.add(b.scale(a));
+        this.b.position.add(b.scale(-a));
     }
 
     update() {
-        let a = this.b.position.sub(this.a.position),
+        let a = this.b.position.difference(this.a.position),
             b = a.getLength();
         if (1 > b)
             return this;
         a = a.scale(1 / b);
         b = a.scale((b - this.leff) * this.springConstant);
-        b.addToSelf(a.scale(this.b.velocity.sub(this.a.velocity).dot(a) * this.dampConstant));
-        this.b.velocity.addToSelf(b.scale(-1));
-        this.a.velocity.addToSelf(b);
-
-        return this;
+        b.add(a.scale(this.b.velocity.difference(this.a.velocity).dot(a) * this.dampConstant));
+        this.b.velocity.add(b.scale(-1));
+        this.a.velocity.add(b);
     }
     
     swap() {
         let a = new Vector;
-        a.copy(this.a.position);
-        this.a.position.copy(this.b.position);
-        this.b.position.copy(a);
-        a.copy(this.a.old);
-        this.a.old.copy(this.b.old);
-        this.b.old.copy(a);
-        a.copy(this.a.velocity);
-        this.a.velocity.copy(this.b.velocity);
-        this.b.velocity.copy(a);
+        a.set(this.a.position);
+        this.a.position.set(this.b.position);
+        this.b.position.set(a);
+        a.set(this.a.old);
+        this.a.old.set(this.b.old);
+        this.b.old.set(a);
+        a.set(this.a.velocity);
+        this.a.velocity.set(this.b.velocity);
+        this.b.velocity.set(a);
         a = this.a.pedalSpeed;
         this.a.pedalSpeed = this.b.pedalSpeed;
         this.b.pedalSpeed = a

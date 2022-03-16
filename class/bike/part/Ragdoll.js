@@ -48,7 +48,7 @@ export default class {
 
     updatePosition(stickman) {
         for (const part in stickman) {
-            this[part].position.copy(stickman[part]);
+            this[part].position.set(stickman[part]);
         }
     }
 
@@ -100,7 +100,7 @@ export default class {
         ctx.moveTo(hip.x, hip.y),
         ctx.lineTo(head.x, head.y),
         ctx.stroke();
-        head.addToSelf(head.sub(hip).scale(0.25));
+        head.add(head.difference(hip).scale(0.25));
         ctx.lineWidth = 2 * this.parent.scene.zoom;
         ctx.beginPath(),
         ctx.moveTo(head.x + 5 * this.parent.scene.zoom, head.y),
@@ -125,15 +125,15 @@ export default class {
         let e = [this.head, this.elbow, this.shadowElbow, this.hand, this.shadowHand];
         let f = [this.hip, this.knee, this.shadowKnee, this.foot, this.shadowFoot];
         for (const point of e) {
-            point.old = point.position.sub(a);
+            point.old = point.position.difference(a);
         }
 
         for (const point of f) {
-            point.old = point.position.sub(b);
+            point.old = point.position.difference(b);
         }
 
         for (const point of this.points) {
-            point.velocity.copy(point.position.sub(point.old)),
+            point.velocity.set(point.position.difference(point.old)),
             point.velocity.x += Math.random() - Math.random(),
             point.velocity.y += Math.random() - Math.random()
         }

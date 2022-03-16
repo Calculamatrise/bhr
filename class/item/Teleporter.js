@@ -5,7 +5,7 @@ export default class Teleporter extends SingleUseItem {
     alt = null;
     type = "W";
     static clip() {
-        this.mouse.old.copy(this.mouse.position);
+        this.mouse.old.set(this.mouse.position);
         if (this.teleporter !== null) {
             if (this.teleporter.position.distanceTo(this.mouse.old) > 40) {
                 this.teleporter.createAlt(this.mouse.old.x, this.mouse.old.y);
@@ -63,7 +63,6 @@ export default class Teleporter extends SingleUseItem {
     activate(part, alt = false) {
         if (alt) {
             part.parent.move(this.position.x - this.alt.x, this.position.y - this.alt.y);
-
             return;
         }
         

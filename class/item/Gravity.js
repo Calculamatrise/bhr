@@ -4,6 +4,6 @@ export default class Gravity extends Triangle {
     type = "G";
     color = "#0f0";
     activate(part) {
-        part.parent.parent.gravity.copy(this.dir.scale(.3));
+        part.parent.parent.gravity.set(this.dir.scale(.3));
     }
 }

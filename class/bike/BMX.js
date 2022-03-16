@@ -33,7 +33,6 @@ export default class BMX extends Bike {
 
         this.rotationFactor = 6;
     }
-    
     name = "BMX";
     draw(ctx) {
         const rearWheel = this.rearWheel.position.toPixel();
@@ -53,12 +52,12 @@ export default class BMX extends Bike {
         ctx.arc(frontWheel.x, frontWheel.y, this.parent.scene.zoom * 10, 0, 2 * Math.PI);
         ctx.stroke();
         
-        let l = frontWheel.sub(rearWheel);
+        let l = frontWheel.difference(rearWheel);
         let i = new Vector((frontWheel.y - rearWheel.y) * this.dir, (rearWheel.x - frontWheel.x) * this.dir);
-        let a = rearWheel.add(l.scale(0.3)).add(i.scale(0.25));
-        let n = rearWheel.add(l.scale(0.84)).add(i.scale(0.42));
-        let c = rearWheel.add(l.scale(0.84)).add(i.scale(0.37));
-        let w = rearWheel.add(l.scale(0.4)).add(i.scale(0.05));
+        let a = rearWheel.sum(l.scale(0.3)).sum(i.scale(0.25));
+        let n = rearWheel.sum(l.scale(0.84)).sum(i.scale(0.42));
+        let c = rearWheel.sum(l.scale(0.84)).sum(i.scale(0.37));
+        let w = rearWheel.sum(l.scale(0.4)).sum(i.scale(0.05));
 
         ctx.beginPath(),
         ctx.lineWidth = this.parent.scene.zoom * 3,
@@ -70,12 +69,12 @@ export default class BMX extends Bike {
         ctx.lineTo(rearWheel.x, rearWheel.y);
 
         c = new Vector(Math.cos(this.pedalSpeed) * this.parent.scene.zoom * 6, Math.sin(this.pedalSpeed) * this.parent.scene.zoom * 6);
-        n = w.add(c);
-        c = w.sub(c);
+        n = w.sum(c);
+        c = w.difference(c);
 
-        let C = rearWheel.add(l.scale(0.17)).add(i.scale(0.38));
-        let X = rearWheel.add(l.scale(0.3)).add(i.scale(0.45));
-        let T = rearWheel.add(l.scale(0.25)).add(i.scale(0.4));
+        let C = rearWheel.sum(l.scale(0.17)).sum(i.scale(0.38));
+        let X = rearWheel.sum(l.scale(0.3)).sum(i.scale(0.45));
+        let T = rearWheel.sum(l.scale(0.25)).sum(i.scale(0.4));
 
         ctx.moveTo(n.x, n.y);
         ctx.lineTo(c.x, c.y);
@@ -84,11 +83,11 @@ export default class BMX extends Bike {
         ctx.moveTo(w.x, w.y);
         ctx.lineTo(T.x, T.y);
 
-        C = rearWheel.add(l.scale(0.97));
-        X = rearWheel.add(l.scale(0.8)).add(i.scale(0.48));
-        T = rearWheel.add(l.scale(0.86)).add(i.scale(0.5));
-        let Y = rearWheel.add(l.scale(0.82)).add(i.scale(0.65));
-        w = rearWheel.add(l.scale(0.78)).add(i.scale(0.67));
+        C = rearWheel.sum(l.scale(0.97));
+        X = rearWheel.sum(l.scale(0.8)).sum(i.scale(0.48));
+        T = rearWheel.sum(l.scale(0.86)).sum(i.scale(0.5));
+        let Y = rearWheel.sum(l.scale(0.82)).sum(i.scale(0.65));
+        w = rearWheel.sum(l.scale(0.78)).sum(i.scale(0.67));
 
         ctx.moveTo(rearWheel.x + l.x, rearWheel.y + l.y),
         ctx.lineTo(C.x, C.y),
@@ -99,11 +98,11 @@ export default class BMX extends Bike {
         ctx.stroke();
         
         if (!this.parent.dead) {
-            i = this.head.position.toPixel().sub(rearWheel).sub(l.scale(0.5));
-            let h = a.sub(l.scale(0.1)).add(i.scale(0.3));
-            T = n.sub(h);
+            i = this.head.position.toPixel().difference(rearWheel).difference(l.scale(0.5));
+            let h = a.difference(l.scale(0.1)).sum(i.scale(0.3));
+            T = n.difference(h);
             let za = this.dir * this.parent.scene.zoom ** 2 / T.dot(T);
-            let M = h.add(T.scale(.5)).add(new Vector(T.y, -T.x).scale(200 * za));
+            let M = h.sum(T.scale(.5)).sum(new Vector(T.y, -T.x).scale(200 * za));
 
             ctx.lineWidth = this.parent.scene.zoom * 6,
             ctx.save(),
@@ -121,7 +120,7 @@ export default class BMX extends Bike {
             ctx.lineTo(h.x, h.y),
             ctx.stroke();
 
-            n = a.add(l.scale(0.05)).add(i.scale(0.88));
+            n = a.sum(l.scale(0.05)).sum(i.scale(0.88));
 
             ctx.beginPath(),
             ctx.lineWidth = this.parent.scene.zoom * 8,
@@ -129,7 +128,7 @@ export default class BMX extends Bike {
             ctx.lineTo(n.x, n.y),
             ctx.stroke();
 
-            c = a.add(l.scale(0.15)).add(i.scale(1.05));
+            c = a.sum(l.scale(0.15)).sum(i.scale(1.05));
 
             ctx.beginPath(),
             ctx.lineWidth = this.parent.scene.zoom * 2,
@@ -139,21 +138,21 @@ export default class BMX extends Bike {
             ctx.beginPath();
             switch(this.parent.cosmetics.head) {
                 case "cap":
-                    ctx.moveTo(...Object.values(a.add(l.scale(0.4)).add(i.scale(1.1)))),
-                    ctx.lineTo(...Object.values(a.add(l.scale(0.05)).add(i.scale(1.05)))),
+                    ctx.moveTo(...Object.values(a.sum(l.scale(0.4)).sum(i.scale(1.1)))),
+                    ctx.lineTo(...Object.values(a.sum(l.scale(0.05)).sum(i.scale(1.05)))),
                     ctx.stroke();
                     break;
 
                 case "hat":
-                    c = a.add(l.scale(0.35)).add(i.scale(1.15));
-                    h = a.sub(l.scale(0.05)).add(i.scale(1.1));
+                    c = a.sum(l.scale(0.35)).sum(i.scale(1.15));
+                    h = a.difference(l.scale(0.05)).sum(i.scale(1.1));
 
                     ctx.fillStyle = this.parent.scene.parent.theme === "dark" ? "#fbfbfb" : "#000000";
                     ctx.moveTo(c.x, c.y),
-                    ctx.lineTo(...Object.values(a.add(l.scale(0.25)).add(i.scale(1.13)))),
+                    ctx.lineTo(...Object.values(a.sum(l.scale(0.25)).sum(i.scale(1.13)))),
                     ctx.lineTo(c.x - 0.1 * l.x + 0.2 * i.x, c.y - 0.1 * l.y + 0.2 * i.y),
                     ctx.lineTo(h.x + 0.02 * l.x + 0.2 * i.x, h.y + 0.02 * l.y + 0.2 * i.y),
-                    ctx.lineTo(...Object.values(a.add(l.scale(0.05)).add(i.scale(1.11)))),
+                    ctx.lineTo(...Object.values(a.sum(l.scale(0.05)).sum(i.scale(1.11)))),
                     ctx.lineTo(h.x, h.y),
                     ctx.stroke(),
                     ctx.fill();
@@ -163,7 +162,7 @@ export default class BMX extends Bike {
             ctx.lineWidth = this.parent.scene.zoom * 5;
             ctx.beginPath(),
             ctx.moveTo(n.x, n.y),
-            ctx.lineTo(...Object.values(new Vector((n.y - w.y), -(n.x - w.x)).scale(130 * this.dir * this.parent.scene.zoom ** 2).oppositeScale(n.distanceToSquared(w)).add(n.sub(w).scale(.4)).add(w))),
+            ctx.lineTo(...Object.values(new Vector((n.y - w.y), -(n.x - w.x)).scale(130 * this.dir * this.parent.scene.zoom ** 2).oppositeScale(n.distanceToSquared(w)).sum(n.difference(w).scale(.4)).sum(w))),
             ctx.lineTo(w.x, w.y),
             ctx.stroke()
         }

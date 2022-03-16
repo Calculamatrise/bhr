@@ -1,15 +1,12 @@
-import Vector from "../Vector.js";
 import Sector from "./sector/Sector.js";
 
 export default class {
     constructor(parent) {
         this.scene = parent;
     }
-
     size = 1;
     scale = 100;
     rows = new Map();
-
     get sectors() {
         let sectors = [];
         for (const row of this.rows.values()) {
@@ -42,20 +39,14 @@ export default class {
         return row.get(y);
     }
 
-    range(start, end) {
+    range(min, max) {
         let sectors = [];
-        for (let x = start.x; x <= end.x; x++) {
-            for (let y = start.y; y <= end.y; y++) {
+        for (let x = min.x; x <= max.x; x++) {
+            for (let y = min.y; y <= max.y; y++) {
                 sectors.push(this.sector(x, y));
             }
         }
 
         return sectors;
-    }
-
-    sectorsInView() {
-        const topLeft = new Vector().toCanvas(this.scene.parent.canvas).oppositeScale(this.scale).floor();
-        const bottomRight = new Vector(this.scene.parent.canvas.width, this.scene.parent.canvas.height).toCanvas(this.scene.parent.canvas).oppositeScale(this.scale).floor();
-        return this.sectors.filter((sector) => sector.row > topLeft.x && sector.row < bottomRight.x && sector.column > topLeft.y && sector.column < bottomRight.y);
     }
 }

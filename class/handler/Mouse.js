@@ -9,7 +9,7 @@ export default class extends EventEmitter {
 
         this.down = false;
         this.position = new Vector();
-		
+
         this.canvas.addEventListener("click", this.click.bind(this));
         this.canvas.addEventListener("mouseover", this.mouseover.bind(this));
 		this.canvas.addEventListener("mousedown", this.mousedown.bind(this));
@@ -18,9 +18,7 @@ export default class extends EventEmitter {
         this.canvas.addEventListener("mousewheel", this.mousewheel.bind(this));
         this.canvas.addEventListener("contextmenu", this.preventDefault);
     }
-
     old = new Vector();
-
     get real() {
         return this.position.toPixel();
     }
@@ -43,7 +41,7 @@ export default class extends EventEmitter {
         this.down = true;
 
         this.emit("mousedown", event);
-        this.old.copy(this.position);
+        this.old.set(this.position);
 
         return this.down;
 	}
@@ -51,7 +49,7 @@ export default class extends EventEmitter {
     mousemove(event) {
         event.preventDefault();
 
-        this.position.copy(new Vector(event.offsetX, event.offsetY).toCanvas());
+        this.position.set(new Vector(event.offsetX, event.offsetY).toCanvas(this.canvas));
 
         return this.emit("mousemove", event);
     }

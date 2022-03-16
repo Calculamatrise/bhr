@@ -4,7 +4,7 @@ export default class {
     constructor(t, e, i, s, n) {
         this.a = t instanceof Vector ? t : new Vector(t, e);
         this.b = e instanceof Vector ? e : new Vector(i, s);
-        this.vector = this.b.sub(this.a);
+        this.vector = this.b.difference(this.a);
         this.len = this.vector.getLength();
         this.scene = n;
     }
@@ -17,18 +17,18 @@ export default class {
     }
 
     erase(vector) {
-        let b = vector.sub(this.a).dot(this.vector.oppositeScale(this.len));
+        let b = vector.difference(this.a).dot(this.vector.oppositeScale(this.len));
         let c = new Vector();
         if (b >= this.len) {
-            c.copy(this.b)
+            c.set(this.b)
         } else {
-            c.copy(this.a);
+            c.set(this.a);
             if (b > 0) {
-                c.addToSelf(this.vector.oppositeScale(this.len).scale(b));
+                c.add(this.vector.oppositeScale(this.len).scale(b));
             }
         }
 
-        return vector.sub(c).getLength() <= this.scene.toolHandler.currentTool.size && this.remove();
+        return vector.difference(c).getLength() <= this.scene.toolHandler.currentTool.size && this.remove();
     }
 
     commit() {

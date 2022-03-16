@@ -5,7 +5,7 @@ export default class Boost extends Triangle {
     color = "#ff0";
     activate(part) {
         for (const mass of part.parent.masses) {
-            mass.position.addToSelf(this.dir);
+            mass.position.add(this.dir);
         }
     }
 }
