@@ -19,10 +19,6 @@ export default class extends EventEmitter {
         this.canvas.addEventListener("contextmenu", this.preventDefault);
     }
     old = new Vector();
-    get real() {
-        return this.position.toPixel();
-    }
-
     click(event) {
         event.preventDefault();
 		

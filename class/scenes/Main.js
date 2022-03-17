@@ -43,7 +43,7 @@ export default class {
     pictureMode = false;
     grid = new Grid(this);
     camera = new Vector();
-    zoom = 0.6 * window.devicePixelRatio;
+    zoom = .6 * window.devicePixelRatio;
     toolHandler = new ToolHandler(this);
     history = new UndoManager();
     get targets() {
@@ -63,20 +63,16 @@ export default class {
     }
 
     zoomIn() {
-        if (this.zoom < 4 * window.devicePixelRatio) {
-            this.zoom = Math.round(10 * this.zoom + window.devicePixelRatio * 2) / 10;
-            for (const sector of this.grid.sectors) {
-                sector.rendered = false;
-            }
+        this.zoom = Math.min(Math.round(10 * this.zoom + window.devicePixelRatio * 2) / 10, window.devicePixelRatio * 4);
+        for (const sector of this.grid.sectors) {
+            sector.rendered = false;
         }
     }
 
     zoomOut() {
-        if (this.zoom > .2 * window.devicePixelRatio) {
-            this.zoom = Math.round(10 * this.zoom - window.devicePixelRatio * 2) / 10;
-            for (const sector of this.grid.sectors) {
-                sector.rendered = false;
-            }
+        this.zoom = Math.max(Math.round(10 * this.zoom - window.devicePixelRatio * 2) / 10, window.devicePixelRatio / 5);
+        for (const sector of this.grid.sectors) {
+            sector.rendered = false;
         }
     }
 

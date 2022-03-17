@@ -315,7 +315,7 @@ export default class {
             return;
         }
 
-        this.init(code.value);
+        this.init(code);
     }
 
     loadFile() {
