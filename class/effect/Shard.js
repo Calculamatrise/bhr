@@ -23,7 +23,7 @@ export default class Shard extends Mass {
         ctx.save();
         ctx.beginPath(),
         ctx.moveTo(d, c),
-        ctx.fillStyle = this.parent.scene.parent.theme === "dark" ? "#fbfbfb" : "#000000";
+        ctx.fillStyle = this.parent.scene.parent.settings.theme === "dark" ? "#fbfbfb" : "#000000";
         for (let e = 2; 8 > e; e++)
             c = this.shape[e - 1] * this.size * this.parent.scene.zoom / 2,
             d = a.x + c * Math.cos(this.rotation + 6.283 * e / 8),

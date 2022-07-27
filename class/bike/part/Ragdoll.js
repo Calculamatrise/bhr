@@ -78,7 +78,7 @@ export default class {
         ctx.lineWidth = 5 * this.parent.scene.zoom;
         ctx.lineJoin = "round";
         ctx.beginPath(),
-        ctx.strokeStyle = this.parent.scene.parent.theme === "dark" ? "#fbfbfb80" : "rgba(0,0,0,0.5)";
+        ctx.strokeStyle = this.parent.scene.parent.settings.theme === "dark" ? "#fbfbfb80" : "rgba(0,0,0,0.5)";
         ctx.moveTo(head.x, head.y),
         ctx.lineTo(shadowElbow.x, shadowElbow.y),
         ctx.lineTo(shadowHand.x, shadowHand.y),
@@ -87,7 +87,7 @@ export default class {
         ctx.lineTo(shadowFoot.x, shadowFoot.y),
         ctx.stroke();
         ctx.beginPath(),
-        ctx.strokeStyle = this.parent.scene.parent.theme === "dark" ? "#fbfbfb" : "#000000";
+        ctx.strokeStyle = this.parent.scene.parent.settings.theme === "dark" ? "#fbfbfb" : "#000000";
         ctx.moveTo(head.x, head.y),
         ctx.lineTo(elbow.x, elbow.y),
         ctx.lineTo(hand.x, hand.y),

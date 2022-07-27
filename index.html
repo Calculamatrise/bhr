@@ -5,9 +5,7 @@
         <meta name="viewport" content="width=device-width, initial-scale=1.0">
         <title>Black Hat Rider - Calculamatrise</title>
         <link rel="stylesheet" href="styles/default.css">
-        <link rel="stylesheet" href="styles/dark.css" id="theme" onload="
-        localStorage.getItem('theme') === 'midnight' && (this.href = 'styles/midnight.css') || localStorage.getItem('theme') !== 'dark' && (this.href = 'styles/light.css')
-        ">
+        <link rel="stylesheet" href="styles/dark.css" id="theme">
     </head>
     <body>
         <game-container>
@@ -64,9 +62,9 @@
                         <label for="auto-pause">Auto pause&emsp;<input type="checkbox" id="auto-pause"></label>
                     </div>
                     <div id="theme">
-                        <button onclick="localStorage.setItem('theme', 'light'), document.querySelector('link#theme').href = 'styles/light.css', window.game.scene.grid.sectors.forEach(sector => sector.rendered = false);">Light</button>
-                        <button onclick="localStorage.setItem('theme', 'midnight'), document.querySelector('link#theme').href = 'styles/dark.css', window.game.scene.grid.sectors.forEach(sector => sector.rendered = false);">Midnight</button>
-                        <button onclick="localStorage.setItem('theme', 'dark'), document.querySelector('link#theme').href = 'styles/dark.css', window.game.scene.grid.sectors.forEach(sector => sector.rendered = false);">Dark</button>
+                        <button onclick="game.settings.theme = 'light', document.querySelector('link#theme').href = 'styles/light.css', window.game.scene.grid.sectors.forEach(sector => sector.rendered = false);">Light</button>
+                        <button onclick="game.settings.theme = 'midnight', document.querySelector('link#theme').href = 'styles/dark.css', window.game.scene.grid.sectors.forEach(sector => sector.rendered = false);">Midnight</button>
+                        <button onclick="game.settings.theme = 'dark', document.querySelector('link#theme').href = 'styles/dark.css', window.game.scene.grid.sectors.forEach(sector => sector.rendered = false);">Dark</button>
                     </div>
                 </game-overlay>
                 <toolbar>

@@ -35,13 +35,13 @@ export default class BMX extends Bike {
     }
     name = "BMX";
     draw(ctx) {
-        const rearWheel = this.rearWheel.position.toPixel();
-        const frontWheel = this.frontWheel.position.toPixel();
-        
+        let rearWheel = this.rearWheel.position.toPixel();
+        let frontWheel = this.frontWheel.position.toPixel();
+
         ctx.globalAlpha = this.parent.ghost ? .5 : 1;
         ctx.lineCap = "round";
         ctx.lineJoin = "round";
-        ctx.strokeStyle = this.parent.scene.parent.theme === "dark" ? "#fbfbfb" : "#000000";
+        ctx.strokeStyle = this.parent.scene.parent.settings.theme === "dark" ? "#fbfbfb" : "#000000";
         ctx.lineWidth = 3.5 * this.parent.scene.zoom;
 
         ctx.beginPath();
@@ -147,7 +147,7 @@ export default class BMX extends Bike {
                     c = a.sum(l.scale(0.35)).sum(i.scale(1.15));
                     h = a.difference(l.scale(0.05)).sum(i.scale(1.1));
 
-                    ctx.fillStyle = this.parent.scene.parent.theme === "dark" ? "#fbfbfb" : "#000000";
+                    ctx.fillStyle = this.parent.scene.parent.settings.theme === "dark" ? "#fbfbfb" : "#000000";
                     ctx.moveTo(c.x, c.y),
                     ctx.lineTo(...Object.values(a.sum(l.scale(0.25)).sum(i.scale(1.13)))),
                     ctx.lineTo(c.x - 0.1 * l.x + 0.2 * i.x, c.y - 0.1 * l.y + 0.2 * i.y),

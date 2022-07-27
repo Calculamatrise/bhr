@@ -44,7 +44,7 @@ export default class MTB extends Bike {
         ctx.globalAlpha = this.parent.ghost ? .5 : 1;
         ctx.lineCap = "round";
         ctx.lineJoin = "round";
-        ctx.strokeStyle = this.parent.scene.parent.theme === "dark" ? "#fbfbfb" : "#000000";
+        ctx.strokeStyle = this.parent.scene.parent.settings.theme === "dark" ? "#fbfbfb" : "#000000";
         ctx.lineWidth = 3.5 * this.parent.scene.zoom;
         
         ctx.beginPath();
@@ -108,13 +108,13 @@ export default class MTB extends Bike {
             , m = l.difference(i)
             , h = i.sum(m.scale(0.5)).sum(new Vector(m.y * this.dir, -m.x * this.dir).scaleSelf(this.parent.scene.zoom * this.parent.scene.zoom).scale(200 / m.lengthSquared()));
             ctx.beginPath(),ctx.lineWidth = 6 * this.parent.scene.zoom;
-            ctx.strokeStyle = this.parent.scene.parent.theme === "dark" ? "#FBFBFB80" : "rgba(0, 0, 0, 0.5)";
+            ctx.strokeStyle = this.parent.scene.parent.settings.theme === "dark" ? "#FBFBFB80" : "rgba(0, 0, 0, 0.5)";
             ctx.moveTo(l.x, l.y),
             ctx.lineTo(h.x, h.y),
             ctx.lineTo(i.x, i.y),
             ctx.stroke(),
             ctx.beginPath(),
-            ctx.strokeStyle = this.parent.scene.parent.theme === "dark" ? "#fbfbfb" : "#000000";
+            ctx.strokeStyle = this.parent.scene.parent.settings.theme === "dark" ? "#fbfbfb" : "#000000";
             ctx.moveTo(d.x, d.y),
             ctx.lineTo(n.x, n.y),
             ctx.lineTo(i.x, i.y),
@@ -146,7 +146,7 @@ export default class MTB extends Bike {
                     c = c.sum(e.scale(0.09)).sum(f.scale(1.15)),
                     n = d.difference(e.scale(0.1)).add(f.scale(0.2)),
                     e = i.sum(e.scale(0.02)).add(f.scale(0.2)),
-                    ctx.fillStyle = this.parent.scene.parent.theme === "dark" ? "#fbfbfb" : "#000000",
+                    ctx.fillStyle = this.parent.scene.parent.settings.theme === "dark" ? "#fbfbfb" : "#000000",
                     ctx.lineJoin = "round",
                     ctx.moveTo(d.x, d.y),
                     ctx.lineTo(l.x, l.y),

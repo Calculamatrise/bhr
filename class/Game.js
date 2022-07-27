@@ -1,20 +1,18 @@
-import Mouse from "./handler/Mouse.js";
-
-import Main from "./scenes/Main.js";
-
+import RecursiveProxy from "./RecursiveProxy.js";
 import Vector from "./Vector.js";
+import Main from "./scenes/Main.js";
+import Mouse from "./handler/Mouse.js";
 
 export default class {
     constructor(canvas) {
         this.canvas = canvas;
+        this.ctx = canvas.getContext("2d");
+        this.container = canvas.parentElement;
 
-        this.ctx = this.canvas.getContext("2d");
-        this.container = this.canvas.parentElement;
-        
-        window.addEventListener("resize", this.adjust.bind(this.canvas));
-        this.adjust.call(this.canvas);
+        window.addEventListener("resize", this.adjust.bind(canvas));
+        this.adjust.call(canvas);
 
-        this.mouse = new Mouse(this.canvas);
+        this.mouse = new Mouse(canvas);
         this.mouse.on("mousedown", this.press.bind(this));
         this.mouse.on("mousemove", this.stroke.bind(this));
         this.mouse.on("mouseup", this.clip.bind(this));
@@ -22,6 +20,11 @@ export default class {
 
         document.addEventListener("keydown", this.keydown.bind(this));
         document.addEventListener("keyup", this.keyup.bind(this));
+
+        let theme = document.querySelector("link#theme");
+        if (this.settings.theme != "dark") {
+            theme.href = `styles/${this.settings.theme}.css`;
+        }
     }
     ups = 25;
     lastTime = performance.now();
@@ -31,25 +34,9 @@ export default class {
         return 1000 / this.ups;
     }
 
-    get theme() {
-        const theme = localStorage.getItem("theme");
-        if (theme === null) {
-            return localStorage.setItem("theme", window.matchMedia("(prefers-color-scheme: dark)").matches ? "dark" : "light"), this.theme;
-        }
-
-        return theme;
-    }
-
     get settings() {
         let settings; this.settings = {};
-        return settings = new Proxy(JSON.parse(localStorage.getItem("bhr-settings")), {
-            get(target, key) {
-                if (typeof target[key] === "object" && target[key] !== null) {
-                    return new Proxy(target[key], this);
-                }
-
-                return target[key];
-            },
+        return settings = new RecursiveProxy(JSON.parse(localStorage.getItem("bhr-settings")), {
             set(object, property, value) {
                 object[property] = value;
 
