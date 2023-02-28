@@ -19,42 +19,49 @@ import Slowmo from "../item/Slowmo.js";
 import Teleporter from "../item/Teleporter.js";
 
 export default class {
-    constructor(parent, { id = null, code = "-18 1i 18 1i###BMX" }) {
+	camera = new Vector();
+	cameraLock = false;
+    cameraFocus = null;
+    collectables = [];
+	currentTime = 0;
+    editor = false;
+	freezeFrame = true;
+	grid = new Grid(this);
+	history = new UndoManager();
+	parent = null;
+	paused = false;
+    pictureMode = false;
+	players = [];
+	processing = true;
+	progress = 0;
+    sprogress = 0;
+	toolHandler = new ToolHandler(this);
+    zoom = .6 * window.devicePixelRatio;
+    constructor(parent, { id = null, code = "-18 1i 18 1i###BMX" } = {}) {
         this.parent = parent;
         this.id = id;
         this.editor = !this.id;
         if (this.editor) {
-            this.toolHandler.setTool("line");
+            this.toolHandler.setTool('line');
         }
 
         this.read(code);
     }
-    players = [];
-    progress = 0;
-    sprogress = 0;
-    editor = false;
-    paused = false;
-    currentTime = 0;
-    processing = true;
-    collectables = [];
-    freezeFrame = true;
-    cameraLock = false;
-    cameraFocus = null;
-    pictureMode = false;
-    grid = new Grid(this);
-    camera = new Vector();
-    zoom = .6 * window.devicePixelRatio;
-    toolHandler = new ToolHandler(this);
-    history = new UndoManager();
+
     get targets() {
-        return this.collectables.filter(item => item.type === "T").length;
+        return this.collectables.filter(({ type }) => type === 'T').length;
     }
+
+	get timeText() {
+		let t = this.currentTime / this.parent.max / .03;
+		return Math.floor(t / 6e4) + ':' + String((t % 6e4 / 1e3).toFixed(2)).padStart(5, '0');
+	}
 
     get firstPlayer() {
-        return this.players[0];
+        return this.players[0] ?? null;
     }
 
-    init(vehicle = "BMX") {
+    init(vehicle = 'BMX') {
         this.players.push(new Player(this, {
             vehicle: vehicle
         }));
@@ -77,16 +84,14 @@ export default class {
     }
 
     switchBike() {
-        this.firstPlayer.vehicle.name = this.firstPlayer.vehicle.name === "BMX" ? "MTB" : "BMX";
+        this.firstPlayer.vehicle.name = this.firstPlayer.vehicle.name == 'BMX' ? 'MTB' : 'BMX';
         this.reset();
         this.cameraFocus = this.firstPlayer.vehicle.head;
     }
 
     gotoCheckpoint() {
-        this.removeCollectedItems();
-
         this.paused = this.parent.settings.ap;
-        this.parent.container.querySelector("playpause")?.classList[this.paused ? "remove" : "add"]("playing");
+        this.parent.container.querySelector('playpause')?.classList[this.paused ? "remove" : "add"]("playing");
         if (this.firstPlayer.snapshots.length > 0) {
             for (const player of this.players) {
                 player.restore(player.snapshots[player.snapshots.length - 1]);
@@ -105,11 +110,7 @@ export default class {
     removeCheckpoint() {
         for (const player of this.players) {
             if (player.snapshots.length > 0) {
-                if (player.snapshots.cache !== void 0) {
-                    player.snapshots.cache.push(player.snapshots[player.snapshots.length - 1]);
-                }
-
-                player.snapshots.pop();
+                player.snapshots.cache.push(player.snapshots.pop());
             }
         }
 
@@ -119,11 +120,7 @@ export default class {
     restoreCheckpoint() {
         for (const player of this.players) {
             if (player.snapshots.cache.length > 0) {
-                if (player.snapshots !== void 0) {
-                    player.snapshots.push(player.snapshots.cache[player.snapshots.cache.length - 1]);
-                }
-                
-                player.snapshots.cache.pop();
+                player.snapshots.push(player.snapshots.cache.pop());
             }
         }
 
@@ -132,9 +129,7 @@ export default class {
 
     collectItems(items) {
         for (const powerup of this.collectables) {
-            if (items.has(powerup.id)) {
-                powerup.used = true;
-            }
+			powerup.used = items.has(powerup.id);
         }
     }
 
@@ -144,10 +139,10 @@ export default class {
         }
     }
 
-    watchGhost(data, { id, vehicle = "BMX" } = {}) {
+    watchGhost(data, { id, vehicle = 'BMX' } = {}) {
         let records = data.split(/\s?\u002C\s?/g).map(item => new Set(item.split(/\s+/g).filter(item => item).map(item => isNaN(+item) ? item : +item)));
         let v = Array.from(records[records.length - 1])[0];
-        if (["BMX", "MTB"].includes(v.toUpperCase())) {
+        if (['BMX', 'MTB'].includes(v.toUpperCase())) {
             vehicle = v;
         }
 
@@ -186,7 +181,7 @@ export default class {
         if (this.freezeFrame && this.parent.settings.ap && this.firstPlayer.gamepad.downKeys.size > 0) {
             this.freezeFrame = false;
             this.paused = false;
-            this.parent.container.querySelector("playpause")?.classList[this.paused ? "remove" : "add"]("playing");
+            this.parent.container.querySelector('playpause')?.classList[this.paused ? "remove" : "add"]("playing");
         }
 
         if (!this.paused && !this.processing) {
@@ -195,6 +190,7 @@ export default class {
             }
 
             this.currentTime += this.parent.max;
+			// this.currentTime++
         }
 
         if (this.cameraFocus) {
@@ -210,8 +206,11 @@ export default class {
 
         if (!this.cameraFocus) {
             ctx.save();
-            ctx.strokeStyle = this.parent.theme === "dark" ? "#fff" : "#000";
-            this.toolHandler.draw(ctx);
+            ctx.strokeStyle = this.parent.settings.theme === "dark" ? "#fff" : "#000";
+			if (!this.processing) {
+            	this.toolHandler.draw(ctx);
+			}
+
             ctx.restore();
         }
     }
@@ -240,24 +239,11 @@ export default class {
         }
 
         ctx.beginPath(),
-        ctx.lineWidth = 1,
-        ctx.fillStyle = "#ff0",
-        ctx.arc(45, 12, 3.5, 0, 2 * Math.PI),
-        ctx.fill(),
-        ctx.stroke();
-
-        ctx.beginPath(),
         ctx.lineWidth = 10,
-        ctx.strokeStyle = this.parent.theme === "dark" ? "#1b1b1b" : "#fff",
-        ctx.fillStyle = this.parent.theme === "dark" ? "#fbfbfb" : "#000";
+        ctx.strokeStyle = this.parent.settings.theme == 'dark' ? "#1b1b1b" : "#fff",
+        ctx.fillStyle = this.parent.settings.theme == 'dark' ? "#fbfbfb" : "#000";
 
-        let e = Math.floor(this.currentTime / 6E4);
-        let h = Math.floor(this.currentTime % 6E4 / 1E3);
-        let c = Math.floor((this.currentTime - 6E4 * e - 1E3 * h) / 100);
-        let i = "";
-        10 > e && (e = "0" + e);
-        10 > h && (h = "0" + h);
-        i = e + ":" + h + "." + c;
+        let i = this.timeText;
         if (this.paused && !this.parent.settings.ap) {
             i += " - Game paused";
         } else if (this.firstPlayer && this.firstPlayer.dead) {
@@ -266,12 +252,12 @@ export default class {
                 i += " or BACKSPACE to cancel Checkpoint"
             }
         } else if (this.id === void 0) {
-            if (this.grid.size === 10 && new Set(["line", "brush"]).has(this.toolHandler.selected)) {
+            if (this.grid.size === 10 && ['line', 'brush'].includes(this.toolHandler.selected)) {
                 i += " - Grid ";
             }
 
             i += " - " + this.toolHandler.selected;
-            if (this.toolHandler.selected === "brush") {
+            if (this.toolHandler.selected === 'brush') {
                 i += " ( size " + this.toolHandler.currentTool.length + " )";
             }
         }
@@ -280,25 +266,48 @@ export default class {
             i = "Loading, please wait... " + Math.floor((this.progress + this.sprogress) / 2);
         }
 
-        ctx.strokeText(i = ": " + this.firstPlayer.targetsCollected + " / " + this.targets + "  -  " + i, 55, 16);
-        ctx.fillText(i, 55, 16);
+		i = `${this.firstPlayer.targetsCollected} / ${this.targets}  -  ${i}`
+		const text = ctx.measureText(i)
+		const goalRadius = (text.fontBoundingBoxAscent + text.fontBoundingBoxDescent) / 2;
+		const goalStrokeWidth = 1;
+		ctx.save();
+		let rect = roundedRect.call(ctx, 45 - goalRadius, 12 - goalRadius / 2, text.width + goalRadius + goalStrokeWidth / 2 + 10, goalRadius, 40, {
+			padding: 5
+		});
+		ctx.clip(),
+		ctx.filter = "blur(10px)",
+		ctx.drawImage(ctx.canvas, rect.x, rect.y, rect.width, rect.height, rect.x, rect.y, rect.width, rect.height);
+		ctx.filter = 'none',
+		ctx.fillStyle = 'rgba(128,128,128,0.4)',
+		ctx.fill(),
+		ctx.restore();
+		ctx.textBaseline = 'middle',
+        ctx.fillText(i, 55, 12);
+		ctx.save(),
+		ctx.beginPath(),
+        ctx.lineWidth = goalStrokeWidth,
+        ctx.fillStyle = "#ff0",
+		ctx.strokeStyle = this.parent.settings.theme == 'dark' ? "#fbfbfb" : "#000";
+        ctx.arc(45, 12, goalRadius / 1.5, 0, 2 * Math.PI),
+        ctx.fill(),
+        ctx.stroke(),
+		ctx.restore();
         if (this.players.length > 1) {
-            for (let p = 1; p < this.players.length; p++) {
+            for (var p = 1, player = this.players[p]; p < this.players.length; player = this.players[++p]) {
                 ctx.textAlign = "right",
-                ctx.fillStyle = this.parent.theme === "dark" ? "#999" : "#aaa",
-                ctx.strokeText(i = (this.players[p].name || "Ghost") + (this.players[p].targetsCollected === this.targets ? " finished!" : ": " + this.players[p].targetsCollected + " / " + this.targets), this.parent.canvas.width - 7, 16 * p + (p * 4));
+                ctx.fillStyle = this.parent.settings.theme == 'dark' ? "#999" : "#aaa",
+                ctx.strokeText(i = (player.name || "Ghost") + (player.targetsCollected === this.targets ? " finished!" : ": " + player.targetsCollected + " / " + this.targets), this.parent.canvas.width - 7, 16 * p + (p * 4));
                 ctx.fillText(i, this.parent.canvas.width - 7, 16 * p + (p * 4)),
                 ctx.textAlign = "left",
-                ctx.fillStyle = this.parent.theme === "dark" ? "#fbfbfb" : "#000";
+                ctx.fillStyle = this.parent.settings.theme == 'dark' ? "#fbfbfb" : "#000";
             }
         }
 
         if (this.pictureMode) {
             let b = (this.parent.canvas.width - 250) / 2;
             c = (this.parent.canvas.height - 150) / 2;
-
             ctx.lineWidth = 1;
-            ctx.strokeStyle = this.parent.theme === "dark" ? "#1b1b1b" : "#fff";
+            ctx.strokeStyle = this.parent.settings.theme === "dark" ? "#1b1b1b" : "#fff";
             ctx.fillStyle = "rgba(0, 0, 0, 0.4)";
             ctx.fillRect(0, 0, this.parent.canvas.width, c);
             ctx.fillRect(0, c + 150, this.parent.canvas.width, c);
@@ -312,28 +321,26 @@ export default class {
     erase(vector) {
         let x = Math.floor(vector.x / this.grid.scale - 0.5);
         let y = Math.floor(vector.y / this.grid.scale - 0.5);
-        let cache = [];
-
-        cache.push(...this.grid.sector(x, y).erase(vector));
-        cache.push(...this.grid.sector(x, y + 1).erase(vector));
-        cache.push(...this.grid.sector(x + 1, y).erase(vector));
-        cache.push(...this.grid.sector(x + 1, y + 1).erase(vector));
-
-        return cache;
+        return [
+			...this.grid.sector(x, y).erase(vector),
+			...this.grid.sector(x, y + 1).erase(vector),
+			...this.grid.sector(x + 1, y).erase(vector),
+			...this.grid.sector(x + 1, y + 1).erase(vector)
+		]
     }
     
     addLine(start, end, type) {
         const line = new (type ? SceneryLine : PhysicsLine)(start.x, start.y, end.x, end.y, this);
         if (line.len >= 2 && line.len < 1e5) {
             this.addLineInternal(line);
-            if (new Set(["line", "brush"]).has(this.toolHandler.selected)) {
+            if (['line', 'brush'].includes(this.toolHandler.selected)) {
                 this.parent.mouse.old.set(this.parent.mouse.position);
             }
         }
 
         this.history.push({
             undo: line.remove.bind(line),
-            redo: () =>  this.addLineInternal(line)
+            redo: () => this.addLineInternal(line)
         });
 
         return line;
@@ -377,7 +384,6 @@ export default class {
     // Fix this garbage.
     read(a = "-18 1i 18 1i###BMX") {
         this.parent.ctx.fillText("Loading track... Please wait.", 36, 16);
-        
         a = a.split("#");
         this.processLines(a[0].split(","));
         this.processLines(a[1].split(","), 1);
@@ -528,4 +534,25 @@ export default class {
 
         return physics.map(line => line.toString()).join(",") + "#" + scenery.map(line => line.toString()).join(",") + "#" + powerups.map(powerup => powerup.toString()).join(",") + "#" + this.firstPlayer.vehicle.name;
     }
+}
+
+function roundedRect(x, y, width, height, radius = 0, options = {}) {
+	if ('padding' in options) {
+		x -= options.padding;
+		y -= options.padding;
+		width += options.padding * 2;
+		height += options.padding * 2;
+	}
+
+	radius = Math.min(width / 2, height / 2, radius);
+	this.moveTo(x + radius, y);
+    this.lineTo(x + width - radius, y);
+    this.arcTo(x + width, y, x + width, y + radius, radius);
+    this.lineTo(x + width, y + height - radius);
+    this.arcTo(x + width, y + height, x + width - radius, y + height, radius);
+    this.lineTo(x + radius, y + height);
+    this.arcTo(x, y + height, x, y + height - radius, radius);
+    this.lineTo(x, y + radius, x, y, radius);
+    this.arcTo(x, y, x + radius, y, radius);
+	return { x, y, width, height }
 }

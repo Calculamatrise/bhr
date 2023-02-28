@@ -11,10 +11,6 @@ export default class Target extends SingleUseItem {
             return;
         }
 
-        if (part.parent.parent.targetsCollected !== part.parent.parent.scene.targets) {
-            return;
-        }
-
         part.parent.parent.pendingConsumables |= 2;
     }
 }

@@ -1,14 +1,15 @@
 export default class {
+	physics = [];
+    scenery = [];
+    powerups = [];
+    rendered = false;
+    canvas = new OffscreenCanvas(100, 100);
     constructor(parent, row, column) {
         this.parent = parent;
         this.row = row;
         this.column = column;
     }
-    physics = [];
-    scenery = [];
-    powerups = [];
-    rendered = false;
-    canvas = document.createElement("canvas");
+
     render() {
         this.canvas.width = this.parent.scale * this.parent.scene.zoom;
         this.canvas.height = this.parent.scale * this.parent.scene.zoom;
@@ -27,14 +28,13 @@ export default class {
         }
 
         this.rendered = true;
-
         return this.canvas;
     }
 
     fix() {
-        for (let line = 0; line < this.physics.length; line++) {
-            this.physics[line].collided = false;
-        }
+		for (const line of this.physics) {
+			line.collided = false;
+		}
     }
 
     collide(part) {
@@ -52,8 +52,7 @@ export default class {
     }
 
     search(min, max) {
-        let objects = [];
-        objects.push(...this.physics.filter(function(line) {
+        return Array(...this.physics, ...this.scenery).filter(function(line) {
             if (min.x < line.a.x && line.a.x < max.x && min.y < line.a.y && line.a.y < max.y) {
                 return true;
             } else if (min.x < line.b.x && line.b.x < max.x && min.y < line.b.y && line.b.y < max.y) {
@@ -61,19 +60,7 @@ export default class {
             }
 
             return false;
-        }));
-
-        objects.push(...this.scenery.filter(function(line) {
-            if (min.x < line.a.x && line.a.x < max.x && min.y < line.a.y && line.a.y < max.y) {
-                return true;
-            } else if (min.x < line.b.x && line.b.x < max.x && min.y < line.b.y && line.b.y < max.y) {
-                return true;
-            }
-
-            return false;
-        }));
-
-        return objects;
+        });
     }
 
     erase(vector) {

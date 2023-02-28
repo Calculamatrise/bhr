@@ -13,6 +13,17 @@ const Bike = {
 }
 
 export default class Player {
+	dead = false;
+    explosion = null;
+    gamepad = new Gamepad(this);
+	ghost = false;
+	gravity = new Vector(0, .3);
+	itemsCollected = new Set();
+	pendingConsumables = 0;
+	ragdoll = null;
+	records = Array.from({ length: 5 }, () => new Set());
+	slow = false;
+    snapshots = new SnapshotHandler();
     constructor(parent, { records, vehicle }) {
         this.scene = parent;
         if (records !== void 0) {
@@ -26,19 +37,9 @@ export default class Player {
         this.createVehicle(vehicle);
         this.createRagdoll();
     }
-    dead = false;
-    slow = false;
-    ghost = false;
-    ragdoll = null;
-    explosion = null;
-    pendingConsumables = 0;
-    itemsCollected = new Set();
-    gravity = new Vector(0, .3);
-    gamepad = new Gamepad(this);
-    snapshots = new SnapshotHandler();
-    records = Array.from({ length: 5 }, () => new Set());
+
     get targetsCollected() {
-        return this.scene.collectables.filter(item => item.type === "T" && this.itemsCollected.has(item.id)).length;
+        return this.scene.collectables.filter(item => item.type == 'T' && this.itemsCollected.has(item.id)).length;
     }
     
     createCosmetics() {

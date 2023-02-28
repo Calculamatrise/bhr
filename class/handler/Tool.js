@@ -51,7 +51,7 @@ export default class {
             this.currentTool.scenery = style;
         }
 
-        let settings = this.scene.parent.container.querySelector("toolbar")?.querySelector("div.left settings");
+        let settings = this.scene.parent.container.querySelector("game-toolbar")?.querySelector("div.left settings");
         settings !== null && settings.style.setProperty("display", new Set(["brush", "circle", "eraser"]).has(this.selected) ? "block" : "none");
 
         settings = settings.querySelector("div[data-id=eraser]");

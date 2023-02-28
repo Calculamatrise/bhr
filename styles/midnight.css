@@ -10,7 +10,8 @@ tool {
     border-color: rgb(59, 67, 73);
 }
 
-tool:hover, tool.active:hover {
+tool:hover,
+tool.active:hover {
     background-color: #2b353acc;
 }
 
@@ -18,7 +19,12 @@ tool.active {
     background-color: #242e3580;
 }
 
-tool *:not(wheel, line, eraser, svg) {
+tool *:not(
+    wheel,
+    line,
+    eraser,
+    svg
+) {
     background-color: #eee;
 }
 
@@ -26,10 +32,29 @@ tool svg, tool svg circle {
     stroke: #eee;
 }
 
-playpause, backtrack, rewind, brush, camera, powerup, fullscreen, increment, decrement {
+tool *:not(
+    wheel,
+    line,
+    eraser,
+    svg
+),
+tool:is(
+    .line,
+    .brush
+):not(.scenery)::before,
+tool:is(
+    .camera,
+    .powerup,
+    .decrement,
+    .increment,
+    .fullscreen,
+    .playpause,
+    .backtrack,
+    .rewind
+)::before {
     background-color: #eee;
 }
 
-powerup {
+tool.powerup::before {
     border-color: #eee;
 }

@@ -1,12 +1,14 @@
 import Sector from "./sector/Sector.js";
 
 export default class {
+	rows = new Map();
+	scale = 100;
+	scene = null;
+	size = 1;
     constructor(parent) {
         this.scene = parent;
     }
-    size = 1;
-    scale = 100;
-    rows = new Map();
+
     get sectors() {
         let sectors = [];
         for (const row of this.rows.values()) {

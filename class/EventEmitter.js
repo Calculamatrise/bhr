@@ -1,50 +1,15 @@
 export default class {
+    /** @private */
     #events = new Map();
-
-    /**
-     * 
-     * @param {String} event 
-     * @param {Function} listener 
-     * @returns {Number}
-     */
-    on(event, listener) {
-        if (typeof event != "string") {
-            throw new TypeError("Event must be of type: String.");
-        } else if (typeof listener != "function") {
-            throw new TypeError("Listener must be of type: Function.");
-        }
-
-        if (!this.#events.has(event)) {
-            this.#events.set(event, new Set());
-        }
-
-        let events = this.#events.get(event);
-        events.add(listener);
-		return events.length;
-	}
-
-    /**
-     * 
-     * @param {String} event 
-     * @param {Function} listener 
-     * @returns {Function}
-     */
-    once(event, listener) {
-        if (typeof event != "string") {
-            throw new TypeError("Event must be of type: String.");
-        }
-
-        return this.on(event + "_once", listener);
-    }
 
     /**
      * 
      * @private
      * @param {String} event 
-     * @param  {...any} args 
+     * @param  {...any} [args] 
      */
     emit(event, ...args) {
-        let listeners = this.#events.get(event) || [];
+        let listeners = Array.from(this.#events.get(event) || []);
         if (typeof this["on" + event] == "function") {
             listeners.push(this["on" + event]);
         }
@@ -60,11 +25,83 @@ export default class {
 
     /**
      * 
+     * @private
+     * @param {Array<String>} events 
+     * @param {...any} [args] 
+     */
+    emits(events, ...args) {
+        if (!(events instanceof Array)) {
+            throw new TypeError("Events must be of type: Array<String>");
+        }
+
+        events.forEach(event => this.emit(event, ...args));
+    }
+
+    /**
+     * 
+     * @param {String} event 
+     * @param {Function} listener 
+     * @returns {Number}
+     */
+    on(event, listener) {
+        if (typeof event != "string") {
+            throw new TypeError("Event must be of type: String");
+        } else if (typeof listener != "function") {
+            throw new TypeError("Listener must be of type: Function");
+        }
+
+        if (!this.#events.has(event)) {
+            this.#events.set(event, new Set());
+        }
+
+        let events = this.#events.get(event);
+		return events.add(listener),
+        events.length;
+	}
+
+    /**
+     * 
+     * @param {String} event 
+     * @param {Function} listener 
+     * @returns {Function}
+     */
+    once(event, listener) {
+        if (typeof event != "string") {
+            throw new TypeError("Event must be of type: String");
+        }
+
+        return this.on(event + "_once", listener);
+    }
+
+    /**
+     * 
+     * @param {String} event 
+     * @returns {Set}
+     */
+    listeners(event) {
+        return this.#events.get(event) || new Set();
+    }
+
+    /**
+     * 
+     * @param {String} event 
+     * @returns {Number}
+     */
+    listenerCount() {
+        return this.listeners().size;
+    }
+
+    /**
+     * 
      * @param {String} event 
      * @param {Function} listener 
      * @returns {Boolean}
      */
     removeListener(event, listener) {
+        if (typeof event != "string") {
+            throw new TypeError("Event must be of type: String");
+        }
+
         let listeners = this.#events.get(event);
         if (listeners !== void 0) {
             listeners.delete(listener);
@@ -76,5 +113,18 @@ export default class {
         }
 
         return true;
+    }
+
+    /**
+     * 
+     * @param {String} event 
+     * @returns {Boolean}
+     */
+    removeAllListeners(event) {
+        if (typeof event != "string") {
+            throw new TypeError("Event must be of type: String");
+        }
+
+        return this.#events.delete(event);
     }
 }

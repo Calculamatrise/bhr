@@ -1,6 +1,7 @@
 import Vector from "../../Vector.js";
 
 export default class {
+	removed = false;
     constructor(t, e, i, s, n) {
         this.a = t instanceof Vector ? t : new Vector(t, e);
         this.b = e instanceof Vector ? e : new Vector(i, s);
@@ -8,7 +9,7 @@ export default class {
         this.len = this.vector.getLength();
         this.scene = n;
     }
-    removed = false;
+
     draw(ctx, e, i) {
         ctx.beginPath();
         ctx.moveTo(this.a.x * this.scene.zoom - e, this.a.y * this.scene.zoom - i);
@@ -37,7 +38,6 @@ export default class {
 
     remove() {
         this.removed = true;
-
         return this.scene.remove(this.a, this.b), this;
     }
 

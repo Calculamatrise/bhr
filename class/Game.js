@@ -4,66 +4,65 @@ import Main from "./scenes/Main.js";
 import Mouse from "./handler/Mouse.js";
 
 export default class {
-    constructor(canvas) {
-        this.canvas = canvas;
-        this.ctx = canvas.getContext("2d");
-        this.container = canvas.parentElement;
-
-        window.addEventListener("resize", this.adjust.bind(canvas));
-        this.adjust.call(canvas);
-
-        this.mouse = new Mouse(canvas);
-        this.mouse.on("mousedown", this.press.bind(this));
-        this.mouse.on("mousemove", this.stroke.bind(this));
-        this.mouse.on("mouseup", this.clip.bind(this));
-        this.mouse.on("mousewheel", this.scroll.bind(this));
-
-        document.addEventListener("keydown", this.keydown.bind(this));
-        document.addEventListener("keyup", this.keyup.bind(this));
-
-        let theme = document.querySelector("link#theme");
-        if (this.settings.theme != "dark") {
-            theme.href = `styles/${this.settings.theme}.css`;
-        }
-    }
-    ups = 25;
-    lastTime = performance.now();
+    accentColor = '#000000' // for themes
     lastFrame = null;
+    lastTime = performance.now();
     progress = 0;
+    ups = 25;
+    settings = new RecursiveProxy(Object.assign({
+        ap: false,
+        theme: window.matchMedia('(prefers-color-scheme: dark)').matches ? 'dark' : 'light'
+    }, JSON.parse(localStorage.getItem('bhr-settings')) ?? {}), {
+        set() {
+            Reflect.set(...arguments);
+            localStorage.setItem('bhr-settings', JSON.stringify(this));
+            return true;
+        },
+        deleteProperty() {
+            Reflect.deleteProperty(...arguments);
+            localStorage.setItem('bhr-settings', JSON.stringify(this));
+            return true;
+        }
+    });
+
     get max() {
         return 1000 / this.ups;
     }
 
-    get settings() {
-        let settings; this.settings = {};
-        return settings = new RecursiveProxy(JSON.parse(localStorage.getItem("bhr-settings")), {
-            set(object, property, value) {
-                object[property] = value;
+    constructor(canvas) {
+        this.canvas = canvas;
+        this.ctx = canvas.getContext('2d');
+        this.container = canvas.parentElement;
 
-                return localStorage.setItem("bhr-settings", JSON.stringify(settings)), true;
-            }
-        });
-    }
+        this.mouse = new Mouse(canvas);
+        this.mouse.on('mousedown', this.press.bind(this));
+        this.mouse.on('mousemove', this.stroke.bind(this));
+        this.mouse.on('mouseup', this.clip.bind(this));
+        this.mouse.on('mousewheel', this.scroll.bind(this));
 
-    set settings(value) {
-        localStorage.setItem("bhr-settings", JSON.stringify(Object.assign({
-            ap: false,
-            theme: window.matchMedia("(prefers-color-scheme: dark)").matches ? "dark" : "light"
-        }, Object.assign(JSON.parse(localStorage.getItem("bhr-settings")) ?? {}, value ?? {}))));
+        document.addEventListener('keydown', this.keydown.bind(this));
+        document.addEventListener('keyup', this.keyup.bind(this));
+
+        window.addEventListener('resize', this.adjust.bind(canvas));
+        window.dispatchEvent(new Event('resize'));
+
+        let theme = document.querySelector('link#theme');
+        if (this.settings.theme != 'dark') {
+            theme.href = `styles/${this.settings.theme}.css`;
+        }
     }
 
     adjust() {
-        this.setAttribute("height", parseFloat(getComputedStyle(this).height) * window.devicePixelRatio);
-        this.setAttribute("width", parseFloat(getComputedStyle(this).width) * window.devicePixelRatio);
+        const style = getComputedStyle(this);
+        this.setAttribute('height', parseFloat(style.height) * window.devicePixelRatio);
+        this.setAttribute('width', parseFloat(style.width) * window.devicePixelRatio);
     }
 
-    init(trackCode, { id = null, vehicle = "BMX" } = {}) {
+    init(trackCode, { id = null, vehicle = 'BMX' } = {}) {
         if (trackCode === null) {
             return;
-        }
-
-        if (typeof vehicle !== "string" || !["BMX", "MTB"].includes(vehicle.toUpperCase())) {
-            throw new Error("Invalid vehicle type.");
+        } else if (!/^bmx|mtb$/i.test(vehicle)) {
+            throw new TypeError("Invalid vehicle type.");
         }
 
         if (this.lastFrame) {
@@ -76,13 +75,11 @@ export default class {
         });
 
         this.scene.init(vehicle);
-
         this.lastFrame = requestAnimationFrame(this.render.bind(this));
     }
 
     render(time) {
         this.lastFrame = requestAnimationFrame(this.render.bind(this));
-
         this.delta = time - this.lastTime;
         // this.delta = Math.min(time - this.lastTime, this.max);
         if (this.delta < this.max) {
@@ -307,9 +304,7 @@ export default class {
 
     loadFile() {
         let reader = new FileReader();
-        reader.addEventListener('load', () => {
-            this.init(this.result);
-        });
+        reader.addEventListener('load', () => this.init(this.result));
 
         let picker = document.createElement('input');
         picker.accept = "text/plain";
@@ -322,25 +317,23 @@ export default class {
     }
 
     saveAs() {
-        let link = document.createElement("a");
+        let link = document.createElement('a');
         link.href = window.URL.createObjectURL(new Blob([ game.scene.toString() ], { type: "text/plain" }));
         link.download = "bhr_track_" + new Date(new Date().setHours(new Date().getHours() - new Date().getTimezoneOffset() / 60)).toISOString().split(/t/i).join("_").replace(/\..+/, "").replace(/:/g, "-");
         link.click();
     }
 
     reset() {
-        if (!confirm("Do you really want to start a new track?")) {
-            return;
+        if (confirm("Do you really want to start a new track?")) {
+            this.init("-18 1i 18 1i###BMX");
         }
-
-        this.init("-18 1i 18 1i###BMX");
     }
 
     close() {
         this.scene = null;
         this.mouse.close();
 
-        window.removeEventListener("resize", this.adjust);
+        window.removeEventListener('resize', this.adjust);
 
         cancelAnimationFrame(this.lastFrame);
     }

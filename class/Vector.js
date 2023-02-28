@@ -1,6 +1,6 @@
 export default class {
     constructor(x = 0, y = 0) {
-        if (typeof arguments[0] === "object") {
+        if (typeof arguments[0] == "object") {
             if (Array.isArray(arguments[0])) {
                 if (arguments[0].length > 0) {
                     this.x = arguments[0][0];

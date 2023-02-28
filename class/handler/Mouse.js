@@ -7,8 +7,8 @@ export default class extends EventEmitter {
         this.canvas = canvas;
         this.canvas.addEventListener("click", this.click.bind(this));
 		this.canvas.addEventListener("mousedown", this.mousedown.bind(this));
-        this.canvas.addEventListener("mousemove", this.mousemove.bind(this));
-		this.canvas.addEventListener("mouseup", this.mouseup.bind(this));
+        window.addEventListener("mousemove", this.mousemove.bind(this));
+		window.addEventListener("mouseup", this.mouseup.bind(this));
         this.canvas.addEventListener("mousewheel", this.mousewheel.bind(this));
         this.canvas.addEventListener("contextmenu", this.preventDefault);
     }

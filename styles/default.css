@@ -6,6 +6,73 @@ body {
     margin: 0;
 }
 
+window-frame {
+    background-color: var(--background);
+    color: #80808080;
+    display: grid;
+    grid-template-columns: 1fr auto;
+    position: relative;
+    user-select: none;
+    -webkit-user-select: none;
+    -webkit-app-region: drag;
+}
+
+window-frame label {
+    font-size: 10px;
+    padding: 0 4px;
+    position: relative;
+    -webkit-app-region: no-drag;
+}
+
+window-frame label:hover {
+    color: #808080ad;
+}
+
+window-frame div[data-position="left"] > * {
+    max-height: 1.25rem;
+    padding: 0.25rem;
+    vertical-align: middle;
+}
+
+window-frame div[data-position="right"] {
+    display: flex;
+    -webkit-app-region: no-drag;
+}
+
+window-frame button {
+    aspect-ratio: auto;
+    background-color: transparent;
+    border-radius: 0;
+    height: -webkit-fill-available;
+    padding: 0.25rem 1rem;
+    position: relative;
+    vertical-align: middle;
+}
+
+window-frame button:hover {
+    background-color: #80808030;
+    color: var(--text);
+}
+
+window-frame button:hover:active {
+    background-color: #80808050;
+}
+
+window-frame button#maximize[title="Restore"]::before {
+    content: "▢";
+    position: absolute;
+    top: 6px;
+    left: 14px;
+}
+
+window-frame button#close:hover {
+    background-color: #ff0000dd;
+}
+
+window-frame button#close:hover:active {
+    background-color: #ff000090;
+}
+
 canvas#view {
     width: 100vw;
     height: 100vh;
@@ -102,7 +169,7 @@ div textarea {
     resize: none;
 }
 
-game-interface toolbar {
+game-interface game-toolbar {
     top: 0;
     width: 100%;
     display: block;
@@ -112,24 +179,24 @@ game-interface toolbar {
     -webkit-user-select: none;
 }
 
-toolbar settings, toolbar settings div[data-id=eraser] {
+game-toolbar settings, game-toolbar settings div[data-id=eraser] {
     display: none;
     margin-top: 25px;
 }
 
-toolbar div.left, toolbar div.right {
+game-toolbar div.left, game-toolbar div.right {
     position: absolute;
 }
 
-toolbar div.left {
+game-toolbar div.left {
     left: 0;
 }
 
-toolbar div.right {
+game-toolbar div.right {
     right: 0;
 }
 
-toolbar tool {
+game-toolbar tool {
     width: 1em;
     height: 1em;
     padding: 8px;
@@ -143,6 +210,10 @@ toolbar tool {
 tool:hover {
     transition: all 40ms;
     background-color: #333;
+}
+
+tool::before {
+    transition: all 200ms;
 }
 
 tool * {
@@ -162,17 +233,17 @@ tool.disabled:hover {
     pointer-events: none;
 }
 
-toolbar div.left tool {
+game-toolbar div.left tool {
     border-right-width: 1px;
     border-right-style: solid;
 }
 
-toolbar div.right tool {
+game-toolbar div.right tool {
     border-left-width: 1px;
     border-left-style: solid;
 }
 
-playpause {
+tool.playpause::before {
     clip-path: polygon(
         0 0,
         50% 25%,
@@ -185,7 +256,7 @@ playpause {
     );
 }
 
-playpause.playing {
+tool.playpause.playing::before {
     clip-path: polygon(
         0 0,
         40% 0,
@@ -198,7 +269,7 @@ playpause.playing {
     );
 }
 
-backtrack {
+tool.backtrack::before {
     clip-path: polygon(
         0 0,
         20% 0,
@@ -211,7 +282,7 @@ backtrack {
     );
 }
 
-rewind {
+tool.rewind::before {
     clip-path: polygon(
         0 0,
         20% 0,
@@ -244,7 +315,8 @@ rewind {
     }
 }
 
-wheel, line {
+wheel,
+line {
     display: block;
     background-color: transparent;
 }
@@ -273,19 +345,39 @@ wheel svg circle {
     stroke-width: 2.5;
 }
 
-brush {
+tool.brush::before {
     clip-path: circle(20%);
 }
 
-brush.scenery {
+tool.scenery::before {
     background-color: #aaa;
 }
 
-line svg {
-    stroke-width: 4;
+tool::before,
+tool.powerup.triangle::after,
+tool.grid::after {
+    content: "";
+    width: inherit;
+    height: inherit;
+    position: absolute;
 }
 
-camera {
+tool.line::before {
+    border-radius: 4px;
+    clip-path: polygon(
+        90% 0,
+        0 90%,
+        10% 100%,
+        100% 10%
+    );
+}
+
+tool.eraser::before {
+    clip-path: circle(45%);
+    background-color: #ffb6c1;
+}
+
+tool.camera::before {
     clip-path: polygon(
         50% 0,
         30% 25%,
@@ -315,57 +407,144 @@ camera {
     );
 }
 
-powerup:not(.triangle) {
-	width: 50%;
-	height: 50%;
-	border-width: 1px;
+tool.grid::before {
+    background-color: #eee;
+    border-radius: 20%;
+    clip-path: polygon(
+        55% 45%,
+        55% 5%,
+        45% 5%,
+        45% 45%,
+        55% 45%,
+        95% 45%,
+        95% 55%,
+        55% 55%,
+        55% 95%,
+        45% 95%,
+        45% 55%,
+        5% 55%,
+        5% 45%
+    );
+}
+
+tool.grid::after {
+    background-color: #eee;
+    border-radius: 20%;
+    clip-path: polygon(
+        30% 80%,
+        30% 5%,
+        20% 5%,
+
+        20% 20%,
+        5% 20%,
+        5% 30%,
+        20% 30%,
+
+        /* MIDDLE HORIZONTAL
+        20% 45%,
+        0 45%,
+        0 55%,
+        20% 55%,
+        END MIDDLE HORIZONTAL */
+
+        20% 70%,
+        5% 70%,
+        5% 80%,
+        20% 80%,
+
+        20% 95%,
+        30% 95%,
+        30% 80%,
+
+        70% 80%,
+        70% 95%,
+        80% 95%,
+        80% 80%,
+
+        95% 80%,
+        95% 70%,
+        80% 70%,
+
+        80% 30%,
+        95% 30%,
+        95% 20%,
+        80% 20%,
+
+        80% 5%,
+        70% 5%,
+
+        70% 70%,
+        30% 70%,
+
+        30% 20%,
+        70% 20%,
+        70% 30%,
+        30% 30%,
+
+        30% 70%
+
+    );
+}
+
+tool.powerup:not(.triangle)::before {
+	border-width: 4px;
 	border-style: solid;
 	border-radius: 50%;
-	clip-path: circle(60%);
+    box-sizing: border-box;
+	clip-path: circle(30%);
 }
 
-powerup.triangle {
-    background-color: transparent;
-}
-
-powerup.target {
+tool.powerup.target::before {
     background-color: #ff0;
 }
 
-powerup.checkpoint {
+tool.powerup.checkpoint::before {
     background-color: #00f;
 }
 
-powerup.boost svg {
-    fill: #ff0;
+tool.powerup.triangle::before {
+    clip-path: polygon(
+        15% 25%,
+        85% 50%,
+        15% 75%,
+        15% 25%
+    );
 }
 
-powerup.gravity svg {
-    fill: #0f0;
+tool.powerup.triangle::after {
+    clip-path: polygon(
+        25% 35%,
+        60% 50%,
+        25% 65%,
+        25% 35%
+    );
 }
 
-powerup.bomb {
+tool.powerup.triangle.boost::after {
+    background-color: #ff0;
+}
+
+tool.powerup.triangle.gravity::after {
+    background-color: #0f0;
+}
+
+tool.powerup.bomb::before {
     background-color: #f00;
 }
 
-powerup.slowmo {
+tool.powerup.slowmo::before {
     background-color: #eee;
 }
 
-powerup.antigravity {
+tool.powerup.antigravity::before {
     background-color: #0ff;
 }
 
-powerup.teleport {
+tool.powerup.teleport::before {
     background-color: #f0f;
 }
 
-eraser {
-    clip-path: circle(45%);
-    background-color: #ffb6c1;
-}
-
-fullscreen {
+tool.fullscreen::before {
     clip-path: polygon(
         0 40%,
         0 0,
@@ -399,7 +578,7 @@ fullscreen {
     );
 }
 
-:fullscreen fullscreen {
+:fullscreen tool.fullscreen::before {
     clip-path: polygon(
         0 40%,
         40% 40%,
@@ -434,7 +613,7 @@ fullscreen {
     );
 }
 
-increment {
+tool.increment::before {
     clip-path: polygon(
         40% 0,
         40% 40%,
@@ -451,7 +630,7 @@ increment {
     );
 }
 
-decrement {
+tool.decrement::before {
     clip-path: polygon(
         0 40%,
         100% 40%,

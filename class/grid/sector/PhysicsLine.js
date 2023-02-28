@@ -2,7 +2,7 @@ import Vector from "../../Vector.js";
 import Line from "./Line.js";
 
 export default class extends Line {
-    type = "physics";
+    type = 'physics';
     collided = false;
     collide(part) {
         if (this.collided) {

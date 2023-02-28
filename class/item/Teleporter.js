@@ -42,7 +42,7 @@ export default class Teleporter extends SingleUseItem {
         }
 
         if (part.position.distanceToSquared(this.alt) < 500) {
-            if (this.used) {
+            if (this.used && !part.parent.parent.ghost) {
                 return;
             }
 
