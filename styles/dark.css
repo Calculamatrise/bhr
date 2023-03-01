@@ -1,52 +1,7 @@
-html {
-    color: #ebebeb;
-}
-
-canvas#view {
-    background-color: #1b1b1b;
-}
-
-tool {
-    border-color: #444;
-}
-
-tool:hover,
-tool.active:hover {
-    background-color: #333333cc;
-}
-
-tool.active {
-    background-color: #33333380;
-}
-
-tool svg,
-tool svg circle {
-    stroke: white;
-}
-
-tool *:not(
-    wheel,
-    line,
-    eraser,
-    svg
-),
-tool:is(
-    .line,
-    .brush
-):not(.scenery)::before,
-tool:is(
-    .camera,
-    .powerup,
-    .decrement,
-    .increment,
-    .fullscreen,
-    .playpause,
-    .backtrack,
-    .rewind
-)::before {
-    background-color: white;
-}
-
-tool.powerup::before {
-    border-color: white;
+:root {
+	--accent-color: #333333;
+	--background-color: #1b1b1b;
+	--border-color: #444444;
+	--brightness-multiplier: 1;
+	--text-color: white;
 }

@@ -1,73 +1,7 @@
-canvas#view {
-    background-color: white;
-}
-
-game-overlay nav button {
-    color: black;
-    background-color: rgba(0, 0, 0, .08);
-}
-
-game-overlay nav button:hover {
-    background-color: rgba(0, 0, 0, .2);
-}
-
-game-overlay nav button.active {
-    background-color: rgba(0, 0, 0, .24);
-}
-
-div button {
-    color: black;
-    background-color: rgba(0, 0, 0, .08);
-}
-
-div button:hover {
-    background-color: rgba(0, 0, 0, .16);
-}
-
-tool {
-    border-color: #bbb;
-}
-
-tool:hover,
-tool.active:hover {
-    background-color: #ddddddcc;
-}
-
-tool.active {
-    background-color: #dddddd80;
-}
-
-tool *:not(
-    wheel,
-    line,
-    eraser,
-    svg
-) {
-    background-color: white;
-}
-
-tool svg,
-tool svg circle {
-    stroke: black;
-}
-
-tool:is(
-    .line,
-    .brush
-):not(.scenery)::before,
-tool:is(
-    .camera,
-    .powerup,
-    .decrement,
-    .increment,
-    .fullscreen,
-    .playpause,
-    .backtrack,
-    .rewind
-)::before {
-    background-color: black;
-}
-
-tool.powerup::before {
-    border-color: black;
+:root {
+	--accent-color: #333333;
+	--background-color: white;
+	--border-color: #bbbbbb;
+	--brightness-multiplier: -1;
+	--text-color: black;
 }

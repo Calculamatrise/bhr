@@ -51,9 +51,8 @@ export default class {
             this.currentTool.scenery = style;
         }
 
-        let settings = this.scene.parent.container.querySelector("game-toolbar")?.querySelector("div.left settings");
-        settings !== null && settings.style.setProperty("display", new Set(["brush", "circle", "eraser"]).has(this.selected) ? "block" : "none");
-
+        let settings = this.scene.parent.container.querySelector('bhr-game-toolbar')?.querySelector(".left .tool-settings");
+        settings !== null && settings.style.setProperty("display", ['brush', 'circle', 'eraser'].includes(this.selected) ? 'block' : 'none');
         settings = settings.querySelector("div[data-id=eraser]");
         settings !== null && settings.style.setProperty("display", this.selected === "eraser" ? "block" : "none");
 

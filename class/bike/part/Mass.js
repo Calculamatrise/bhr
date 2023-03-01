@@ -1,14 +1,15 @@
 import Vector from "../../Vector.js";
 
 export default class {
-    constructor(parent) {
-        this.parent = parent;
-    }
-    size = 10;
-    friction = 0;
-    collide = true;
-    touching = false;
-    position = new Vector();
-    old = new Vector();
-    velocity = new Vector();
+	friction = 0;
+	collide = true;
+	friction = 0;
+	old = new Vector();
+	position = new Vector();
+	size = 10;
+	touching = false;
+	velocity = new Vector();
+	constructor(parent) {
+		this.parent = parent;
+	}
 }

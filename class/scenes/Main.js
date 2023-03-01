@@ -91,7 +91,7 @@ export default class {
 
     gotoCheckpoint() {
         this.paused = this.parent.settings.ap;
-        this.parent.container.querySelector('playpause')?.classList[this.paused ? "remove" : "add"]("playing");
+        this.parent.container.querySelector('.playpause > input')?.[(this.paused ? 'set' : 'remove') + 'Attribute']('checked', this.paused)
         if (this.firstPlayer.snapshots.length > 0) {
             for (const player of this.players) {
                 player.restore(player.snapshots[player.snapshots.length - 1]);
@@ -181,7 +181,7 @@ export default class {
         if (this.freezeFrame && this.parent.settings.ap && this.firstPlayer.gamepad.downKeys.size > 0) {
             this.freezeFrame = false;
             this.paused = false;
-            this.parent.container.querySelector('playpause')?.classList[this.paused ? "remove" : "add"]("playing");
+            this.parent.container.querySelector('.playpause > input')?.[(this.paused ? 'remove' : 'set') + 'Attribute']('checked', this.paused);
         }
 
         if (!this.paused && !this.processing) {

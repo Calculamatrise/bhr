@@ -1,77 +1,72 @@
-export default class {
-    constructor(parent) {
-        this.parent = parent;
-    }
-    downKeys = new Set();
-    init() {
-        window.addEventListener("keydown", this.keydown.bind(this));
-        window.addEventListener("keyup", this.keyup.bind(this));
-    }
+import EventEmitter from "./EventEmitter.js";
 
-    mask(key) {
-        switch(key.toLowerCase()) {
-            case "a":
-            case "arrowleft":
-                return "left";
-
-            case "d":
-            case "arrowright":
-                return "right";
-
-            case "w":
-            case "arrowup":
-                return "up";
-
-            case "s":
-            case "arrowdown":
-                return "down";
-
-            case "z":
-                return "z";
-
-            default:
-                return null;
-        }
-    }
-
-	keydown(event) {
-		event.preventDefault();
-
-        let key = this.mask(event.key);
-        if (key === null) {
-            return;
-        }
-
-        if (this.downKeys.has(key)) {
-            return;
-        }
-
-        this.downKeys.add(key);
-        this.parent.updateRecords(key);
+export default class extends EventEmitter {
+	downKeys = new Set();
+	constructor(parent) {
+		super();
+		this.parent = parent;
 	}
 
-	keyup(event) {
-		event.preventDefault();
-
-        let key = this.mask(event.key);
-        if (key === null) {
-            return;
-        }
-
-        this.downKeys.delete(key);
-        this.parent.updateRecords(key);
+	init() {
+		window.addEventListener('keydown', this.down.bind(this));
+		window.addEventListener('keyup', this.up.bind(this));
 	}
 
-    toggle(key) {
-        if (this.downKeys.delete(key)) {
-            return;
-        }
+	mask(key) {
+		switch(key.toLowerCase()) {
+			case 'a':
+			case 'arrowleft':
+				return 'left';
+			case 'd':
+			case 'arrowright':
+				return 'right';
+			case 'w':
+			case 'arrowup':
+				return 'up';
+			case 's':
+			case 'arrowdown':
+				return 'down';
+			case 'z':
+				return 'z';
+			default:
+				return null;
+		}
+	}
 
-        this.downKeys.add(key);
-    }
+	down(event) {
+		event.preventDefault();
+		let key = this.mask(event.key);
+		if (key === null || this.downKeys.has(key)) {
+			return;
+		}
 
-    close() {
-        window.removeEventListener("keydown", this.keydown.bind(this));
-		window.removeEventListener("keyup", this.keyup.bind(this));
-    }
+		this.downKeys.add(key);
+		this.emit('down', key);
+		this.parent.updateRecords(key);
+	}
+
+	up(event) {
+		event.preventDefault();
+		let key = this.mask(event.key);
+		if (key === null) {
+			return;
+		}
+
+		this.downKeys.delete(key);
+		this.emit('up', key);
+		this.parent.updateRecords(key);
+	}
+
+	toggle(key) {
+		if (this.downKeys.delete(key)) {
+			return;
+		}
+
+		this.downKeys.add(key);
+	}
+
+	close() {
+		window.removeEventListener('keydown', this.keydown.bind(this));
+		window.removeEventListener('keyup', this.keyup.bind(this));
+	}
 }
