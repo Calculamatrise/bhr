@@ -91,7 +91,7 @@ export default class {
 
     gotoCheckpoint() {
         this.paused = this.parent.settings.ap;
-        this.parent.container.querySelector('.playpause > input')?.[(this.paused ? 'set' : 'remove') + 'Attribute']('checked', this.paused)
+        this.parent.container.querySelector('.playpause > input').checked = !this.paused;
         if (this.firstPlayer.snapshots.length > 0) {
             for (const player of this.players) {
                 player.restore(player.snapshots[player.snapshots.length - 1]);
@@ -181,7 +181,7 @@ export default class {
         if (this.freezeFrame && this.parent.settings.ap && this.firstPlayer.gamepad.downKeys.size > 0) {
             this.freezeFrame = false;
             this.paused = false;
-            this.parent.container.querySelector('.playpause > input')?.[(this.paused ? 'remove' : 'set') + 'Attribute']('checked', this.paused);
+            this.parent.container.querySelector('.playpause > input').checked = !this.paused;
         }
 
         if (!this.paused && !this.processing) {
@@ -218,11 +218,12 @@ export default class {
     draw(ctx) {
         ctx.clearRect(0, 0, this.parent.canvas.width, this.parent.canvas.height);
         ctx.lineWidth = Math.max(2 * this.zoom, 0.5);
-        ctx.lineCap = "round";
+        ctx.lineCap = 'round';
 
-        let min = Vector.from().toCanvas(this.parent.canvas).oppositeScale(this.grid.scale).map((value) => Math.floor(value));
-        let max = new Vector(this.parent.canvas.width, this.parent.canvas.height).toCanvas(this.parent.canvas).oppositeScale(this.grid.scale).map((value) => Math.floor(value));
-        for (const sector of this.grid.range(min, max)) {
+        let min = new Vector().toCanvas(this.parent.canvas).oppositeScale(this.grid.scale).map(Math.floor);
+        let max = new Vector(this.parent.canvas.width, this.parent.canvas.height).toCanvas(this.parent.canvas).oppositeScale(this.grid.scale).map(Math.floor);
+        let sectors = this.grid.range(min, max);
+		for (const sector of sectors) {
             if (sector.physics.length > 0 || sector.scenery.length > 0) {
                 if (!sector.rendered) {
                     sector.render();
@@ -232,7 +233,7 @@ export default class {
             }
         }
 
-        for (const sector of this.grid.range(min, max)) {
+        for (const sector of sectors) {
             for (const powerup of sector.powerups) {
                 powerup.draw(ctx);
             }
@@ -328,7 +329,7 @@ export default class {
 			...this.grid.sector(x + 1, y + 1).erase(vector)
 		]
     }
-    
+
     addLine(start, end, type) {
         const line = new (type ? SceneryLine : PhysicsLine)(start.x, start.y, end.x, end.y, this);
         if (line.len >= 2 && line.len < 1e5) {

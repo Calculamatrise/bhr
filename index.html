@@ -23,8 +23,8 @@
         <bhr-game-interface>
             <bhr-game-toolbar>
                 <section class="left">
-					<label class="toolbar-item playpause" title="Pause/Play - Space" onclick="window.game.scene.paused = !window.game.scene.paused">
-						<input type="checkbox" style="display: none;" checked>
+					<label class="toolbar-item playpause" title="Pause/Play - Space">
+						<input type="checkbox" style="display: none;" onchange="window.game.scene.paused = !this.checked" checked>
 					</label>
                     <button class="toolbar-item backtrack" title="Checkpoint - Enter" onclick="window.game.scene.gotoCheckpoint()"></button>
                     <button class="toolbar-item rewind" title="Cancel Checkpoint - Backspace" onclick="window.game.scene.removeCheckpoint()"></button>
@@ -49,21 +49,21 @@
                     <br>
                     <button class="toolbar-item fullscreen" title="Fullscreen - F" style="border-bottom: 1px solid var(--border-color);border-bottom-right-radius: 5px;" onclick="document.fullscreenElement ? document.exitFullscreen() : window.game.container.requestFullscreen()"></button>
                     <div class="editor-tools" style="display: block;">
-						<button class="toolbar-item" title="Undo - Ctrl + Z" style="border-top-right-radius: 5px;" onclick="window.game.scene.history.undo()">↺</button>
-                        <button class="toolbar-item" title="Redo - Ctrl + Shift + Z" style="border-bottom: 1px solid var(--border-color);border-bottom-right-radius: 5px;" onclick="window.game.scene.history.redo()">↻</button>
+						<button class="toolbar-item" title="Undo - Ctrl + Z" style="border-top-right-radius: 5px;" onclick="window.game.scene.history.undo();">↺</button>
+                        <button class="toolbar-item" title="Redo - Ctrl + Shift + Z" style="border-bottom: 1px solid var(--border-color);border-bottom-right-radius: 5px;" onclick="window.game.scene.history.redo();">↻</button>
 					</div>
 					<div class="tool-settings">
                         <button class="toolbar-item increment" title="Increase length - A + Scroll" style="border-top-right-radius: 5px;" onclick="window.game.scene.toolHandler.selected === 'eraser' ? window.game.scene.toolHandler.currentTool.size < 500 && (window.game.scene.toolHandler.currentTool.size += 5) : window.game.scene.toolHandler.currentTool.length < 200 && (window.game.scene.toolHandler.currentTool.length += 8);"></button>
                         <button class="toolbar-item decrement" title="Decrease length - A + Scroll" style="border-bottom-width: 1px;border-bottom-style: solid;border-bottom-right-radius: 5px;" onclick="window.game.scene.toolHandler.selected === 'eraser' ? window.game.scene.toolHandler.currentTool.size > 10 && (window.game.scene.toolHandler.currentTool.size -= 5) : window.game.scene.toolHandler.currentTool.length > 4 && (window.game.scene.toolHandler.currentTool.length -= 8);"></button>
                         <div data-id="eraser">
-                            <label class="toolbar-item brush active" title="Erase physical lines - Enabled" style="border-top-width: 1px;border-top-style: solid;border-top-right-radius: 5px;" onclick="window.game.scene.toolHandler.currentTool.ignoring[window.game.scene.toolHandler.currentTool.ignoring.has('physics') ? 'delete' : 'add']('physics');">
-								<input type="checkbox" style="display: none;" checked>
+                            <label class="toolbar-item brush active" title="Erase physical lines - Enabled" style="border-top-width: 1px;border-top-style: solid;border-top-right-radius: 5px;">
+								<input type="checkbox" style="display: none;" onchange="window.game.scene.toolHandler.currentTool.ignoring[window.game.scene.toolHandler.currentTool.ignoring.has('physics') ? 'delete' : 'add']('physics');" checked>
 							</label>
-                            <label class="toolbar-item scenery brush active" title="Erase visual lines - Enabled" onclick="window.game.scene.toolHandler.currentTool.ignoring[window.game.scene.toolHandler.currentTool.ignoring.has('scenery') ? 'delete' : 'add']('scenery');">
-								<input type="checkbox" style="display: none;" checked>
+                            <label class="toolbar-item scenery brush active" title="Erase visual lines - Enabled">
+								<input type="checkbox" style="display: none;" onchange="window.game.scene.toolHandler.currentTool.ignoring[window.game.scene.toolHandler.currentTool.ignoring.has('scenery') ? 'delete' : 'add']('scenery');" checked>
 							</label>
-                            <label class="toolbar-item powerup target active" title="Erase powerups - Enabled" style="border-bottom-width: 1px;border-bottom-style: solid;border-bottom-right-radius: 5px;" onclick="window.game.scene.toolHandler.currentTool.ignoring[window.game.scene.toolHandler.currentTool.ignoring.has('powerups') ? 'delete' : 'add']('powerups')">
-								<input type="checkbox" style="display: none;" checked>
+                            <label class="toolbar-item powerup target active" title="Erase powerups - Enabled" style="border-bottom-width: 1px;border-bottom-style: solid;border-bottom-right-radius: 5px;">
+								<input type="checkbox" style="display: none;" onchange="window.game.scene.toolHandler.currentTool.ignoring[window.game.scene.toolHandler.currentTool.ignoring.has('powerups') ? 'delete' : 'add']('powerups')" checked>
 							</label>
                         </div>
                     </div>
@@ -87,8 +87,8 @@
                     <label class="toolbar-item camera" title="Camera - R" onclick="window.game.scene.toolHandler.setTool('camera')">
 						<input type="radio" name="tool" style="display: none;">
 					</label>
-                    <label class="toolbar-item grid" title="Grid - G" style="border-bottom-width: 1px;border-bottom-style: solid;border-bottom-left-radius: 5px;" onclick="window.game.scene.grid.size = 11 - window.game.scene.grid.size;">
-						<input type="checkbox" style="display: none;">
+                    <label class="toolbar-item grid" title="Grid - G" style="border-bottom-width: 1px;border-bottom-style: solid;border-bottom-left-radius: 5px;">
+						<input type="checkbox" style="display: none;" onchange="window.game.scene.grid.size = 11 - window.game.scene.grid.size;">
 					</label>
                     <br>
                     <label class="toolbar-item powerup target" title="Goal" style="border-top-width: 1px;border-top-style: solid;border-top-left-radius: 5px;" onclick="window.game.scene.toolHandler.setTool('goal')">

@@ -11,75 +11,76 @@ import Select from "../tools/Select.js";
 import TrianglePowerup from "../tools/TrianglePowerup.js";
 
 export default class {
-    constructor(parent) {
-        this.scene = parent;
-        this.cache.set("brush", new Brush(this));
-        this.cache.set("camera", new Camera(this));
-        this.cache.set("circle", new Circle(this));
-        this.cache.set("curve", new Curve(this));
-        this.cache.set("ellipse", new Ellipse(this));
-        this.cache.set("eraser", new Eraser(this));
-        this.cache.set("line", new Line(this));
-        this.cache.set("powerup", new Powerup(this));
-        this.cache.set("rectangle", new Rectangle(this));
-        this.cache.set("select", new Select(this));
-        this.cache.set("trianglepowerup", new TrianglePowerup(this));
-    }
-    old = "camera";
-    selected = "camera";
-    cache = new Map();
-    get currentTool() {
-        if (new Set(["antigravity", "bomb", "boost", "checkpoint", "goal", "gravity", "slow-mo", "teleporter"]).has(this.selected)) {
-            if (new Set(["boost", "gravity"]).has(this.selected)) {
-                return this.cache.get("trianglepowerup");
-            }
+	cache = new Map();
+	old = 'camera';
+	selected = 'camera';
+	constructor(parent) {
+		this.scene = parent;
+		this.cache.set('brush', new Brush(this));
+		this.cache.set('camera', new Camera(this));
+		this.cache.set('circle', new Circle(this));
+		this.cache.set('curve', new Curve(this));
+		this.cache.set('ellipse', new Ellipse(this));
+		this.cache.set('eraser', new Eraser(this));
+		this.cache.set('line', new Line(this));
+		this.cache.set('powerup', new Powerup(this));
+		this.cache.set('rectangle', new Rectangle(this));
+		this.cache.set('select', new Select(this));
+		this.cache.set('trianglepowerup', new TrianglePowerup(this));
+	}
 
-            return this.cache.get("powerup");
-        }
+	get currentTool() {
+		if (['antigravity', 'bomb', 'boost', 'checkpoint', 'goal', 'gravity', 'slow-mo', 'teleporter'].includes(this.selected)) {
+			if (['boost', 'gravity'].includes(this.selected)) {
+				return this.cache.get('trianglepowerup');
+			}
 
-        return this.cache.get(this.selected);
-    }
+			return this.cache.get('powerup');
+		}
 
-    get ctx() {
-        return this.scene.parent.ctx;
-    }
+		return this.cache.get(this.selected);
+	}
 
-    setTool(name, style = null) {
-        this.old = this.selected;
-        this.selected = name;
-        if (style !== null) {
-            this.currentTool.scenery = style;
-        }
+	get ctx() {
+		return this.scene.parent.ctx;
+	}
 
-        let settings = this.scene.parent.container.querySelector('bhr-game-toolbar')?.querySelector(".left .tool-settings");
-        settings !== null && settings.style.setProperty("display", ['brush', 'circle', 'eraser'].includes(this.selected) ? 'block' : 'none');
-        settings = settings.querySelector("div[data-id=eraser]");
-        settings !== null && settings.style.setProperty("display", this.selected === "eraser" ? "block" : "none");
+	setTool(name, style = null) {
+		this.old = this.selected;
+		this.selected = name;
+		if (style !== null) {
+			this.currentTool.scenery = style;
+		}
 
-        this.scene.parent.canvas.style.setProperty("cursor", name === "camera" ? "move" : "none");
-    }
+		let settings = this.scene.parent.container.querySelector('bhr-game-toolbar')?.querySelector(".left .tool-settings");
+		settings !== null && settings.style.setProperty('display', ['brush', 'circle', 'eraser'].includes(this.selected) ? 'block' : 'none');
+		settings = settings.querySelector('div[data-id=eraser]');
+		settings !== null && settings.style.setProperty('display', this.selected == 'eraser' ? 'block' : 'none');
 
-    scroll(event) {
-        this.currentTool.scroll(event);
-    }
+		this.scene.parent.canvas.style.setProperty('cursor', name == 'camera' ? 'move' : 'none');
+	}
 
-    press(event) {
-        this.currentTool.press(event);
-    }
+	scroll(event) {
+		this.currentTool.scroll(event);
+	}
 
-    stroke(event) {
-        this.currentTool.stroke(event);
-    }
+	press(event) {
+		this.currentTool.press(event);
+	}
 
-    clip(event) {
-        this.currentTool.clip(event);
-    }
+	stroke(event) {
+		this.currentTool.stroke(event);
+	}
 
-    update() {
-        this.currentTool.update();
-    }
+	clip(event) {
+		this.currentTool.clip(event);
+	}
 
-    draw(ctx) {
-        this.currentTool.draw(ctx);
-    }
+	update() {
+		this.currentTool.update();
+	}
+
+	draw(ctx) {
+		this.currentTool.draw(ctx);
+	}
 }

@@ -64,7 +64,7 @@ bhr-game-interface .bhr-game-overlay {
     border-radius: 5px;
 	box-sizing: border-box;
 	font-family: fantasy;
-	font-size: clamp(2cqw, 8px, 1rem);
+	font-size: clamp(8px, 2cqw, 1rem);
     opacity: .8;
     padding: .25rem .5rem;
     text-align: center;
@@ -222,7 +222,7 @@ bhr-game-toolbar .toolbar-item::before {
     transition: all 200ms;
 }
 
-bhr-game-toolbar .toolbar-item * {
+bhr-game-toolbar .toolbar-item > * {
     display: block;
     width: inherit;
     height: inherit;
@@ -283,7 +283,7 @@ bhr-game-toolbar section > :not(div):last-child {
     );
 }
 
-.playpause.playing::before, .playpause:has(> :checked)::before {
+.playpause:has(> :checked)::before {
     clip-path: polygon(
         0 0,
         40% 0,

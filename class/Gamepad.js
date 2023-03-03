@@ -13,7 +13,7 @@ export default class extends EventEmitter {
 	}
 
 	mask(key) {
-		switch(key.toLowerCase()) {
+		switch (key.toLowerCase()) {
 			case 'a':
 			case 'arrowleft':
 				return 'left';

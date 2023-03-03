@@ -1,14 +1,14 @@
 import Game from "./class/Game.js";
 
-window.game = new Game(document.querySelector("#view"));
+window.game = new Game(document.querySelector('#view'));
 
 upload: {
-    const upload = document.querySelector("#upload");
+    const upload = document.querySelector('#upload');
     if (upload === null) {
         break upload;
     }
 
-    upload.addEventListener("click", function() {
+    upload.addEventListener('click', function() {
         function ja(){
             function a(a){
                 e.push(a);
@@ -187,13 +187,13 @@ upload: {
 }
 
 settings: {
-    const autoPause = document.getElementById("auto-pause");
+    const autoPause = document.getElementById('auto-pause');
     if (autoPause === null) {
         break settings;
     }
 
     autoPause.checked = window.game.settings.ap;
-    autoPause.addEventListener("input", function() {
+    autoPause.addEventListener('input', function() {
         window.game.settings.ap = !!this.checked;
     });
 }

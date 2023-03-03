@@ -1,9 +1,9 @@
 import Triangle from "./Triangle.js";
 
 export default class Gravity extends Triangle {
-    type = "G";
-    color = "#0f0";
-    activate(part) {
-        part.parent.parent.gravity.set(this.dir.scale(.3));
-    }
+	type = 'G';
+	static color = '#0f0';
+	activate(part) {
+		part.parent.parent.gravity.set(this.dir.scale(.3));
+	}
 }

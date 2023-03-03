@@ -1,6 +1,7 @@
 export default class {
 	/** @private */
 	#events = new Map();
+	#single = new Set();
 
 	/**
 	 * 
@@ -9,18 +10,17 @@ export default class {
 	 * @param  {...any} [args] 
 	 */
 	emit(event, ...args) {
-		let listeners = Array.from(this.#events.get(event) || []);
-		if (typeof this["on" + event] == "function") {
-			listeners.push(this["on" + event]);
+		const listeners = this.#events.get(event) || new Set();
+		if (typeof this['on' + event] == 'function') {
+			listeners.add(this['on' + event]);
 		}
 
-		let unique = this.#events.get(event + "_once");
-		if (unique !== void 0) {
-			listeners.push(...unique);
-			this.#events.delete(event + "_once");
+		for (const listener of listeners) {
+			listener.apply(this, args);
+			if (this.#single.has(listener)) {
+				listeners.delete(listener);
+			}
 		}
-
-		new Set(listeners).forEach(listener => listener.apply(this, args));
 	}
 
 	/**
@@ -44,9 +44,9 @@ export default class {
 	 * @returns {Number}
 	 */
 	on(event, listener) {
-		if (typeof event != "string") {
+		if (typeof event != 'string') {
 			throw new TypeError("Event must be of type: String");
-		} else if (typeof listener != "function") {
+		} else if (typeof listener != 'function') {
 			throw new TypeError("Listener must be of type: Function");
 		}
 
@@ -54,9 +54,9 @@ export default class {
 			this.#events.set(event, new Set());
 		}
 
-		let events = this.#events.get(event);
+		const events = this.#events.get(event);
 		return events.add(listener),
-			events.length;
+			events.size;
 	}
 
 	/**
@@ -66,11 +66,9 @@ export default class {
 	 * @returns {Function}
 	 */
 	once(event, listener) {
-		if (typeof event != "string") {
-			throw new TypeError("Event must be of type: String");
-		}
-
-		return this.on(event + "_once", listener);
+		const size = this.on(...arguments);
+		this.#single.add(listener);
+		return size;
 	}
 
 	/**
@@ -87,8 +85,8 @@ export default class {
 	 * @param {String} event 
 	 * @returns {Number}
 	 */
-	listenerCount() {
-		return this.listeners().size;
+	listenerCount(event) {
+		return this.listeners(event).size;
 	}
 
 	/**
@@ -98,18 +96,13 @@ export default class {
 	 * @returns {Boolean}
 	 */
 	removeListener(event, listener) {
-		if (typeof event != "string") {
+		if (typeof event != 'string') {
 			throw new TypeError("Event must be of type: String");
 		}
 
-		let listeners = this.#events.get(event);
+		const listeners = this.#events.get(event);
 		if (listeners !== void 0) {
 			listeners.delete(listener);
-		}
-
-		let unique = this.#events.get(event + "_once");
-		if (unique !== void 0) {
-			unique.delete(listener);
 		}
 
 		return true;
@@ -121,7 +114,7 @@ export default class {
 	 * @returns {Boolean}
 	 */
 	removeAllListeners(event) {
-		if (typeof event != "string") {
+		if (typeof event != 'string') {
 			throw new TypeError("Event must be of type: String");
 		}
 

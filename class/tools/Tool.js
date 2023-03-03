@@ -1,19 +1,19 @@
 export default class {
-    constructor(toolHandler) {
-        this.parent = toolHandler;
-    }
+	constructor(toolHandler) {
+		this.parent = toolHandler;
+	}
 
-    get scene() {
-        return this.parent.scene;
-    }
+	get scene() {
+		return this.parent.scene;
+	}
 
-    get mouse() {
-        return this.scene.parent.mouse;
-    }
+	get mouse() {
+		return this.scene.parent.mouse;
+	}
 
-    scroll() {}
-    press() {}
-    stroke() {}
-    clip() {}
-    draw() {}
+	scroll() {}
+	press() {}
+	stroke() {}
+	clip() {}
+	draw() {}
 }

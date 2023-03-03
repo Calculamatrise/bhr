@@ -47,6 +47,7 @@ export default class extends EventEmitter {
 		document.addEventListener('keydown', this.keydown.bind(this));
 		document.addEventListener('keyup', this.keyup.bind(this));
 
+		window.addEventListener('beforeunload', this.close.bind(this));
 		window.addEventListener('resize', this.adjust.bind(canvas));
 		window.dispatchEvent(new Event('resize'));
 
@@ -150,7 +151,7 @@ export default class extends EventEmitter {
 	keydown(event) {
 		event.preventDefault();
 		switch (event.key.toLowerCase()) {
-			case "backspace":
+			case 'backspace':
 				if (event.shiftKey) {
 					this.scene.restoreCheckpoint();
 					break;
@@ -159,15 +160,15 @@ export default class extends EventEmitter {
 				this.scene.removeCheckpoint();
 				break;
 
-			case "enter":
+			case 'enter':
 				this.scene.gotoCheckpoint();
 				break;
 
-			case ".":
+			case '.':
 				this.scene.restoreCheckpoint();
 				break;
 
-			case "tab":
+			case 'tab':
 				if (!this.scene.cameraFocus) {
 					this.scene.cameraFocus = this.scene.firstPlayer.vehicle.head;
 					break;
@@ -181,40 +182,26 @@ export default class extends EventEmitter {
 				this.scene.cameraFocus = this.scene.players[index].vehicle.head;
 				break;
 
-			case "-":
+			case '-':
 				this.scene.zoomOut();
 				break;
 
-			case "+":
-			case "=":
+			case '+':
+			case '=':
 				this.scene.zoomIn();
 				break;
 
-			case "z":
-				if (this.scene.cameraFocus || !this.scene.editor) {
-					break;
-				}
-
-				if (event.ctrlKey) {
-					this.scene.history.redo();
-					break;
-				}
-
-				this.scene.history.undo();
-
-				break;
-
-			case "p":
-			case " ":
+			case 'p':
+			case ' ':
 				this.scene.paused = !this.scene.paused;
-				this.container.querySelector('.playpause > input')?.[(this.scene.paused ? 'remove' : 'set') + 'Attribute']('checked', this.scene.paused);
+				this.container.querySelector('.playpause > input').checked = !this.scene.paused;
 				break;
 		}
 
 		if (this.scene.editor) {
 			switch (event.key.toLowerCase()) {
-				case "delete":
-					if (this.scene.toolHandler.selected !== "select" || this.scene.toolHandler.currentTool.selected.length < 1) {
+				case 'delete':
+					if (this.scene.toolHandler.selected != 'select' || this.scene.toolHandler.currentTool.selected.length < 1) {
 						break;
 					}
 
@@ -231,36 +218,26 @@ export default class extends EventEmitter {
 				// 	console.log(key, tools[key])
 				// }
 				// break;
-				case "a":
-					this.scene.toolHandler.setTool("brush", false);
+				case 'a':
+					this.scene.toolHandler.setTool('brush', false);
 					break;
-
-				case "s":
-					this.scene.toolHandler.setTool("brush", true);
+				case 's':
+					this.scene.toolHandler.setTool('brush', true);
 					break;
-
-				case "q":
-					this.scene.toolHandler.setTool("line", false);
+				case 'q':
+					this.scene.toolHandler.setTool('line', false);
 					break;
-
-				case "w":
-					this.scene.toolHandler.setTool("line", true);
+				case 'w':
+					this.scene.toolHandler.setTool('line', true);
 					break;
-
-				case "e":
-					this.scene.toolHandler.setTool("eraser");
+				case 'e':
+					this.scene.toolHandler.setTool('eraser');
 					break;
-
-				case "r":
-					this.scene.toolHandler.setTool(this.scene.toolHandler.selected !== "camera" ? "camera" : this.scene.toolHandler.old);
+				case 'r':
+					this.scene.toolHandler.setTool(this.scene.toolHandler.selected != 'camera' ? 'camera' : this.scene.toolHandler.old);
 					break;
-
-				case "m":
-					this.scene.history.undo();
-					break;
-
-				case "n":
-					this.scene.history.redo();
+				case 'z':
+					event.ctrlKey && this.scene.history[(event.shiftKey ? 're' : 'un') + 'do']();
 					break;
 			}
 		}
@@ -269,22 +246,22 @@ export default class extends EventEmitter {
 	keyup(event) {
 		event.preventDefault();
 		switch (event.key.toLowerCase()) {
-			case "b":
+			case 'b':
 				if (event.ctrlKey) {
 					this.scene.switchBike();
 				}
 				break;
 
-			case "g":
+			case 'g':
 				this.scene.players.length <= 1 && (this.scene.grid.size = 11 - this.scene.grid.size);
 				break;
 
-			case "f":
-			case "f11":
-				document.fullscreenElement ? document.exitFullscreen() : this.container.requestFullscreen();
+			case 'f':
+			case 'f11':
+				document.fullscreenElement ? document.exitFullscreen() : this.container.requestFullscreen().then(() => navigator.keyboard.lock(['Escape']));
 				break;
 
-			case "escape":
+			case 'escape':
 				const checkbox = this.container.querySelector('.bhr-game-overlay > input');
 				this.scene.paused = checkbox !== null && (checkbox.checked = !checkbox.checked);
 				break;
@@ -318,7 +295,6 @@ export default class extends EventEmitter {
 	loadFile() {
 		let reader = new FileReader();
 		reader.addEventListener('load', () => this.init(this.result));
-
 		let picker = document.createElement('input');
 		picker.accept = "text/plain";
 		picker.type = "file";
