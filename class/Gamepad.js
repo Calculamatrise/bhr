@@ -2,32 +2,6 @@ import EventEmitter from "./EventEmitter.js";
 
 export default class extends EventEmitter {
 	downKeys = new Set();
-	static mask(key) {
-		switch (key.toLowerCase()) {
-			case 'a':
-			case 'arrowleft':
-				return 'left';
-			case 'd':
-			case 'arrowright':
-				return 'right';
-			case 'w':
-			case 'arrowup':
-				return 'up';
-			case 's':
-			case 'arrowdown':
-				return 'down';
-			case 'z':
-				return 'z';
-			default:
-				return null;
-		}
-	}
-
-	constructor(parent) {
-		super();
-		this.parent = parent;
-	}
-
 	init() {
 		window.addEventListener('blur', this.blur.bind(this));
 		window.addEventListener('keydown', this.down.bind(this));
@@ -47,7 +21,6 @@ export default class extends EventEmitter {
 
 		this.downKeys.add(key);
 		this.emit('down', key);
-		this.parent.updateRecords(key);
 	}
 
 	up(event) {
@@ -59,7 +32,6 @@ export default class extends EventEmitter {
 
 		this.downKeys.delete(key);
 		this.emit('up', key);
-		this.parent.updateRecords(key);
 	}
 
 	toggle(key) {
@@ -71,7 +43,29 @@ export default class extends EventEmitter {
 	}
 
 	close() {
+		window.removeEventListener('blur', this.blur.bind(this));
 		window.removeEventListener('keydown', this.down.bind(this));
 		window.removeEventListener('keyup', this.up.bind(this));
+	}
+
+	static mask(key) {
+		switch (key.toLowerCase()) {
+			case 'a':
+			case 'arrowleft':
+				return 'left';
+			case 'd':
+			case 'arrowright':
+				return 'right';
+			case 'w':
+			case 'arrowup':
+				return 'up';
+			case 's':
+			case 'arrowdown':
+				return 'down';
+			case 'z':
+				return 'z';
+			default:
+				return null;
+		}
 	}
 }

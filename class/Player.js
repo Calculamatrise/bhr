@@ -15,7 +15,7 @@ const Bike = {
 export default class Player {
 	dead = false;
 	explosion = null;
-	gamepad = new Gamepad(this);
+	gamepad = new Gamepad();
 	ghost = false;
 	gravity = new Vector(0, .3);
 	itemsCollected = new Set();
@@ -31,6 +31,8 @@ export default class Player {
 			this.records = records;
 		} else {
 			this.gamepad.init();
+			this.gamepad.on('down', this.updateRecords.bind(this));
+			this.gamepad.on('up', this.updateRecords.bind(this));
 		}
 
 		this.createCosmetics();
@@ -43,10 +45,10 @@ export default class Player {
 	}
 
 	createCosmetics() {
-		this.cosmetics = this._user != void 0 ? this._user.cosmetics : { head: "hat" }
+		this.cosmetics = this._user != void 0 ? this._user.cosmetics : { head: 'hat' }
 	}
 
-	createVehicle(vehicle = "BMX") {
+	createVehicle(vehicle = 'BMX') {
 		this.vehicle = new Bike[vehicle](this);
 	}
 
@@ -93,19 +95,19 @@ export default class Player {
 
 		if (this.ghost) {
 			if (this.records[0].has(this.scene.currentTime)) {
-				this.gamepad.toggle("left");
+				this.gamepad.toggle('left');
 			}
 
 			if (this.records[1].has(this.scene.currentTime)) {
-				this.gamepad.toggle("right");
+				this.gamepad.toggle('right');
 			}
 
 			if (this.records[2].has(this.scene.currentTime)) {
-				this.gamepad.toggle("up");
+				this.gamepad.toggle('up');
 			}
 
 			if (this.records[3].has(this.scene.currentTime)) {
-				this.gamepad.toggle("down");
+				this.gamepad.toggle('down');
 			}
 
 			if (this.records[4].has(this.scene.currentTime)) {
@@ -128,29 +130,29 @@ export default class Player {
 		}
 
 		this.scene.cameraFocus = this.vehicle.head;
-		if (typeof keys === "string") {
+		if (typeof keys == 'string') {
 			keys = new Set([
 				keys
 			]);
 		}
 
-		if (keys.has("left") && !this.records[0].delete(this.scene.currentTime)) {
+		if (keys.has('left') && !this.records[0].delete(this.scene.currentTime)) {
 			this.records[0].add(this.scene.currentTime);
 		}
 
-		if (keys.has("right") && !this.records[1].delete(this.scene.currentTime)) {
+		if (keys.has('right') && !this.records[1].delete(this.scene.currentTime)) {
 			this.records[1].add(this.scene.currentTime);
 		}
 
-		if (keys.has("up") && !this.records[2].delete(this.scene.currentTime)) {
+		if (keys.has('up') && !this.records[2].delete(this.scene.currentTime)) {
 			this.records[2].add(this.scene.currentTime);
 		}
 
-		if (keys.has("down") && !this.records[3].delete(this.scene.currentTime)) {
+		if (keys.has('down') && !this.records[3].delete(this.scene.currentTime)) {
 			this.records[3].add(this.scene.currentTime);
 		}
 
-		if (keys.has("z") && this.gamepad.downKeys.has("z") && !this.dead) {
+		if (keys.has('z') && this.gamepad.downKeys.has('z') && !this.dead) {
 			if (!this.records[4].delete(this.scene.currentTime)) {
 				this.records[4].add(this.scene.currentTime);
 				this.vehicle.swap();
@@ -178,20 +180,20 @@ export default class Player {
 	async trackComplete() {
 		if (this.targetsCollected === this.scene.targets && this.scene.currentTime > 0 && !this.scene.editor) {
 			alert(await fetch("/tracks/ghosts/save", {
-				method: "post",
+				method: 'post',
 				body: new URLSearchParams({
-					id: window.location.pathname.split("/")[2],
+					id: window.location.pathname.split('/')[2],
 					vehicle: this.vehicle.name,
 					time: this.scene.currentTime,
 					code: `${game.scene.firstPlayer.records.map(record => [...record].join(" ")).join(",")},${this.scene.currentTime},${this.vehicle.name}`
 				})
-			}).then(r => r.text()).then(function (response) {
+			}).then(r => r.text()).then(function(response) {
 				if (response !== "Ghost saved!") {
 					if (confirm(response)) {
 						return fetch("/tracks/ghosts/save", {
-							method: "post",
+							method: 'post',
 							body: new URLSearchParams({
-								id: window.location.pathname.split("/")[2],
+								id: window.location.pathname.split('/')[2],
 								vehicle: this.vehicle.name,
 								time: this.scene.currentTime,
 								code: `${game.scene.firstPlayer.records.map(record => [...record].join(" ")).join(",")},${this.scene.currentTime},${this.vehicle.name}`,
@@ -252,18 +254,18 @@ export default class Player {
 	}
 
 	reset() {
-		this.hat = null;
-		this.slow = false;
 		this.dead = false;
 		this.explosion = null;
-		this.pendingConsumables = 0;
-		this.itemsCollected = new Set();
 		this.gravity = new Vector(0, .3);
+		this.hat = null;
+		this.itemsCollected = new Set();
+		this.pendingConsumables = 0;
+		this.slow = false;
 		this.snapshots.reset();
 		if (this.ghost) {
 			this.gamepad.downKeys.clear();
 		} else {
-			this.records = Array.from({ length: 5 }, () => new Set());
+			this.records.forEach(set => set.clear());
 			this.updateRecords(this.gamepad.downKeys);
 		}
 

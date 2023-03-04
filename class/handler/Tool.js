@@ -52,10 +52,13 @@ export default class {
 			this.currentTool.scenery = style;
 		}
 
-		let settings = this.scene.parent.container.querySelector('bhr-game-toolbar')?.querySelector(".left .tool-settings");
+		let settings = this.scene.parent.container.querySelector('bhr-game-toolbar')?.querySelector('.left .tool-settings');
 		settings !== null && settings.style.setProperty('display', ['brush', 'circle', 'eraser'].includes(this.selected) ? 'block' : 'none');
 		settings = settings.querySelector('div[data-id=eraser]');
 		settings !== null && settings.style.setProperty('display', this.selected == 'eraser' ? 'block' : 'none');
+
+		let tool = this.scene.parent.container.querySelector(`.toolbar-item${style ? '.scenery' : ''}.${name} > input[type=radio]`);
+		tool !== null && (tool.checked = true);
 
 		this.scene.parent.canvas.style.setProperty('cursor', name == 'camera' ? 'move' : 'none');
 	}

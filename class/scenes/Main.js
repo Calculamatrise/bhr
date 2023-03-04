@@ -140,22 +140,21 @@ export default class {
     }
 
     watchGhost(data, { id, vehicle = 'BMX' } = {}) {
-        let records = data.split(/\s?\u002C\s?/g).map(item => new Set(item.split(/\s+/g).filter(item => item).map(item => isNaN(+item) ? item : +item)));
-        let v = Array.from(records[records.length - 1])[0];
+        const records = data.split(/\s*,\s*/g).map(item => item.split(/\s+/g).reduce((newArr, arr) => isNaN(arr) ? arr : newArr.add(parseInt(arr)), new Set()));
+        const v = records.at(-1);
         if (['BMX', 'MTB'].includes(v.toUpperCase())) {
             vehicle = v;
         }
 
         this.reset();
-        let player = id && this.players.find(player => player.id === +id);
+        let player = id && this.players.find(player => player.id == id);
         if (!player) {
-            this.players.push(new Player(this, {
+			player = new Player(this, {
                 records,
                 vehicle
-            }));
-
-            player = this.players[this.players.length - 1];
-            player.id = +id;
+            });
+            player.id = id;
+            this.players.push(player);
         }
 
         this.cameraFocus = player.vehicle.head;
@@ -239,10 +238,9 @@ export default class {
             }
         }
 
-        ctx.beginPath(),
-        ctx.lineWidth = 10,
-        ctx.strokeStyle = this.parent.settings.theme == 'dark' ? "#1b1b1b" : "#fff",
-        ctx.fillStyle = this.parent.settings.theme == 'dark' ? "#fbfbfb" : "#000";
+		ctx.textBaseline = 'middle',
+        ctx.fillStyle = '#'.padEnd(7, this.parent.settings.theme == 'dark' ? 'fb' : '0'),
+        ctx.strokeStyle = '#'.padEnd(7, this.parent.settings.theme == 'dark' ? '1b' : 'f');
 
         let i = this.timeText;
         if (this.paused && !this.parent.settings.ap) {
@@ -276,31 +274,41 @@ export default class {
 			padding: 5
 		});
 		ctx.clip(),
-		ctx.filter = "blur(10px)",
+		ctx.filter = 'blur(10px)',
 		ctx.drawImage(ctx.canvas, rect.x, rect.y, rect.width, rect.height, rect.x, rect.y, rect.width, rect.height);
 		ctx.filter = 'none',
 		ctx.fillStyle = 'rgba(128,128,128,0.4)',
 		ctx.fill(),
 		ctx.restore();
-		ctx.textBaseline = 'middle',
         ctx.fillText(i, 55, 12);
 		ctx.save(),
 		ctx.beginPath(),
         ctx.lineWidth = goalStrokeWidth,
-        ctx.fillStyle = "#ff0",
-		ctx.strokeStyle = this.parent.settings.theme == 'dark' ? "#fbfbfb" : "#000";
+        ctx.fillStyle = '#ff0',
+		ctx.strokeStyle = this.parent.settings.theme == 'dark' ? '#fbfbfb' : '#000';
         ctx.arc(45, 12, goalRadius / 1.5, 0, 2 * Math.PI),
         ctx.fill(),
         ctx.stroke(),
 		ctx.restore();
         if (this.players.length > 1) {
             for (var p = 1, player = this.players[p]; p < this.players.length; player = this.players[++p]) {
-                ctx.textAlign = "right",
-                ctx.fillStyle = this.parent.settings.theme == 'dark' ? "#999" : "#aaa",
-                ctx.strokeText(i = (player.name || "Ghost") + (player.targetsCollected === this.targets ? " finished!" : ": " + player.targetsCollected + " / " + this.targets), this.parent.canvas.width - 7, 16 * p + (p * 4));
-                ctx.fillText(i, this.parent.canvas.width - 7, 16 * p + (p * 4)),
-                ctx.textAlign = "left",
-                ctx.fillStyle = this.parent.settings.theme == 'dark' ? "#fbfbfb" : "#000";
+				i = (player.name || 'Ghost') + (player.targetsCollected === this.targets ? " finished!" : ": " + player.targetsCollected + " / " + this.targets);
+				const text = ctx.measureText(i)
+				ctx.save();
+				let rect = roundedRect.call(ctx, ctx.canvas.width - text.width - 40, 8 * (p - 1) + (p * 12) - (text.fontBoundingBoxAscent + text.fontBoundingBoxDescent) / 4, text.width, (text.fontBoundingBoxAscent + text.fontBoundingBoxDescent) / 2, 40, {
+					padding: 5
+				});
+				ctx.clip(),
+				ctx.filter = 'blur(10px)',
+				ctx.drawImage(ctx.canvas, rect.x, rect.y, rect.width, rect.height, rect.x, rect.y, rect.width, rect.height);
+				ctx.filter = 'none',
+				ctx.fillStyle = 'rgba(128,128,128,0.4)',
+				ctx.fill(),
+				ctx.restore();
+				ctx.save(),
+				ctx.textAlign = 'right';
+				ctx.fillText(i, ctx.canvas.width - 40, 8 * (p - 1) + (p * 12));
+				ctx.restore();
             }
         }
 
@@ -308,8 +316,8 @@ export default class {
             let b = (this.parent.canvas.width - 250) / 2;
             c = (this.parent.canvas.height - 150) / 2;
             ctx.lineWidth = 1;
-            ctx.strokeStyle = this.parent.settings.theme === "dark" ? "#1b1b1b" : "#fff";
-            ctx.fillStyle = "rgba(0, 0, 0, 0.4)";
+            ctx.strokeStyle = this.parent.settings.theme == 'dark' ? '#1b1b1b' : '#fff';
+            ctx.fillStyle = 'rgba(0,0,0,0.4)';
             ctx.fillRect(0, 0, this.parent.canvas.width, c);
             ctx.fillRect(0, c + 150, this.parent.canvas.width, c);
             ctx.fillRect(0, c, b, 150);
@@ -520,6 +528,7 @@ function roundedRect(x, y, width, height, radius = 0, options = {}) {
 	}
 
 	radius = Math.min(width / 2, height / 2, radius);
+	this.beginPath();
 	this.moveTo(x + radius, y);
     this.lineTo(x + width - radius, y);
     this.arcTo(x + width, y, x + width, y + radius, radius);
