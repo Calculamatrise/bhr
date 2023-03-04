@@ -337,49 +337,23 @@ export default class {
             if (['line', 'brush'].includes(this.toolHandler.selected)) {
                 this.parent.mouse.old.set(this.parent.mouse.position);
             }
+
+			if (arguments[3] !== false) {
+				this.history.push({
+					undo: line.remove.bind(line),
+					redo: () => this.addLineInternal(line)
+				});
+			}
+
+			return line;
         }
-
-        this.history.push({
-            undo: line.remove.bind(line),
-            redo: () => this.addLineInternal(line)
-        });
-
-        return line;
     }
 
     addLineInternal(line) {
-        let b = function(a, b, c) {
-            var zb = {};
-            zb[c] || (zb[c] = {});
-            var d = a + ";" + b;
-            if (zb[c][d]) {
-                return zb[c][d];
-            }
-            var d = zb[c][d] = []
-            , e = new Vector(a.x,a.y)
-            , f = (b.y - a.y) / (b.x - a.x)
-            , h = new Vector(a.x < b.x ? 1 : -1,a.y < b.y ? 1 : -1)
-            , i = 0;
-            for (d.push(a); 5E3 > i && !(Math.floor(e.x / c) === Math.floor(b.x / c) && Math.floor(e.y / c) === Math.floor(b.y / c)); i++) {
-                var l = new Vector(0 > h.x ? Math.round(Math.ceil((e.x + 1) / c + h.x) * c) - 1 : Math.round(Math.floor(e.x / c + h.x) * c),0);
-                l.y = Math.round(a.y + (l.x - a.x) * f);
-                var m = new Vector(0,0 > h.y ? Math.round(Math.ceil((e.y + 1) / c + h.y) * c) - 1 : Math.round(Math.floor(e.y / c + h.y) * c));
-                m.x = Math.round(a.x + (m.y - a.y) / f);
-                if (Math.pow(l.x - a.x, 2) + Math.pow(l.y - a.y, 2) < Math.pow(m.x - a.x, 2) + Math.pow(m.y - a.y, 2)) {
-                    e = l;
-                    d.push(l);
-                } else {
-                    e = m;
-                    d.push(m);
-                }
-            }
-            return d
-        }(line.a, line.b, this.grid.scale), c, d;
-        for (let e = 0; e < b.length; e++)
-            c = Math.floor(b[e].x / this.grid.scale),
-            d = Math.floor(b[e].y / this.grid.scale),
-            this.grid.sector(c, d, true)[line.type].push(line),
-            this.grid.sector(c, d).rendered = false;
+        for (const sector of this.grid.findTouchingSectors(line.a, line.b)) {
+            sector[line.type].push(line);
+            sector.rendered = false;
+		}
     }
 
     // Fix this garbage.
@@ -457,14 +431,14 @@ export default class {
                         l = parseInt(line[o + 2], 32),
                         c = parseInt(line[o + 3], 32),
                         u = a + h + l + c;
-                    isNaN(u) || this.addLine({ x: a, y: h }, { x: l, y: c }, scenery)
+                    isNaN(u) || this.addLine({ x: a, y: h }, { x: l, y: c }, scenery, false)
                 }
                 ++index;
             }
 
             if (index < array.length) {
                 this.processing = true;
-                this[(scenery ? "s" : "") + "progress"] = index * 100 / array.length
+                this[(scenery ? 's' : '') + 'progress'] = index * 100 / array.length
                 setTimeout(() => processChunk.call(this), 0);
                 return;
             }

@@ -3,9 +3,11 @@ import Tool from "./Tool.js";
 import Vector from "../Vector.js";
 
 export default class extends Tool {
+	anchor = null;
 	points = [];
 	selected = [];
 	clip() {
+		this.anchor = null;
 		this.selected = [];
 		let min = new Vector(this.points[0], this.points[1]).toCanvas(this.scene.parent.canvas);
 		let max = new Vector(this.points[0] + this.points[2], this.points[1] + this.points[3]).toCanvas(this.scene.parent.canvas);
@@ -57,17 +59,21 @@ export default class extends Tool {
 		ctx.restore();
 	}
 
+	press() {
+		this.anchor = this.mouse.position.clone();
+	}
+
 	rect() {
 		return Array(...arguments);
 	}
 
 	stroke() {
-		if (!this.mouse.down || this.mouse.old.distanceTo(this.mouse.position) < 4) {
+		if (!this.mouse.down || this.anchor.distanceTo(this.mouse.position) < 4) {
 			return;
 		}
 
 		let position = this.mouse.position.toPixel();
-		let old = this.mouse.old.toPixel();
+		let old = this.anchor.toPixel();
 		let x = position.x - old.x > 0 ? old.x : position.x;
 		let y = position.y - old.y > 0 ? old.y : position.y;
 		this.points = this.rect(x, y, Math.abs(position.x - old.x), Math.abs(position.y - old.y));

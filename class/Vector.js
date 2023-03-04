@@ -105,6 +105,6 @@ export default class {
 	}
 
 	toString() {
-		return Math.round(this.x).toString(32) + " " + Math.round(this.y).toString(32);
+		return Math.round(this.x).toString(32) + ' ' + Math.round(this.y).toString(32);
 	}
 }

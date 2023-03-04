@@ -1,15 +1,19 @@
 import Tool from "./Tool.js";
 
 export default class extends Tool {
+	anchor = null;
 	scenery = false;
 	clip() {
-		this.scene.addLine(this.mouse.old, this.mouse.position, this.scenery);
+		if (this.anchor !== null) {
+			this.scene.addLine(this.anchor, this.mouse.position, this.scenery);
+			this.anchor = null;
+		}
 	}
 
 	draw(ctx) {
 		let position = this.mouse.position.toPixel();
-		let old = this.mouse.old.toPixel();
-		if (this.scene.cameraLock) {
+		if (this.scene.cameraLock && this.anchor !== null) {
+			let old = this.anchor.toPixel();
 			let start = position.x < 50;
 			let end = position.x > this.scene.parent.canvas.width - 50;
 			if (start || end) {
@@ -43,5 +47,9 @@ export default class extends Tool {
 		ctx.lineTo(position.x, position.y - 10 * window.devicePixelRatio),
 		ctx.stroke(),
 		ctx.restore();
+	}
+
+	press() {
+		this.anchor = this.mouse.position.clone();
 	}
 }

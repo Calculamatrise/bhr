@@ -2,17 +2,7 @@ import EventEmitter from "./EventEmitter.js";
 
 export default class extends EventEmitter {
 	downKeys = new Set();
-	constructor(parent) {
-		super();
-		this.parent = parent;
-	}
-
-	init() {
-		window.addEventListener('keydown', this.down.bind(this));
-		window.addEventListener('keyup', this.up.bind(this));
-	}
-
-	mask(key) {
+	static mask(key) {
 		switch (key.toLowerCase()) {
 			case 'a':
 			case 'arrowleft':
@@ -33,9 +23,24 @@ export default class extends EventEmitter {
 		}
 	}
 
+	constructor(parent) {
+		super();
+		this.parent = parent;
+	}
+
+	init() {
+		window.addEventListener('blur', this.blur.bind(this));
+		window.addEventListener('keydown', this.down.bind(this));
+		window.addEventListener('keyup', this.up.bind(this));
+	}
+
+	blur() {
+		this.downKeys.clear();
+	}
+
 	down(event) {
 		event.preventDefault();
-		let key = this.mask(event.key);
+		let key = this.constructor.mask(event.key);
 		if (key === null || this.downKeys.has(key)) {
 			return;
 		}
@@ -47,7 +52,7 @@ export default class extends EventEmitter {
 
 	up(event) {
 		event.preventDefault();
-		let key = this.mask(event.key);
+		let key = this.constructor.mask(event.key);
 		if (key === null) {
 			return;
 		}
@@ -66,7 +71,7 @@ export default class extends EventEmitter {
 	}
 
 	close() {
-		window.removeEventListener('keydown', this.keydown.bind(this));
-		window.removeEventListener('keyup', this.keyup.bind(this));
+		window.removeEventListener('keydown', this.down.bind(this));
+		window.removeEventListener('keyup', this.up.bind(this));
 	}
 }

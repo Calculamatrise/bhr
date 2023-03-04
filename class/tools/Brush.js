@@ -15,6 +15,10 @@ export default class extends Line {
 			return;
 		}
 
-		this.mouse.old.distanceTo(this.mouse.position) >= this.length && this.scene.addLine(this.mouse.old, this.mouse.position, this.scenery);
+		this.anchor ??= this.mouse.old.clone();
+		if (this.anchor.distanceTo(this.mouse.position) >= this.length) {
+			this.scene.addLine(this.anchor, this.mouse.position, this.scenery);
+			this.anchor = null;
+		}
 	}
 }

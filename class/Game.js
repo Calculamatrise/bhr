@@ -44,8 +44,15 @@ export default class extends EventEmitter {
 		this.mouse.on('up', this.clip.bind(this));
 		this.mouse.on('wheel', this.scroll.bind(this));
 
+		document.addEventListener('fullscreenchange', () => navigator.keyboard.lock(['Escape']));
 		document.addEventListener('keydown', this.keydown.bind(this));
 		document.addEventListener('keyup', this.keyup.bind(this));
+		document.addEventListener('pointerlockchange', () => {
+			if (!document.pointerLockElement) {
+				const checkbox = this.container.querySelector('.bhr-game-overlay > input');
+				this.scene.paused = checkbox !== null && (checkbox.checked = !checkbox.checked);
+			}
+		});
 
 		window.addEventListener('beforeunload', this.close.bind(this));
 		window.addEventListener('resize', this.adjust.bind(canvas));
@@ -109,18 +116,22 @@ export default class extends EventEmitter {
 			return;
 		}
 
-		this.mouse.old.set(this.mouse.position);
-		if (event.ctrlKey && this.scene.toolHandler.selected !== 'select') {
+		if (event.ctrlKey && this.scene.toolHandler.selected != 'select') {
 			this.scene.toolHandler.setTool('select');
-		} else if (!event.ctrlKey && this.scene.toolHandler.selected === 'select') {
+		} else if (!event.ctrlKey && this.scene.toolHandler.selected == 'select') {
 			this.scene.toolHandler.setTool(this.scene.toolHandler.old);
+		}
+
+		if (!['camera', 'eraser', 'select'].includes(this.scene.toolHandler.selected)) {
+			this.mouse.position.x = Math.round(this.mouse.position.x / this.scene.grid.size) * this.scene.grid.size;
+			this.mouse.position.y = Math.round(this.mouse.position.y / this.scene.grid.size) * this.scene.grid.size;
 		}
 
 		this.scene.toolHandler.press(event);
 	}
 
 	stroke(event) {
-		if (this.scene.toolHandler.selected !== 'camera') {
+		if (this.scene.toolHandler.selected != 'camera') {
 			this.scene.cameraFocus = false;
 		}
 
@@ -145,6 +156,11 @@ export default class extends EventEmitter {
 			return;
 		}
 
+		if (!['camera', 'eraser', 'select'].includes(this.scene.toolHandler.selected)) {
+			this.mouse.position.x = Math.round(this.mouse.position.x / this.scene.grid.size) * this.scene.grid.size;
+			this.mouse.position.y = Math.round(this.mouse.position.y / this.scene.grid.size) * this.scene.grid.size;
+		}
+
 		this.scene.toolHandler.clip(event);
 	}
 
@@ -161,11 +177,12 @@ export default class extends EventEmitter {
 				break;
 
 			case 'enter':
-				this.scene.gotoCheckpoint();
-				break;
+				if (event.shiftKey) {
+					this.scene.restoreCheckpoint();
+					break;
+				}
 
-			case '.':
-				this.scene.restoreCheckpoint();
+				this.scene.gotoCheckpoint();
 				break;
 
 			case 'tab':
@@ -258,7 +275,7 @@ export default class extends EventEmitter {
 
 			case 'f':
 			case 'f11':
-				document.fullscreenElement ? document.exitFullscreen() : this.container.requestFullscreen().then(() => navigator.keyboard.lock(['Escape']));
+				document.fullscreenElement ? document.exitFullscreen() : this.container.requestFullscreen();
 				break;
 
 			case 'escape':

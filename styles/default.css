@@ -28,26 +28,30 @@ bhr-game-container {
 }
 
 bhr-game-container bhr-game-interface {
-	position: absolute;
+	bottom: 0;
 	display: block;
-	z-index: 1;
-	width: 100%;
-    height: 100%;
+	left: 0;
 	pointer-events: none;
+	position: absolute;
+	right: 0;
+	top: 0;
+	z-index: 1;
 }
 
 bhr-game-interface .bhr-game-overlay {
     align-items: center;
     backdrop-filter: blur(.75rem);
+	bottom: 0;
     box-sizing: border-box;
 	display: none;
     flex-direction: column;
-    height: 100%;
     justify-content: center;
+	left: 0;
 	padding: 1rem;
     pointer-events: all;
     position: absolute;
-    width: 100%;
+	right: 0;
+	top: 0;
 }
 
 .bhr-game-overlay nav {
@@ -94,12 +98,12 @@ bhr-game-interface .bhr-game-overlay {
     min-height: 50vmin;
 }
 
-:not(> :checked) {
+/* section:has(> input:is([type="checkbox"], [type="radio"]):not(:checked)) {
     display: none !important;
-}
+} */
 
 :has(> :checked) {
-    display: flex !important;
+    display: flex !important; /* revert !important */
 }
 
 .bhr-game-overlay > section > label:has(> input) {
@@ -139,13 +143,14 @@ bhr-game-interface textarea {
 }
 
 bhr-game-interface bhr-game-toolbar {
-    top: 0;
-    width: 100%;
-    display: block;
-    position: absolute;
-    user-select: none;
-    pointer-events: all;
     -webkit-user-select: none;
+	bottom: 0;
+    display: block;
+	left: 0;
+    position: absolute;
+	right: 0;
+    top: 0;
+    user-select: none;
 }
 
 bhr-game-toolbar .editor-tools,
@@ -183,6 +188,7 @@ bhr-game-toolbar .toolbar-item {
 	margin: 0;
     outline: none;
     padding: 8px;
+	pointer-events: all;
 	width: 1rem;
 }
 
