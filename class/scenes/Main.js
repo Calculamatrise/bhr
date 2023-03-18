@@ -265,12 +265,13 @@ export default class {
             i = "Loading, please wait... " + Math.floor((this.progress + this.sprogress) / 2);
         }
 
-		i = `${this.firstPlayer.targetsCollected} / ${this.targets}  -  ${i}`
+		i = this.firstPlayer.targetsCollected + ` / ${this.targets}  -  ` + i
 		const text = ctx.measureText(i)
 		const goalRadius = (text.fontBoundingBoxAscent + text.fontBoundingBoxDescent) / 2;
 		const goalStrokeWidth = 1;
+		const left = 45 * window.devicePixelRatio;
 		ctx.save();
-		let rect = roundedRect.call(ctx, 45 - goalRadius, 12 - goalRadius / 2, text.width + goalRadius + goalStrokeWidth / 2 + 10, goalRadius, 40, {
+		let rect = roundedRect.call(ctx, left - goalRadius, 12 - goalRadius / 2, text.width + goalRadius + goalStrokeWidth / 2 + 10, goalRadius, 40, {
 			padding: 5
 		});
 		ctx.clip(),
@@ -280,13 +281,13 @@ export default class {
 		ctx.fillStyle = 'rgba(128,128,128,0.4)',
 		ctx.fill(),
 		ctx.restore();
-        ctx.fillText(i, 55, 12);
+        ctx.fillText(i, left + rect.padding * 2, 12);
 		ctx.save(),
 		ctx.beginPath(),
         ctx.lineWidth = goalStrokeWidth,
         ctx.fillStyle = '#ff0',
 		ctx.strokeStyle = this.parent.settings.theme == 'dark' ? '#fbfbfb' : '#000';
-        ctx.arc(45, 12, goalRadius / 1.5, 0, 2 * Math.PI),
+        ctx.arc(left, 12, goalRadius / 1.5, 0, 2 * Math.PI),
         ctx.fill(),
         ctx.stroke(),
 		ctx.restore();
@@ -510,8 +511,8 @@ export default class {
         let scenery = [];
         let powerups = [];
         for (const sector of this.grid.sectors) {
-            physics.push(...sector.physics);
-            scenery.push(...sector.scenery);
+            physics.push(...sector.physics.filter(line => (line = this.grid.coords(line.a)) && line.x == sector.row && line.y == sector.column));
+            scenery.push(...sector.scenery.filter(line => (line = this.grid.coords(line.a)) && line.x == sector.row && line.y == sector.column));
             powerups.push(...sector.powerups);
         }
 
@@ -538,5 +539,5 @@ function roundedRect(x, y, width, height, radius = 0, options = {}) {
     this.arcTo(x, y + height, x, y + height - radius, radius);
     this.lineTo(x, y + radius, x, y, radius);
     this.arcTo(x, y, x + radius, y, radius);
-	return { x, y, width, height }
+	return { x, y, width, height, ...options }
 }

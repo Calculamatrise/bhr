@@ -121,11 +121,11 @@
                 <section>
 					<input type="radio" name="bhr-game-overlay-nav" id="track" style="display: none;" checked>
                     <button onclick="game.reset()">Clear</button>
-                    <button onclick="window.game.load(document.querySelector('textarea#code').value)">Load</button>
-                    <button onclick="window.game.load()">Load File...</button>
+                    <button onclick="game.load(document.querySelector('textarea#code').value)">Load</button>
+                    <button onclick="game.load()">Load File...</button>
                     <button onclick="document.querySelector('textarea#code').value = game.scene.toString()">Save</button>
-                    <button onclick="window.game.saveAs()">Save As...</button>
-                    <textarea id="code" cols="30" rows="10" onkeydown="event.stopPropagation()"></textarea>
+                    <button onclick="game.saveAs()">Save As...</button>
+                    <textarea id="code" cols="30" rows="10" ondrop="Promise.all([...event.dataTransfer.items].filter(({ kind }) => kind === 'file').map(item => item.getAsFileSystemHandle())).then(fileHandles => game.loadFile({ fileHandles }));" onkeydown="event.stopPropagation()"></textarea>
 				</section>
                 <section style="display: none;">
 					<input type="radio" name="bhr-game-overlay-nav" id="ghost" style="display: none;">
@@ -160,7 +160,7 @@
 				</section>
                 <section style="display: none;">
 					<input type="radio" name="bhr-game-overlay-nav" id="settings" style="display: none;">
-                    <label for="auto-pause">Auto pause&emsp;<input type="checkbox" id="auto-pause"></label>
+                    <label for="auto-pause">Auto pause<input type="checkbox" id="auto-pause"></label>
                 </section>
                 <section style="display: none;">
 					<input type="radio" name="bhr-game-overlay-nav" id="appearance" style="display: none;">
@@ -173,8 +173,8 @@
         </bhr-game-interface>
     </bhr-game-container>
     <script type="module" src="bootstrap.js"></script>
-	<script type="module">
-		game.init()
+    <script type="module">
+		game.init("-18 1i 18 1i###BMX");
 	</script>
 </body>
 </html>

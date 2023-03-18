@@ -17,7 +17,12 @@ body {
 canvas#view {
     background-color: var(--background-color);
     height: 100vh;
+	touch-action: none;
     width: 100vw;
+}
+
+:fullscreen canvas#view {
+    height: 100vh;
 }
 
 bhr-game-container {
@@ -55,10 +60,10 @@ bhr-game-interface .bhr-game-overlay {
 }
 
 .bhr-game-overlay nav {
-    width: 40vw;
     display: grid;
 	grid-template-columns: repeat(auto-fit, minmax(60px, 1fr));
     justify-content: center;
+    max-width: 50%;
 }
 
 .bhr-game-overlay nav > label {
@@ -94,8 +99,8 @@ bhr-game-interface .bhr-game-overlay {
     display: none;
     flex-direction: column;
 	padding: 0.5rem;
-	max-width: 80vmin;
-    min-height: 50vmin;
+	max-width: 80%;
+    min-height: 50%;
 }
 
 /* section:has(> input:is([type="checkbox"], [type="radio"]):not(:checked)) {
@@ -140,17 +145,6 @@ bhr-game-interface textarea {
     outline: none;
     padding: 5px;
 	resize: none;
-}
-
-bhr-game-interface bhr-game-toolbar {
-    -webkit-user-select: none;
-	bottom: 0;
-    display: block;
-	left: 0;
-    position: absolute;
-	right: 0;
-    top: 0;
-    user-select: none;
 }
 
 bhr-game-toolbar .editor-tools,

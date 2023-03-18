@@ -5,6 +5,12 @@ import Mouse from "./handler/Mouse.js";
 import Vector from "./Vector.js";
 
 export default class extends EventEmitter {
+	#privateWritable = null;
+	#read = '';
+	#reader = new FileReader();
+	#readMultiple = false;
+	#restorePrompt = true;
+	#writable = null;
 	accentColor = '#000000' // for themes
 	lastFrame = null;
 	lastTime = performance.now();
@@ -26,6 +32,7 @@ export default class extends EventEmitter {
 			return true;
 		}
 	});
+	storage = null;
 
 	get max() {
 		return 1000 / this.ups;
@@ -33,10 +40,23 @@ export default class extends EventEmitter {
 
 	constructor(canvas) {
 		super();
-
 		this.canvas = canvas;
 		this.ctx = canvas.getContext('2d');
 		this.container = canvas.parentElement;
+		this.#reader.addEventListener('load', event => {
+			this.#read += event.target.result;
+			if (!this.#readMultiple) {
+				if (this.#restorePrompt) {
+					this.#restorePrompt = false;
+					if (this.#read && this.#read !== '-18 1i 18 1i###BMX' && !confirm("Would you like to restore the track you were previously working on?")) {
+						return;
+					}
+				}
+
+				this.init(this.#read);
+				this.#read = '';
+			}
+		});
 
 		this.mouse = new Mouse(canvas);
 		this.mouse.on('down', this.press.bind(this));
@@ -54,18 +74,34 @@ export default class extends EventEmitter {
 			}
 		});
 
-		window.addEventListener('beforeunload', this.close.bind(this));
+		// window.addEventListener('beforeunload', this.close.bind(this));
 		window.addEventListener('resize', this.adjust.bind(canvas));
 		window.dispatchEvent(new Event('resize'));
+		window.onbeforeunload = this.close.bind(this);
 
 		// this.on('settingsChange', (settings) => {
 		// 	console.log(settings)
 		// });
 
-		let theme = document.querySelector('link#theme');
-		if (this.settings.theme != 'dark') {
-			theme.href = `styles/${this.settings.theme}.css`;
+		const theme = document.querySelector('link#theme');
+		if (theme !== null && this.settings.theme != 'dark') {
+			theme.setAttribute('href', `styles/${this.settings.theme}.css`);
 		}
+
+		this.on('storageReady', async () => {
+			const tracks = await this.storage.getDirectoryHandle('tracks', { create: true });
+			const fileHandle = await tracks.getFileHandle('savedState', { create: true });
+			const fileData = await fileHandle.getFile();
+			this.#privateWritable = await fileHandle.createWritable({ keepExistingData: false });
+			this.#reader.readAsText(fileData);
+		});
+
+		navigator.storage.getDirectory().then(root => {
+			this.storage = root;
+			this.emit('storageReady');
+		}).catch(err => {
+			console.warn('Storage:', err);
+		});
 	}
 
 	adjust() {
@@ -75,14 +111,14 @@ export default class extends EventEmitter {
 	}
 
 	init(trackCode, { id = null, vehicle = 'BMX' } = {}) {
-		if (trackCode === null) {
+		if (!trackCode) {
 			return;
 		} else if (!/^bmx|mtb$/i.test(vehicle)) {
 			throw new TypeError("Invalid vehicle type.");
 		}
 
 		if (this.lastFrame) {
-			this.close();
+			cancelAnimationFrame(this.lastFrame);
 		}
 
 		this.scene = new Main(this, {
@@ -238,7 +274,32 @@ export default class extends EventEmitter {
 				case 'a':
 					this.scene.toolHandler.setTool('brush', false);
 					break;
+				case 'o':
+					if (event.ctrlKey) {
+						if (event.shiftKey) {
+							this.loadFile({
+								multiple: true
+							});
+							break;
+						}
+
+						this.loadFile();
+					}
+					break;
 				case 's':
+					if (event.ctrlKey) {
+						if (event.shiftKey) {
+							this.saveAs();
+							break;
+						}
+
+						// if file is open
+						// this.#openFile
+						console.log(this.#writable)
+						// this.saveAs();
+						break;
+					}
+
 					this.scene.toolHandler.setTool('brush', true);
 					break;
 				case 'q':
@@ -306,27 +367,72 @@ export default class extends EventEmitter {
 			return;
 		}
 
-		this.init(code);
+		code && this.init(code);
 	}
 
-	loadFile() {
-		let reader = new FileReader();
-		reader.addEventListener('load', () => this.init(this.result));
-		let picker = document.createElement('input');
-		picker.accept = "text/plain";
-		picker.type = "file";
-		picker.addEventListener("load", function () {
-			reader.readAsText(this.files[0]);
-		});
+	async loadFile(options = {}) {
+		this.#readMultiple = Boolean(options.multiple);
+		if ('fileHandles' in options || 'showOpenFilePicker' in window) {
+			// store files in private local storage:
+			// const root = await navigator.storage.getDirectory();
+			// const fileHandle = await root.getFileHandle('Untitled.txt', { create: true });
+			const fileHandles = options.fileHandles || await window.showOpenFilePicker(Object.assign({
+				multiple: false, // allow multiple & merge tracks?
+				types: [{
+					description: 'BHR File',
+					accept: { 'text/plain': ['.txt'] }
+				}]
+			}, arguments[0])).catch(() => []);
+			for (const fileHandle of fileHandles) {
+				const fileData = await fileHandle.getFile();
+				this.#reader.readAsText(fileData);
+				// auto-save opened file:
+				// if (fileHandles.length < 2) {
+				// 	this.#writable = await fileHandle.createWritable();
+				// }
+			}
 
+			this.#readMultiple = false;
+			return true;
+		}
+
+		const picker = document.createElement('input');
+		picker.setAttribute('accept', 'text/plain');
+		picker.setAttribute('type', 'file');
+		picker.toggleAttribute('multiple', options.multiple);
+		picker.addEventListener('change', function() {
+			for (const file of this.files) {
+				this.#reader.readAsText(file);
+			}
+
+			this.#readMultiple = false;
+		});
 		picker.click();
 	}
 
-	saveAs() {
-		let link = document.createElement('a');
-		link.href = window.URL.createObjectURL(new Blob([game.scene.toString()], { type: "text/plain" }));
-		link.download = "bhr_track_" + new Date(new Date().setHours(new Date().getHours() - new Date().getTimezoneOffset() / 60)).toISOString().split(/t/i).join("_").replace(/\..+/, "").replace(/:/g, "-");
+	async saveAs() {
+		// if ('showSaveFilePicker' in window) {
+		// 	const fileHandle = await window.showSaveFilePicker({
+		// 		suggestedName: 'bhr_track_' + new Date(new Date().setHours(new Date().getHours() - new Date().getTimezoneOffset() / 60)).toISOString().split(/t/i).join('_').replace(/\..+/, '').replace(/:/g, '-'),
+		// 		types: [{
+		// 			description: 'BHR File',
+		// 			accept: { 'text/plain': ['.txt'] }
+		// 		}]
+		// 	}).catch(() => null);
+		// 	if (fileHandle !== null && verifyPermission(fileHandle, true)) {
+		// 		const writable = await fileHandle.createWritable();
+		// 		await writable.write(this.scene.toString());
+		// 		await writable.close();
+		// 		return true;
+		// 	}
+		// }
+
+		const date = new Date();
+		const link = document.createElement('a');
+		link.setAttribute('download', 'bhr_track_' + new Date(date.setHours(date.getHours() - date.getTimezoneOffset() / 60)).toISOString().split(/t/i).join('_').replace(/\..+/, '').replace(/:/g, '-'));
+		link.setAttribute('href', URL.createObjectURL(new Blob([this.scene.toString()], { type: 'text/plain' })));
 		link.click();
+		return true;
 	}
 
 	reset() {
@@ -335,10 +441,36 @@ export default class extends EventEmitter {
 		}
 	}
 
-	close() {
-		this.scene = null;
-		this.mouse.close();
-		window.removeEventListener('resize', this.adjust);
+	async close() {
 		cancelAnimationFrame(this.lastFrame);
+		await this.#privateWritable.write(this.scene.toString()).then(() => {
+			return this.#privateWritable.close();
+		});
+
+		this.mouse.close();
+		this.scene = null;
+		window.onbeforeunload = null;
+		window.removeEventListener('resize', this.adjust);
+		window.close();
 	}
+}
+
+async function verifyPermission(fileHandle, withWrite) {
+	const opts = {};
+	if (withWrite) {
+		opts.mode = "readwrite";
+	}
+
+	// Check if we already have permission, if so, return true.
+	if ((await fileHandle.queryPermission(opts)) === "granted") {
+		return true;
+	}
+
+	// Request permission to the file, if the user grants permission, return true.
+	if ((await fileHandle.requestPermission(opts)) === "granted") {
+		return true;
+	}
+
+	// The user did not grant permission, return false.
+	return false;
 }
