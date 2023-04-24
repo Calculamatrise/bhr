@@ -3,9 +3,9 @@ import EventEmitter from "./EventEmitter.js";
 export default class extends EventEmitter {
 	downKeys = new Set();
 	init() {
-		window.addEventListener('blur', this.blur.bind(this));
-		window.addEventListener('keydown', this.down.bind(this));
-		window.addEventListener('keyup', this.up.bind(this));
+		window.addEventListener('blur', this.blur = this.blur.bind(this));
+		window.addEventListener('keydown', this.down = this.down.bind(this));
+		window.addEventListener('keyup', this.up = this.up.bind(this));
 	}
 
 	blur() {
@@ -35,17 +35,13 @@ export default class extends EventEmitter {
 	}
 
 	toggle(key) {
-		if (this.downKeys.delete(key)) {
-			return;
-		}
-
-		this.downKeys.add(key);
+		this.downKeys.delete(key) || this.downKeys.add(key);
 	}
 
 	close() {
-		window.removeEventListener('blur', this.blur.bind(this));
-		window.removeEventListener('keydown', this.down.bind(this));
-		window.removeEventListener('keyup', this.up.bind(this));
+		window.removeEventListener('blur', this.blur);
+		window.removeEventListener('keydown', this.down);
+		window.removeEventListener('keyup', this.up);
 	}
 
 	static mask(key) {

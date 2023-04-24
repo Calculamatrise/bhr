@@ -4,21 +4,9 @@ import SingleUseItem from "./SingleUseItem.js";
 export default class Teleporter extends SingleUseItem {
 	alt = null;
 	type = 'W';
-	static color = '#f0f';
-	static clip() {
-		this.mouse.old.set(this.mouse.position);
-		if (this.teleporter !== null) {
-			if (this.teleporter.position.distanceTo(this.mouse.old) > 40) {
-				this.teleporter.createAlt(this.mouse.old.x, this.mouse.old.y);
-				let x = Math.floor(this.teleporter.alt.x / this.scene.grid.scale);
-				let y = Math.floor(this.teleporter.alt.y / this.scene.grid.scale);
-				this.scene.grid.sector(x, y, true).powerups.push(this.teleporter);
-			} else {
-				this.teleporter.remove();
-			}
-
-			this.teleporter = null;
-		}
+	constructor() {
+		super(...arguments);
+		arguments.length > 3 && this.createAlt(arguments[arguments.length - 2], arguments[arguments.length - 1]);
 	}
 
 	createAlt(x, y) {
@@ -33,22 +21,10 @@ export default class Teleporter extends SingleUseItem {
 	}
 
 	collide(part) {
-		if (this.alt === null) {
-			return;
-		}
-
-		if (part.position.distanceToSquared(this.alt) < 500) {
-			if (this.used && !part.parent.parent.ghost) {
-				return;
-			}
-
+		if (this.alt === null) return;
+		if (part.position.distanceToSquared(this.alt) < 500 && !part.parent.parent.dead && !part.parent.parent.itemsCollected.has(this.id)) {
 			part.parent.parent.itemsCollected.add(this.id);
 			this.activate(part, true);
-			if (part.parent.parent.ghost) {
-				return;
-			}
-
-			this.used = true;
 			return;
 		}
 
@@ -65,7 +41,7 @@ export default class Teleporter extends SingleUseItem {
 	}
 
 	erase(vector) {
-		if (vector.distanceTo(this.alt) < this.scene.toolHandler.currentTool.size + 7) {
+		if (vector.distanceTo(this.alt) < this.scene.toolHandler.currentTool.size + this.size) {
 			return this.remove();
 		}
 
@@ -73,11 +49,14 @@ export default class Teleporter extends SingleUseItem {
 	}
 
 	remove() {
+		super.remove();
 		this.scene.remove(this.alt);
-		return super.remove();
+		return this;
 	}
 
 	toString() {
 		return this.type + ' ' + this.position.toString() + ' ' + this.alt.toString();
 	}
+
+	static color = '#f0f';
 }

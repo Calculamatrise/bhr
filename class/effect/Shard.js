@@ -16,28 +16,23 @@ export default class Shard extends Mass {
 	}
 
 	draw(ctx) {
-		var a = this.position.toPixel(),
-			b = this.shape[0] * this.size * this.parent.scene.zoom,
-			d = a.x + b * Math.cos(this.rotation),
-			c = a.y + b * Math.sin(this.rotation);
-		ctx.save();
-		ctx.beginPath(),
-			ctx.moveTo(d, c),
-			ctx.fillStyle = this.parent.scene.parent.settings.theme === "dark" ? "#fbfbfb" : "#000000";
-		for (let e = 2; 8 > e; e++)
-			c = this.shape[e - 1] * this.size * this.parent.scene.zoom / 2,
-				d = a.x + c * Math.cos(this.rotation + 6.283 * e / 8),
-				c = a.y + c * Math.sin(this.rotation + 6.283 * e / 8),
-				ctx.lineTo(d, c);
-		ctx.fill();
-		ctx.restore();
+		ctx.beginPath()
+		let position = this.position.toPixel();
+		let b = this.shape[0] * this.size * this.parent.scene.zoom;
+		ctx.moveTo(position.x + b * Math.cos(this.rotation), position.y + b * Math.sin(this.rotation))
+		for (let e = 2; e < 8; e++) {
+			b = this.shape[e - 1] * this.size * this.parent.scene.zoom / 2,
+			ctx.lineTo(position.x + b * Math.cos(this.rotation + 6.283 * e / 8), position.y + b * Math.sin(this.rotation + 6.283 * e / 8));
+		}
+
+		ctx.fill()
 	}
 
 	drive(velocity) {
 		this.pedalSpeed = velocity.dot(this.velocity) / this.size;
 		this.position.add(velocity.scale(-velocity.dot(this.velocity) * this.friction));
 		this.rotation += this.rotationFactor;
-		let b = velocity.getLength();
+		let b = velocity.length;
 		if (b > 0) {
 			velocity = new Vector(-velocity.y / b, velocity.x / b);
 			this.old.add(velocity.scale(0.8 * velocity.dot(this.velocity)));
@@ -48,11 +43,8 @@ export default class Shard extends Mass {
 		this.rotation += this.rotationFactor;
 		this.velocity.add(this.parent.gravity).scaleSelf(.99);
 		this.position.add(this.velocity);
-
 		this.touching = !1;
-		if (this.collide) {
-			this.parent.scene.collide(this);
-		}
+		this.collide && this.parent.scene.collide(this);
 		this.velocity = this.position.difference(this.old);
 		this.old.set(this.position);
 		// super.update();

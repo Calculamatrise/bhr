@@ -10,8 +10,8 @@ export default class Spring {
 		this.b = b;
 	}
 
-	getLength() {
-		return this.b.position.difference(this.a.position).getLength();
+	get length() {
+		return this.b.position.difference(this.a.position).length;
 	}
 
 	lean(rotation) {
@@ -43,9 +43,8 @@ export default class Spring {
 
 	update() {
 		let a = this.b.position.difference(this.a.position),
-			b = a.getLength();
-		if (1 > b)
-			return this;
+			b = a.length;
+		if (1 > b) return this;
 		a = a.scale(1 / b);
 		b = a.scale((b - this.leff) * this.springConstant);
 		b.add(a.scale(this.b.velocity.difference(this.a.velocity).dot(a) * this.dampConstant));

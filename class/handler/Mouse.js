@@ -32,15 +32,14 @@ export default class extends EventEmitter {
 		this.emit('click', event);
 	}
 
-	lock(options) {
-		return this.canvas.requestPointerLock(options ?? {
-			unadjustedMovement: true
-		});
+	lock(options = {}) {
+		return this.canvas.requestPointerLock(Object.assign({ unadjustedMovement: true }, arguments[0]));
 	}
 
 	pointerdown(event) {
 		event.preventDefault();
 		this.down = true;
+		this.old.set(this.position);
 		if (!this.locked) {
 			this.position.set(new Vector(event.offsetX, event.offsetY).toCanvas(this.canvas));
 			this.canvas.setPointerCapture(event.pointerId);
@@ -51,7 +50,6 @@ export default class extends EventEmitter {
 
 	move(event) {
 		event.preventDefault();
-		this.old.set(this.position);
 		if (this.locked) {
 			this.position.add(new Vector(event.movementX, event.movementY));
 		} else {
@@ -64,7 +62,6 @@ export default class extends EventEmitter {
 	up(event) {
 		event.preventDefault();
 		this.down = false;
-		this.old.set(this.position);
 		if (!this.locked) {
 			this.position.set(new Vector(event.offsetX, event.offsetY).toCanvas(this.canvas));
 			this.canvas.releasePointerCapture(event.pointerId);

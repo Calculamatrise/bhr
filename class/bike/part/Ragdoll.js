@@ -32,13 +32,13 @@ export default class {
 		this.head.size = 8;
 		this.hip.size = 8;
 		for (const point of this.points) {
-			point.size = 3,
-				point.friction = 0.05;
+			point.size = 3;
+			point.friction = 0.05;
 		}
 
 		for (const joint of this.joints) {
-			joint.springConstant = 0.4,
-				joint.dampConstant = 0.7;
+			joint.springConstant = 0.4;
+			joint.dampConstant = 0.7;
 		}
 
 		this.updatePosition(stickman);
@@ -72,45 +72,51 @@ export default class {
 		const shadowFoot = this.shadowFoot.position.toPixel();
 		const hip = this.hip.position.toPixel();
 
+		// ctx.save();
 		ctx.globalAlpha = this.parent.ghost ? .5 : 1;
+
+		ctx.beginPath()
 		ctx.lineWidth = 5 * this.parent.scene.zoom;
-		ctx.lineJoin = "round";
-		ctx.beginPath(),
-			ctx.strokeStyle = this.parent.scene.parent.settings.theme === "dark" ? "#fbfbfb80" : "rgba(0,0,0,0.5)";
-		ctx.moveTo(head.x, head.y),
-			ctx.lineTo(shadowElbow.x, shadowElbow.y),
-			ctx.lineTo(shadowHand.x, shadowHand.y),
-			ctx.moveTo(hip.x, hip.y),
-			ctx.lineTo(shadowKnee.x, shadowKnee.y),
-			ctx.lineTo(shadowFoot.x, shadowFoot.y),
-			ctx.stroke();
-		ctx.beginPath(),
-			ctx.strokeStyle = this.parent.scene.parent.settings.theme === "dark" ? "#fbfbfb" : "#000000";
-		ctx.moveTo(head.x, head.y),
-			ctx.lineTo(elbow.x, elbow.y),
-			ctx.lineTo(hand.x, hand.y),
-			ctx.moveTo(hip.x, hip.y),
-			ctx.lineTo(knee.x, knee.y),
-			ctx.lineTo(foot.x, foot.y),
-			ctx.stroke();
+		ctx.moveTo(head.x, head.y)
+		ctx.lineTo(shadowElbow.x, shadowElbow.y)
+		ctx.lineTo(shadowHand.x, shadowHand.y)
+		ctx.moveTo(hip.x, hip.y)
+		ctx.lineTo(shadowKnee.x, shadowKnee.y)
+		ctx.lineTo(shadowFoot.x, shadowFoot.y)
+		ctx.save();
+		ctx.strokeStyle = this.parent.scene.parent.settings.theme == 'dark' ? '#fbfbfb80' : 'rgba(0,0,0,0.5)';
+		ctx.stroke();
+		ctx.restore();
+
+		ctx.beginPath()
+		ctx.moveTo(head.x, head.y)
+		ctx.lineTo(elbow.x, elbow.y)
+		ctx.lineTo(hand.x, hand.y)
+		ctx.moveTo(hip.x, hip.y)
+		ctx.lineTo(knee.x, knee.y)
+		ctx.lineTo(foot.x, foot.y)
+		ctx.stroke();
+
+		ctx.beginPath()
 		ctx.lineWidth = 8 * this.parent.scene.zoom;
-		ctx.beginPath(),
-			ctx.moveTo(hip.x, hip.y),
-			ctx.lineTo(head.x, head.y),
-			ctx.stroke();
+		ctx.moveTo(hip.x, hip.y)
+		ctx.lineTo(head.x, head.y)
+		ctx.stroke();
 		head.add(head.difference(hip).scale(0.25));
+
+		ctx.beginPath()
 		ctx.lineWidth = 2 * this.parent.scene.zoom;
-		ctx.beginPath(),
-			ctx.moveTo(head.x + 5 * this.parent.scene.zoom, head.y),
-			ctx.arc(head.x, head.y, 5 * this.parent.scene.zoom, 0, 2 * Math.PI),
-			ctx.stroke()
+		ctx.moveTo(head.x + 5 * this.parent.scene.zoom, head.y),
+		ctx.arc(head.x, head.y, 5 * this.parent.scene.zoom, 0, 2 * Math.PI),
+		ctx.stroke()
+		// ctx.restore();
 	}
 
 	setVelocity(a, b) {
 		a.scaleSelf(0.7);
 		b.scaleSelf(0.7);
 		for (const joint of this.joints) {
-			let len = joint.getLength();
+			let len = joint.length;
 			len > 20 && (len = 20),
 				joint.lrest = joint.leff = len;
 		}

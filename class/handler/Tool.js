@@ -9,6 +9,7 @@ import Powerup from "../tools/Powerup.js";
 import Rectangle from "../tools/Rectangle.js";
 import Select from "../tools/Select.js";
 import TrianglePowerup from "../tools/TrianglePowerup.js";
+import Teleporter from "../tools/Teleporter.js";
 
 export default class {
 	cache = new Map();
@@ -26,11 +27,12 @@ export default class {
 		this.cache.set('powerup', new Powerup(this));
 		this.cache.set('rectangle', new Rectangle(this));
 		this.cache.set('select', new Select(this));
+		this.cache.set('teleporter', new Teleporter(this));
 		this.cache.set('trianglepowerup', new TrianglePowerup(this));
 	}
 
 	get currentTool() {
-		if (['antigravity', 'bomb', 'boost', 'checkpoint', 'goal', 'gravity', 'slow-mo', 'teleporter'].includes(this.selected)) {
+		if (['antigravity', 'bomb', 'boost', 'checkpoint', 'goal', 'gravity', 'slow-mo'].includes(this.selected)) {
 			if (['boost', 'gravity'].includes(this.selected)) {
 				return this.cache.get('trianglepowerup');
 			}
@@ -52,12 +54,16 @@ export default class {
 			this.currentTool.scenery = style;
 		}
 
-		let settings = this.scene.parent.container.querySelector('bhr-game-toolbar')?.querySelector('.left .tool-settings');
-		settings !== null && (settings.style.setProperty('display', ['brush', 'circle', 'eraser'].includes(this.selected) ? 'block' : 'none'),
-		settings = settings.querySelector('div[data-id=eraser]'),
-		settings !== null && settings.style.setProperty('display', this.selected == 'eraser' ? 'block' : 'none'));
+		this.currentTool.update();
+		let powerups = document.querySelector('#powerups');
+		powerups !== null && powerups.style.setProperty('display', /^(antigravity|bo(mb|ost)|checkpoint|g(oal|ravity)|slow-mo|teleporter)$/i.test(this.selected) ? 'contents' : 'none');
 
-		let tool = this.scene.parent.container.querySelector(`.toolbar-item${style ? '.scenery' : ''}.${name} > input[type=radio]`);
+		let settings = document.querySelector('bhr-game-toolbar #tool-settings');
+		settings !== null && (settings.style.setProperty('display', /^(brush|camera|circle|eraser)$/i.test(this.selected) ? 'contents' : 'none'),
+		settings = settings.querySelector('div[data-id=eraser]'),
+		settings !== null && settings.style.setProperty('display', this.selected == 'eraser' ? 'contents' : 'none'));
+
+		let tool = document.querySelector(`.toolbar-item${style ? '.scenery' : ''}.${name} > input[type=radio]`);
 		tool !== null && (tool.checked = true);
 
 		this.scene.parent.canvas.style.setProperty('cursor', name == 'camera' ? 'move' : 'none');
@@ -85,5 +91,17 @@ export default class {
 
 	draw(ctx) {
 		this.currentTool.draw(ctx);
+		if (/^(brush|circle|curve|ellipse|line|rectangle|select)$/i.test(this.selected)) {
+			let position = this.scene.parent.mouse.position.toPixel();
+			ctx.beginPath()
+			ctx.moveTo(position.x - 10 * window.devicePixelRatio, position.y)
+			ctx.lineTo(position.x + 10 * window.devicePixelRatio, position.y)
+			ctx.moveTo(position.x, position.y + 10 * window.devicePixelRatio)
+			ctx.lineTo(position.x, position.y - 10 * window.devicePixelRatio)
+			ctx.save()
+			ctx.lineWidth = 2 * window.devicePixelRatio
+			ctx.stroke()
+			ctx.restore();
+		}
 	}
 }

@@ -36,141 +36,137 @@ export default class MTB extends Bike {
 	}
 
 	draw(ctx) {
-		var b = this.rearWheel.position.toPixel()
-			, c = this.frontWheel.position.toPixel()
-			, d = this.head.position.toPixel()
-			, e = c.difference(b)
-			, f = new Vector((c.y - b.y) * this.dir, (b.x - c.x) * this.dir)
-			, h = d.difference(b.sum(e.scale(0.5)));
-		ctx.globalAlpha = this.parent.ghost ? .5 : 1;
-		ctx.lineCap = "round";
-		ctx.lineJoin = "round";
-		ctx.strokeStyle = this.parent.scene.parent.settings.theme === "dark" ? "#fbfbfb" : "#000000";
+		ctx.save();
+		this.parent.ghost && (ctx.globalAlpha /= 2);
 		ctx.lineWidth = 3.5 * this.parent.scene.zoom;
+		this.rearWheel.draw(ctx);
+		this.frontWheel.draw(ctx);
 
-		ctx.beginPath();
-		ctx.arc(b.x, b.y, this.parent.scene.zoom * 12.5, 0, 2 * Math.PI);
-		ctx.stroke();
+		let rearWheel = this.rearWheel.position.toPixel();
+		let frontWheel = this.frontWheel.position.toPixel();
+		ctx.beginPath()
+		ctx.arc(rearWheel.x, rearWheel.y, 5 * this.parent.scene.zoom, 0, 2 * Math.PI)
+		ctx.arc(frontWheel.x, frontWheel.y, 4 * this.parent.scene.zoom, 0, 2 * Math.PI)
+		ctx.save()
+		ctx.fillStyle = 'grey'
+		ctx.fill()
+		ctx.restore()
 
-		ctx.beginPath();
-		ctx.arc(c.x, c.y, this.parent.scene.zoom * 12.5, 0, 2 * Math.PI);
-		ctx.stroke();
+		var d = this.head.position.toPixel();
+		var e = frontWheel.difference(rearWheel);
+		var f = new Vector((frontWheel.y - rearWheel.y) * this.dir, (rearWheel.x - frontWheel.x) * this.dir);
+		var h = d.difference(rearWheel.sum(e.scale(0.5)));
 
-		ctx.beginPath(),
-		ctx.fillStyle = "grey",
-		ctx.moveTo(b.x + 5 * this.parent.scene.zoom, b.y),
-		ctx.arc(b.x, b.y, 5 * this.parent.scene.zoom, 0, 2 * Math.PI),
-		ctx.moveTo(c.x + 4 * this.parent.scene.zoom, c.y),
-		ctx.arc(c.x, c.y, 4 * this.parent.scene.zoom, 0, 2 * Math.PI),
-		ctx.fill(),
-		ctx.beginPath(),
+		ctx.beginPath()
+		ctx.moveTo(rearWheel.x, rearWheel.y)
+		ctx.lineTo(rearWheel.x + 0.4 * e.x + 0.05 * f.x, rearWheel.y + 0.4 * e.y + 0.05 * f.y)
+		ctx.moveTo(rearWheel.x + 0.72 * e.x + 0.64 * h.x, rearWheel.y + 0.72 * e.y + 0.64 * h.y)
+		ctx.lineTo(rearWheel.x + 0.46 * e.x + 0.4 * h.x, rearWheel.y + 0.46 * e.y + 0.4 * h.y)
+		ctx.lineTo(rearWheel.x + 0.4 * e.x + 0.05 * f.x, rearWheel.y + 0.4 * e.y + 0.05 * f.y)
 		ctx.lineWidth = 5 * this.parent.scene.zoom;
-		ctx.moveTo(b.x, b.y),
-		ctx.lineTo(b.x + 0.4 * e.x + 0.05 * f.x, b.y + 0.4 * e.y + 0.05 * f.y),
-		ctx.moveTo(b.x + 0.72 * e.x + 0.64 * h.x, b.y + 0.72 * e.y + 0.64 * h.y),
-		ctx.lineTo(b.x + 0.46 * e.x + 0.4 * h.x, b.y + 0.46 * e.y + 0.4 * h.y),
-		ctx.lineTo(b.x + 0.4 * e.x + 0.05 * f.x, b.y + 0.4 * e.y + 0.05 * f.y),
-		ctx.stroke(),
-		ctx.beginPath(),
-		ctx.lineWidth = 2 * this.parent.scene.zoom;
+		ctx.stroke();
+
+		ctx.beginPath()
 		var i = new Vector(6 * Math.cos(this.pedalSpeed) * this.parent.scene.zoom, 6 * Math.sin(this.pedalSpeed) * this.parent.scene.zoom);
-		ctx.moveTo(b.x + 0.72 * e.x + 0.64 * h.x, b.y + 0.72 * e.y + 0.64 * h.y),
-		ctx.lineTo(b.x + 0.43 * e.x + 0.05 * f.x, b.y + 0.43 * e.y + 0.05 * f.y),
-		ctx.moveTo(b.x + 0.45 * e.x + 0.3 * h.x, b.y + 0.45 * e.y + 0.3 * h.y),
-		ctx.lineTo(b.x + 0.3 * e.x + 0.4 * h.x, b.y + 0.3 * e.y + 0.4 * h.y),
-		ctx.lineTo(b.x + 0.25 * e.x + 0.6 * h.x, b.y + 0.25 * e.y + 0.6 * h.y),
-		ctx.moveTo(b.x + 0.17 * e.x + 0.6 * h.x, b.y + 0.17 * e.y + 0.6 * h.y),
-		ctx.lineTo(b.x + 0.3 * e.x + 0.6 * h.x, b.y + 0.3 * e.y + 0.6 * h.y),
-		ctx.moveTo(b.x + 0.43 * e.x + 0.05 * f.x + i.x, b.y + 0.43 * e.y + 0.05 * f.y + i.y),
-		ctx.lineTo(b.x + 0.43 * e.x + 0.05 * f.x - i.x, b.y + 0.43 * e.y + 0.05 * f.y - i.y),
-		ctx.stroke(),
+		ctx.moveTo(rearWheel.x + 0.72 * e.x + 0.64 * h.x, rearWheel.y + 0.72 * e.y + 0.64 * h.y),
+		ctx.lineTo(rearWheel.x + 0.43 * e.x + 0.05 * f.x, rearWheel.y + 0.43 * e.y + 0.05 * f.y),
+		ctx.moveTo(rearWheel.x + 0.45 * e.x + 0.3 * h.x, rearWheel.y + 0.45 * e.y + 0.3 * h.y),
+		ctx.lineTo(rearWheel.x + 0.3 * e.x + 0.4 * h.x, rearWheel.y + 0.3 * e.y + 0.4 * h.y),
+		ctx.lineTo(rearWheel.x + 0.25 * e.x + 0.6 * h.x, rearWheel.y + 0.25 * e.y + 0.6 * h.y),
+		ctx.moveTo(rearWheel.x + 0.17 * e.x + 0.6 * h.x, rearWheel.y + 0.17 * e.y + 0.6 * h.y),
+		ctx.lineTo(rearWheel.x + 0.3 * e.x + 0.6 * h.x, rearWheel.y + 0.3 * e.y + 0.6 * h.y),
+		ctx.moveTo(rearWheel.x + 0.43 * e.x + 0.05 * f.x + i.x, rearWheel.y + 0.43 * e.y + 0.05 * f.y + i.y),
+		ctx.lineTo(rearWheel.x + 0.43 * e.x + 0.05 * f.x - i.x, rearWheel.y + 0.43 * e.y + 0.05 * f.y - i.y),
+		ctx.lineWidth = 2 * this.parent.scene.zoom;
+		ctx.stroke();
+
 		ctx.beginPath(),
+		ctx.moveTo(rearWheel.x + 0.46 * e.x + 0.4 * h.x, rearWheel.y + 0.46 * e.y + 0.4 * h.y),
+		ctx.lineTo(rearWheel.x + 0.28 * e.x + 0.5 * h.x, rearWheel.y + 0.28 * e.y + 0.5 * h.y),
 		ctx.lineWidth = this.parent.scene.zoom;
-		ctx.moveTo(b.x + 0.46 * e.x + 0.4 * h.x, b.y + 0.46 * e.y + 0.4 * h.y),
-		ctx.lineTo(b.x + 0.28 * e.x + 0.5 * h.x, b.y + 0.28 * e.y + 0.5 * h.y),
-		ctx.stroke(),
+		ctx.stroke();
+
 		ctx.beginPath(),
+		ctx.moveTo(frontWheel.x, frontWheel.y),
+		ctx.lineTo(rearWheel.x + 0.71 * e.x + 0.73 * h.x, rearWheel.y + 0.71 * e.y + 0.73 * h.y),
+		ctx.lineTo(rearWheel.x + 0.73 * e.x + 0.77 * h.x, rearWheel.y + 0.73 * e.y + 0.77 * h.y),
+		ctx.lineTo(rearWheel.x + 0.7 * e.x + 0.8 * h.x, rearWheel.y + 0.7 * e.y + 0.8 * h.y),
 		ctx.lineWidth = 3 * this.parent.scene.zoom;
-		ctx.moveTo(c.x, c.y),
-		ctx.lineTo(b.x + 0.71 * e.x + 0.73 * h.x, b.y + 0.71 * e.y + 0.73 * h.y),
-		ctx.lineTo(b.x + 0.73 * e.x + 0.77 * h.x, b.y + 0.73 * e.y + 0.77 * h.y),
-		ctx.lineTo(b.x + 0.7 * e.x + 0.8 * h.x, b.y + 0.7 * e.y + 0.8 * h.y),
 		ctx.stroke();
 		if (!this.parent.dead) {
-			var f = d.difference(b.sum(e.scale(0.5)))
-			  , c = b.sum(e.scale(0.3)).sum(f.scale(0.25))
-			  , h = b.sum(e.scale(0.4)).sum(f.scale(0.05))
-			  , d = h.sum(i)
-			  , l = h.difference(i)
-			  , b = b.sum(e.scale(0.67)).sum(f.scale(0.8))
-			  , i = c.sum(e.scale(-0.05)).sum(f.scale(0.42))
+			var c = rearWheel.sum(e.scale(0.3)).sum(h.scale(0.25))
+			  , k = rearWheel.sum(e.scale(0.4)).sum(h.scale(0.05))
+			  , d = k.sum(i)
+			  , l = k.difference(i)
+			  , b = rearWheel.sum(e.scale(0.67)).sum(h.scale(0.8))
+			  , i = c.sum(e.scale(-0.05)).sum(h.scale(0.42))
 			  , m = d.difference(i)
-			  , h = new Vector(m.y * this.dir, -m.x * this.dir).scaleSelf(this.parent.scene.zoom * this.parent.scene.zoom)
-			  , n = i.sum(m.scale(0.5)).sum(h.scale(200 / m.lengthSquared()))
+			  , n = i.sum(m.scale(0.5)).sum(new Vector(m.y * this.dir, -m.x * this.dir).scaleSelf(this.parent.scene.zoom * this.parent.scene.zoom).scale(200 / m.lengthSquared()))
 			  , m = l.difference(i)
-			  , h = i.sum(m.scale(0.5)).sum(new Vector(m.y * this.dir, -m.x * this.dir).scaleSelf(this.parent.scene.zoom * this.parent.scene.zoom).scale(200 / m.lengthSquared()));
-			ctx.beginPath(), ctx.lineWidth = 6 * this.parent.scene.zoom;
-			ctx.strokeStyle = this.parent.scene.parent.settings.theme === "dark" ? "#FBFBFB80" : "rgba(0, 0, 0, 0.5)";
-			ctx.moveTo(l.x, l.y),
-			ctx.lineTo(h.x, h.y),
-			ctx.lineTo(i.x, i.y),
-			ctx.stroke(),
-			ctx.beginPath(),
-			ctx.strokeStyle = this.parent.scene.parent.settings.theme === "dark" ? "#fbfbfb" : "#000000";
-			ctx.moveTo(d.x, d.y),
-			ctx.lineTo(n.x, n.y),
-			ctx.lineTo(i.x, i.y),
-			ctx.stroke(),
-			ctx.lineWidth = 8 * this.parent.scene.zoom;
-			h = c.sum(e.scale(0.1)).sum(f.scale(0.93));
-			d = c.sum(e.scale(0.2)).sum(f.scale(1.09));
-			ctx.beginPath(),
-			ctx.moveTo(i.x, i.y),
-			ctx.lineTo(h.x, h.y),
-			ctx.stroke(),
-			ctx.beginPath(),
-			ctx.lineWidth = 2 * this.parent.scene.zoom;
-			ctx.moveTo(d.x + 5 * this.parent.scene.zoom, d.y),
-			ctx.arc(d.x, d.y, 5 * this.parent.scene.zoom, 0, 2 * Math.PI, true),
+			  , k = i.sum(m.scale(0.5)).sum(new Vector(m.y * this.dir, -m.x * this.dir).scaleSelf(this.parent.scene.zoom * this.parent.scene.zoom).scale(200 / m.lengthSquared()));
+			ctx.beginPath()
+			ctx.lineWidth = 6 * this.parent.scene.zoom
+			ctx.moveTo(l.x, l.y)
+			ctx.lineTo(k.x, k.y)
+			ctx.lineTo(i.x, i.y)
+			ctx.save()
+			ctx.globalAlpha = .5
+			ctx.stroke()
+			ctx.restore();
+
+			ctx.beginPath()
+			ctx.moveTo(d.x, d.y)
+			ctx.lineTo(n.x, n.y)
+			ctx.lineTo(i.x, i.y)
+			ctx.stroke();
+
+			k = c.sum(e.scale(0.1)).sum(h.scale(0.93));
+			d = c.sum(e.scale(0.2)).sum(h.scale(1.09));
+			ctx.beginPath()
+			ctx.moveTo(i.x, i.y)
+			ctx.lineTo(k.x, k.y)
+			ctx.lineWidth = 8 * this.parent.scene.zoom
+			ctx.stroke();
+
+			ctx.beginPath()
+			ctx.moveTo(d.x + 5 * this.parent.scene.zoom, d.y)
+			ctx.arc(d.x, d.y, 5 * this.parent.scene.zoom, 0, 2 * Math.PI, true)
+			ctx.lineWidth = 2 * this.parent.scene.zoom
 			ctx.stroke();
 			ctx.beginPath();
 			switch (this.parent.cosmetics.head) {
 				case 'cap':
-					ctx.moveTo(...Object.values(c.sum(e.scale(0.4)).sum(f.scale(1.15))));
-					ctx.lineTo(...Object.values(c.sum(e.scale(0.1)).sum(f.scale(1.05))));
-					ctx.stroke();
+					ctx.moveTo(...Object.values(c.sum(e.scale(0.4)).sum(h.scale(1.15))));
+					ctx.lineTo(...Object.values(c.sum(e.scale(0.1)).sum(h.scale(1.05))));
 					break;
 
 				case 'hat':
-					d = c.sum(e.scale(0.37)).sum(f.scale(1.19)),
-						i = c.difference(e.scale(0.02)).sum(f.scale(1.14)),
-						l = c.sum(e.scale(0.28)).sum(f.scale(1.17)),
-						c = c.sum(e.scale(0.09)).sum(f.scale(1.15)),
-						n = d.difference(e.scale(0.1)).add(f.scale(0.2)),
-						e = i.sum(e.scale(0.02)).add(f.scale(0.2)),
-						ctx.fillStyle = this.parent.scene.parent.settings.theme === "dark" ? "#fbfbfb" : "#000000",
-						ctx.lineJoin = "round",
-						ctx.moveTo(d.x, d.y),
-						ctx.lineTo(l.x, l.y),
-						ctx.lineTo(n.x, n.y),
-						ctx.lineTo(e.x, e.y),
-						ctx.lineTo(c.x, c.y),
-						ctx.lineTo(i.x, i.y),
-						ctx.stroke(),
-						ctx.fill()
+					d = c.sum(e.scale(0.37)).sum(h.scale(1.19))
+					i = c.difference(e.scale(0.02)).sum(h.scale(1.14))
+					l = c.sum(e.scale(0.28)).sum(h.scale(1.17))
+					c = c.sum(e.scale(0.09)).sum(h.scale(1.15))
+					n = d.difference(e.scale(0.1)).add(h.scale(0.2))
+					e = i.sum(e.scale(0.02)).add(h.scale(0.2))
+					ctx.moveTo(d.x, d.y)
+					ctx.lineTo(l.x, l.y)
+					ctx.lineTo(n.x, n.y)
+					ctx.lineTo(e.x, e.y)
+					ctx.lineTo(c.x, c.y)
+					ctx.lineTo(i.x, i.y)
+					ctx.fill();
 			}
-			e = h.difference(b);
-			f = new Vector(e.y * this.dir, -e.x * this.dir);
-			f = f.scale(this.parent.scene.zoom * this.parent.scene.zoom);
-			e = b.sum(e.scale(0.3)).sum(f.scale(80 / e.lengthSquared()));
-			ctx.lineWidth = 5 * this.parent.scene.zoom;
-			ctx.beginPath(),
-			ctx.moveTo(h.x, h.y),
-			ctx.lineTo(e.x, e.y),
-			ctx.lineTo(b.x, b.y),
-			ctx.stroke()
+
+			ctx.stroke();
+			e = k.difference(b);
+			e = b.sum(e.scale(0.3)).sum(new Vector(e.y, -e.x).scale(80 / e.lengthSquared() * this.dir * this.parent.scene.zoom * this.parent.scene.zoom));
+			ctx.beginPath()
+			ctx.moveTo(k.x, k.y)
+			ctx.lineTo(e.x, e.y)
+			ctx.lineTo(b.x, b.y)
+			ctx.lineWidth = 5 * this.parent.scene.zoom
+			ctx.stroke();
 		}
 
-		ctx.globalAlpha = 1;
+		ctx.restore();
 	}
 }

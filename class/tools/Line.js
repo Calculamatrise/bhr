@@ -6,50 +6,46 @@ export default class extends Tool {
 	clip() {
 		if (this.anchor !== null) {
 			this.scene.addLine(this.anchor, this.mouse.position, this.scenery);
+			this.mouse.old.set(this.mouse.position);
 			this.anchor = null;
 		}
 	}
 
 	draw(ctx) {
-		let position = this.mouse.position.toPixel();
-		if (this.scene.cameraLock && this.anchor !== null) {
-			let old = this.anchor.toPixel();
-			let start = position.x < 50;
-			let end = position.x > this.scene.parent.canvas.width - 50;
-			if (start || end) {
-				this.scene.camera.x += 4 / this.scene.zoom * (1 + (start && -2));
-				this.mouse.position.x += 4 / this.scene.zoom * (1 + (start && -2));
-			}
-
-			start = position.y < 50;
-			end = position.y > this.scene.parent.canvas.height - 50;
-			if (start || end) {
-				this.scene.camera.y += 4 / this.scene.zoom * (1 + (start && -2));
-				this.mouse.position.y += 4 / this.scene.zoom * (1 + (start && -2));
-			}
-
-			position = this.mouse.position.toPixel();
-			ctx.save(),
-			ctx.beginPath(),
-			ctx.lineWidth = Math.max(2 * this.parent.scene.zoom, 0.5),
-			ctx.strokeStyle = '#f00',
-			ctx.moveTo(old.x, old.y),
-			ctx.lineTo(position.x, position.y),
-			ctx.stroke(),
-			ctx.restore();
+		if (!this.scene.cameraLock || !this.anchor) {
+			return;
 		}
 
-		ctx.beginPath(),
-		ctx.lineWidth = 2 * window.devicePixelRatio,
-		ctx.moveTo(position.x - 10 * window.devicePixelRatio, position.y),
-		ctx.lineTo(position.x + 10 * window.devicePixelRatio, position.y),
-		ctx.moveTo(position.x, position.y + 10 * window.devicePixelRatio),
-		ctx.lineTo(position.x, position.y - 10 * window.devicePixelRatio),
-		ctx.stroke(),
+		let position = this.mouse.position.toPixel();
+		let margin = 50;
+		let dirX = (position.x > this.scene.parent.canvas.width - margin) - (position.x < margin);
+		if (dirX !== 0) {
+			this.scene.camera.x += 4 / this.scene.zoom * dirX;
+			this.mouse.position.x += 4 / this.scene.zoom * dirX;
+		}
+
+		let dirY = (position.y > this.scene.parent.canvas.height - margin) - (position.y < margin);
+		if (dirY !== 0) {
+			this.scene.camera.y += 4 / this.scene.zoom * dirY;
+			this.mouse.position.y += 4 / this.scene.zoom * dirY;
+		}
+
+		ctx.beginPath()
+		let old = this.anchor.toPixel();
+		ctx.moveTo(old.x, old.y)
+		ctx.lineTo(position.x, position.y)
+		ctx.save()
+		ctx.strokeStyle = '#f00'
+		ctx.stroke()
 		ctx.restore();
 	}
 
-	press() {
+	press(event) {
+		// if (event.ctrlKey) {
+		// 	this.anchor = this.mouse.old.clone();
+		// 	return;
+		// }
+
 		this.anchor = this.mouse.position.clone();
 	}
 }

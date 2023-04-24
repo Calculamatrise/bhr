@@ -2,47 +2,60 @@ import Vector from "../Vector.js";
 
 export default class Item {
 	scene = null;
+	size = 7;
 	removed = false;
-	static count = 0;
 	constructor(scene, x, y) {
 		this.scene = scene;
 		this.position = new Vector(x, y);
 	}
 
-	static draw(ctx, position = this.position.toPixel()) {
-		ctx.beginPath(),
-		ctx.fillStyle = this.constructor.color,
-		ctx.strokeStyle = this.scene.parent.settings.theme == 'dark' ? '#fbfbfb' : '#000',
-		ctx.arc(position.x, position.y, 7 * this.scene.zoom, 0, 2 * Math.PI),
-		ctx.fill(),
+	draw(ctx, position = this.position.toPixel()) {
+		ctx.beginPath();
+		ctx.arc(position.x, position.y, 7 * this.scene.zoom, 0, 2 * Math.PI);
+		ctx.save();
+		ctx.fillStyle = this.constructor.color;
+		ctx.fill();
+		ctx.restore();
 		ctx.stroke();
 	}
 
-	draw() {
-		this.constructor.draw.apply(this, arguments);
-	}
-
 	collide(part) {
-		if (part.position.distanceToSquared(this.position) < 500) {
-			this.activate(part);
-		}
+		part.position.distanceToSquared(this.position) < 500 && this.activate(part);
 	}
 
 	erase(vector) {
-		if (vector.distanceTo(this.position) < this.scene.toolHandler.currentTool.size + 7) {
-			return this.remove();
-		}
-
-		return false;
+		return vector.distanceTo(this.position) < this.scene.toolHandler.currentTool.size + this.size && this.remove();
 	}
 
 	remove() {
 		this.removed = true;
-		this.scene.remove(this.position);
+		this.scene.remove(this);
 		return this;
 	}
 
 	toString() {
 		return this.type + ' ' + this.position.toString();
 	}
+
+	static clip() {}
+	static draw(ctx) {
+		this.prototype.draw.call(this, ctx);
+		return;
+		// let position = this.mouse.position.toPixel();
+		ctx.beginPath();
+		ctx.arc(position.x, position.y, 7 * this.scene.zoom, 0, 2 * Math.PI);
+		ctx.save();
+		ctx.fillStyle = this.constructor.color;
+		ctx.fill();
+		ctx.restore();
+		ctx.stroke();
+	}
+
+	static press() {
+		this.anchor = this.mouse.position.clone();
+		this.addPowerup(new this(this.scene, this.mouse.old.x, this.mouse.old.y));
+	}
+
+	static scroll() {}
+	static stroke() {}
 }

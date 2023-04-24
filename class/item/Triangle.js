@@ -4,29 +4,31 @@ import Item from "./Item.js";
 export default class Triangle extends Item {
 	constructor() {
 		super(...arguments);
-		this.rotation = arguments[3];
-		this.dir = new Vector(-Math.sin(this.rotation * Math.PI / 180), Math.cos(this.rotation * Math.PI / 180));
+		this.rotation = Math.max(arguments[3], 0);
 	}
 
-	static draw(ctx) {
+	get dir() {
+		return new Vector(-Math.sin(this.rotation * Math.PI / 180), Math.cos(this.rotation * Math.PI / 180));
+	}
+
+	draw(ctx) {
+		ctx.beginPath();
+		ctx.save();
 		let position = this.position.toPixel();
-		ctx.save(),
-		ctx.beginPath(),
-		ctx.fillStyle = this.constructor.color,
-		ctx.strokeStyle = this.scene.parent.settings.theme == 'dark' ? '#fbfbfb' : '#000',
-		ctx.translate(position.x, position.y),
-		ctx.rotate(this.rotation * Math.PI / 180),
-		ctx.moveTo(-7 * this.scene.zoom, -10 * this.scene.zoom),
-		ctx.lineTo(0, 10 * this.scene.zoom),
-		ctx.lineTo(7 * this.scene.zoom, -10 * this.scene.zoom),
-		ctx.closePath(),
-		ctx.fill(),
-		ctx.stroke(),
+		ctx.translate(position.x, position.y);
+		ctx.rotate(this.rotation * Math.PI / 180);
+		ctx.moveTo(-7 * this.scene.zoom, -10 * this.scene.zoom);
+		ctx.lineTo(0, 10 * this.scene.zoom);
+		ctx.lineTo(7 * this.scene.zoom, -10 * this.scene.zoom);
+		ctx.closePath();
+		ctx.fillStyle = this.constructor.color;
+		ctx.fill();
 		ctx.restore();
+		ctx.stroke();
 	}
 
 	collide(part) {
-		if ((part.position.distanceToSquared(this.position) > 1e3) || part.parent.parent.dead) {
+		if (part.position.distanceToSquared(this.position) > 1e3) {
 			return;
 		}
 

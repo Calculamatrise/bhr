@@ -1,12 +1,14 @@
+import Vector from "../Vector.js";
 import Tool from "./Tool.js";
 
 export default class extends Tool {
-	stroke() {
-		if (!this.mouse.down) {
-			return;
-		}
+	scroll(event) {
+		this.scene['zoom' + (event.wheelDelta > 0 ? 'In' : 'Out')]();
+	}
 
-		this.scene.camera.add(this.mouse.old.difference(this.mouse.position)),
-		this.mouse.position.set(this.mouse.old);
+	stroke(event) {
+		let offset = new Vector(event.movementX / this.scene.zoom, event.movementY / this.scene.zoom);
+		this.mouse.down && (this.scene.camera.subtract(offset),
+		this.mouse.position.subtract(offset));
 	}
 }

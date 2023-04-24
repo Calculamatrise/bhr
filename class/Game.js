@@ -5,17 +5,15 @@ import Mouse from "./handler/Mouse.js";
 import Vector from "./Vector.js";
 
 export default class extends EventEmitter {
+	#openFile = null;
 	#privateWritable = null;
-	#read = '';
-	#reader = new FileReader();
-	#readMultiple = false;
-	#restorePrompt = true;
-	#writable = null;
+	#savedFileData = null;
 	accentColor = '#000000' // for themes
 	lastFrame = null;
 	lastTime = performance.now();
 	progress = 0;
 	ups = 25;
+	scene = new Main(this);
 	settings = new RecursiveProxy(Object.assign({
 		ap: false,
 		theme: window.matchMedia('(prefers-color-scheme: dark)').matches ? 'dark' : 'light'
@@ -33,30 +31,14 @@ export default class extends EventEmitter {
 		}
 	});
 	storage = null;
-
-	get max() {
-		return 1000 / this.ups;
-	}
-
 	constructor(canvas) {
 		super();
 		this.canvas = canvas;
+		// const offscreen = this.canvas.transferControlToOffscreen();
+		// this.scene.helper.postMessage({ canvas: offscreen }, [offscreen]);
 		this.ctx = canvas.getContext('2d');
+		this.ctx.textBaseline = 'middle';
 		this.container = canvas.parentElement;
-		this.#reader.addEventListener('load', event => {
-			this.#read += event.target.result;
-			if (!this.#readMultiple) {
-				if (this.#restorePrompt) {
-					this.#restorePrompt = false;
-					if (this.#read && this.#read !== '-18 1i 18 1i###BMX' && !confirm("Would you like to restore the track you were previously working on?")) {
-						return;
-					}
-				}
-
-				this.init(this.#read);
-				this.#read = '';
-			}
-		});
 
 		this.mouse = new Mouse(canvas);
 		this.mouse.on('down', this.press.bind(this));
@@ -67,6 +49,7 @@ export default class extends EventEmitter {
 		document.addEventListener('fullscreenchange', () => navigator.keyboard.lock(['Escape']));
 		document.addEventListener('keydown', this.keydown.bind(this));
 		document.addEventListener('keyup', this.keyup.bind(this));
+		// document.addEventListener('paste', this.paste.bind(this));
 		document.addEventListener('pointerlockchange', () => {
 			if (!document.pointerLockElement) {
 				const checkbox = this.container.querySelector('.bhr-game-overlay > input');
@@ -74,26 +57,42 @@ export default class extends EventEmitter {
 			}
 		});
 
-		// window.addEventListener('beforeunload', this.close.bind(this));
-		window.addEventListener('resize', this.adjust.bind(canvas));
-		window.dispatchEvent(new Event('resize'));
-		window.onbeforeunload = this.close.bind(this);
-
-		// this.on('settingsChange', (settings) => {
-		// 	console.log(settings)
-		// });
-
-		const theme = document.querySelector('link#theme');
-		if (theme !== null && this.settings.theme != 'dark') {
-			theme.setAttribute('href', `styles/${this.settings.theme}.css`);
-		}
-
+		this.on('settingsChange', settings => {
+			'theme' in window && theme.setAttribute('href', 'styles/' + settings.theme + '.css');
+			this.scene.grid.sectors.forEach(sector => sector.rendered = false);
+		});
+		this.emit('settingsChange', this.settings);
 		this.on('storageReady', async () => {
 			const tracks = await this.storage.getDirectoryHandle('tracks', { create: true });
+			for await (const [fileName, fileHandle] of tracks.entries()) {
+				if (fileName.endsWith('.crswap')) continue;
+				console.log(fileName, fileHandle);
+			}
+
 			const fileHandle = await tracks.getFileHandle('savedState', { create: true });
 			const fileData = await fileHandle.getFile();
+			this.#savedFileData = fileData;
 			this.#privateWritable = await fileHandle.createWritable({ keepExistingData: false });
-			this.#reader.readAsText(fileData);
+			if ('toasts' in window) {
+				const toast = Object.assign(document.createElement('div'), {
+					className: 'toast',
+					innerText: 'Would you like to restore the track you were last working on? '
+				});
+				toast.append(Object.assign(document.createElement('button'), {
+					innerText: 'Yes',
+					onclick: () => {
+						toast.remove();
+						fileData.text().then(code => {
+							this.init();
+							this.scene.read(code);
+						});
+					}
+				}), Object.assign(document.createElement('button'), {
+					innerText: 'No',
+					onclick: () => toast.remove()
+				}));
+				this.constructor.serveToast(toast);
+			}
 		});
 
 		navigator.storage.getDirectory().then(root => {
@@ -102,31 +101,26 @@ export default class extends EventEmitter {
 		}).catch(err => {
 			console.warn('Storage:', err);
 		});
+
+		// new ResizeObserver(this.setCanvasSize.bind(this)).observe(this.canvas);
+		window.addEventListener('resize', this.setCanvasSize.bind(this));
+		window.dispatchEvent(new Event('resize'));
+		window.onbeforeunload = this.close.bind(this);
 	}
 
-	adjust() {
-		const style = getComputedStyle(this);
-		this.setAttribute('height', parseFloat(style.height) * window.devicePixelRatio);
-		this.setAttribute('width', parseFloat(style.width) * window.devicePixelRatio);
+	get max() {
+		return 1000 / this.ups;
 	}
 
-	init(trackCode, { id = null, vehicle = 'BMX' } = {}) {
-		if (!trackCode) {
-			return;
-		} else if (!/^bmx|mtb$/i.test(vehicle)) {
-			throw new TypeError("Invalid vehicle type.");
-		}
-
+	init(options = {}) {
 		if (this.lastFrame) {
 			cancelAnimationFrame(this.lastFrame);
 		}
 
-		this.scene = new Main(this, {
-			code: trackCode,
-			id
-		});
-
-		this.scene.init(vehicle);
+		options = Object.assign({}, arguments[0]);
+		this.#openFile = null;
+		this.scene.init(options);
+		this.scene.read(options.code || '-18 1i 18 1i###BMX');
 		this.lastFrame = requestAnimationFrame(this.render.bind(this));
 	}
 
@@ -145,16 +139,70 @@ export default class extends EventEmitter {
 		this.lastTime = time;
 	}
 
-	press(event) {
-		this.scene.cameraLock = true;
-		this.scene.cameraFocus = false;
-		if (event.shiftKey || this.scene.processing) {
-			return;
-		}
+	createRecorder() {
+		const lastArgument = arguments[arguments.length - 1];
+		this.mediaRecorder = new MediaRecorder(this.canvas.captureStream(50));
+		this.mediaRecorder.addEventListener('dataavailable', ({ data }) => {
+			const objectURL = URL.createObjectURL(data);
+			typeof lastArgument == 'function' && lastArgument(objectURL);
+			this.emit('recorderStop', objectURL);
+		});
+		this.mediaRecorder.addEventListener('start', event => {
+			this.emit('recorderStart', event);
+		})
+		return this.mediaRecorder;
+	}
 
-		if (event.ctrlKey && this.scene.toolHandler.selected != 'select') {
-			this.scene.toolHandler.setTool('select');
-		} else if (!event.ctrlKey && this.scene.toolHandler.selected == 'select') {
+	// create a separate overlaying canvas for scenery lines with a transparent background
+	setCanvasSize() {
+		const computedStyle = getComputedStyle(this.canvas);
+		this.canvas.setAttribute('height', parseFloat(computedStyle.height) * window.devicePixelRatio);
+		this.canvas.setAttribute('width', parseFloat(computedStyle.width) * window.devicePixelRatio);
+		this.ctx.fillStyle = '#'.padEnd(7, this.settings.theme == 'dark' ? 'fb' : '0');
+		this.ctx.lineWidth = Math.max(2 * this.scene.zoom, 0.5);
+		this.ctx.lineCap = 'round';
+		this.ctx.lineJoin = 'round';
+		this.ctx.strokeStyle = this.ctx.fillStyle;
+		// this.ctx.font = '20px Arial';
+		// this.ctx.textAlign = 'center';
+		this.ctx.textBaseline = 'middle';
+		// this.ctx.lineWidth = 2;
+		// this.ctx.setTransform(this.scene.zoom, this.scene.camera.x, 0, this.scene.zoom, this.scene.camera.y, 0);
+		// this.ctx.scale(-1, 1); // for 'left-hand' mode
+	}
+
+	async showRecentFiles() {
+		if ('loadrecenttracks' in window && this.storage !== null) {
+			loadrecenttracks.showModal();
+			if ('recenttracks' in window) {
+				const tracks = await this.storage.getDirectoryHandle('tracks', { create: true });
+				const results = [];
+				for await (const [fileName, fileHandle] of tracks.entries()) {
+					if (fileName.endsWith('.crswap')) continue;
+					const fileData = await fileHandle.getFile();
+					const wrapper = document.createElement('button');
+					wrapper.addEventListener('click', async event => {
+						this.init({ code: await fileData.text() });
+					});
+
+					wrapper.innerText = fileName;
+					results.push(wrapper);
+					console.log(fileName, fileHandle);
+				}
+
+				recenttracks.replaceChildren(...results);
+			}
+		}
+	}
+
+	press(event) {
+		if (this.scene.processing) return;
+		this.scene.cameraLock = !event.shiftKey;
+		this.scene.cameraFocus = false;
+		if (event.shiftKey) return;
+		else if (event.ctrlKey) {
+			this.scene.toolHandler.selected != 'select' && this.scene.toolHandler.setTool('select');
+		} else if (this.scene.toolHandler.selected == 'select') {
 			this.scene.toolHandler.setTool(this.scene.toolHandler.old);
 		}
 
@@ -167,13 +215,9 @@ export default class extends EventEmitter {
 	}
 
 	stroke(event) {
-		if (this.scene.toolHandler.selected != 'camera') {
-			this.scene.cameraFocus = false;
-		}
-
-		if (this.scene.processing) {
-			return;
-		} else if (event.shiftKey) {
+		if (this.scene.processing) return;
+		this.scene.toolHandler.selected != 'camera' && (this.scene.cameraFocus = false);
+		if (event.shiftKey) {
 			this.scene.toolHandler.cache.get('camera').stroke(event);
 			return;
 		}
@@ -187,11 +231,8 @@ export default class extends EventEmitter {
 	}
 
 	clip(event) {
+		if (this.scene.processing) return;
 		this.scene.cameraLock = false;
-		if (this.scene.processing) {
-			return;
-		}
-
 		if (!['camera', 'eraser', 'select'].includes(this.scene.toolHandler.selected)) {
 			this.mouse.position.x = Math.round(this.mouse.position.x / this.scene.grid.size) * this.scene.grid.size;
 			this.mouse.position.y = Math.round(this.mouse.position.y / this.scene.grid.size) * this.scene.grid.size;
@@ -200,28 +241,30 @@ export default class extends EventEmitter {
 		this.scene.toolHandler.clip(event);
 	}
 
-	keydown(event) {
+	async keydown(event) {
 		event.preventDefault();
 		switch (event.key.toLowerCase()) {
-			case 'backspace':
+			case 'backspace': {
 				if (event.shiftKey) {
-					this.scene.restoreCheckpoint();
+					this.scene.firstPlayer.restoreCheckpoint();
 					break;
 				}
 
-				this.scene.removeCheckpoint();
+				this.scene.firstPlayer.removeCheckpoint();
 				break;
+			}
 
-			case 'enter':
+			case 'enter': {
 				if (event.shiftKey) {
-					this.scene.restoreCheckpoint();
+					this.scene.firstPlayer.restoreCheckpoint();
 					break;
 				}
 
-				this.scene.gotoCheckpoint();
+				this.scene.firstPlayer.gotoCheckpoint();
 				break;
+			}
 
-			case 'tab':
+			case 'tab': {
 				if (!this.scene.cameraFocus) {
 					this.scene.cameraFocus = this.scene.firstPlayer.vehicle.head;
 					break;
@@ -234,32 +277,67 @@ export default class extends EventEmitter {
 
 				this.scene.cameraFocus = this.scene.players[index].vehicle.head;
 				break;
+			}
 
 			case '-':
 				this.scene.zoomOut();
 				break;
-
 			case '+':
 			case '=':
 				this.scene.zoomIn();
 				break;
-
 			case 'p':
 			case ' ':
 				this.scene.paused = !this.scene.paused;
-				this.container.querySelector('.playpause > input').checked = !this.scene.paused;
+				document.querySelector('.playpause > input').checked = !this.scene.paused;
 				break;
 		}
 
-		if (this.scene.editor) {
+		if (this.scene.editMode) {
 			switch (event.key.toLowerCase()) {
-				case 'delete':
-					if (this.scene.toolHandler.selected != 'select' || this.scene.toolHandler.currentTool.selected.length < 1) {
+				case 'c': {
+					if (!event.ctrlKey || this.scene.toolHandler.selected != 'select') {
+						break;
+					}
+
+					const selectedCode = this.scene.toolHandler.currentTool.selected.toString();
+					// selectedCode.length > 3 && navigator.clipboard.writeText(selectedCode);
+					const type = 'text/plain';
+					selectedCode.length > 3 && navigator.clipboard.write([new ClipboardItem({ [type]: new Blob([selectedCode], { type }) })]);
+					break;
+				}
+
+				case 'delete': {
+					if (this.scene.toolHandler.selected != 'select') {
 						break;
 					}
 
 					this.scene.toolHandler.currentTool.deleteSelected();
 					break;
+				}
+
+				case 'v': {
+					if (!event.ctrlKey) {
+						break;
+					}
+
+					const queryOpts = { name: 'clipboard-read', allowWithoutGesture: false };
+					const permissionStatus = await navigator.permissions.query(queryOpts).then(permissionStatus => {
+						permissionStatus.onchange = ({ target }) => {
+							target.state == 'granted' && navigator.clipboard.readText().then(console.log);
+						};
+
+						return permissionStatus.state;
+					});
+
+					if (permissionStatus == 'deined') {
+						alert('NotAllowedError: Read permission denied.');
+						break;
+					}
+
+					navigator.clipboard.readText().then(console.log).catch(alert);
+					break;
+				}
 
 				// store arrays of hotkeys in each tool, then compare
 				// let tools = Object.fromEntries(this.scene.toolHandler.cache.entries());
@@ -275,33 +353,37 @@ export default class extends EventEmitter {
 					this.scene.toolHandler.setTool('brush', false);
 					break;
 				case 'o':
+					event.ctrlKey && this.openFile({ multiple: event.shiftKey });
+					break;
+				case 'r': {
 					if (event.ctrlKey) {
 						if (event.shiftKey) {
-							this.loadFile({
-								multiple: true
-							});
-							break;
+							this.mediaRecorder.stop();
 						}
 
-						this.loadFile();
+						this.createRecorder();
+						this.mediaRecorder.start();
+						if ('recorder' in window) {
+							recorder.style.removeProperty('display');
+						}
 					}
 					break;
-				case 's':
+				}
+				case 's': {
 					if (event.ctrlKey) {
 						if (event.shiftKey) {
 							this.saveAs();
 							break;
 						}
 
-						// if file is open
-						// this.#openFile
-						console.log(this.#writable)
-						// this.saveAs();
+						this.save();
 						break;
 					}
 
 					this.scene.toolHandler.setTool('brush', true);
 					break;
+				}
+
 				case 'q':
 					this.scene.toolHandler.setTool('line', false);
 					break;
@@ -325,53 +407,49 @@ export default class extends EventEmitter {
 		event.preventDefault();
 		switch (event.key.toLowerCase()) {
 			case 'b':
-				if (event.ctrlKey) {
-					this.scene.switchBike();
-				}
+				event.ctrlKey && this.scene.switchBike();
 				break;
-
-			case 'g':
-				this.scene.players.length <= 1 && (this.scene.grid.size = 11 - this.scene.grid.size);
-				break;
-
 			case 'f':
 			case 'f11':
 				document.fullscreenElement ? document.exitFullscreen() : this.container.requestFullscreen();
 				break;
-
 			case 'escape':
 				const checkbox = this.container.querySelector('.bhr-game-overlay > input');
 				this.scene.paused = checkbox !== null && (checkbox.checked = !checkbox.checked);
 				break;
 		}
+
+		if (this.scene.editMode) {
+			switch (event.key.toLowerCase()) {
+				case 'g':
+					document.querySelector('.grid > input').checked = (this.scene.grid.size = 11 - this.scene.grid.size) > 1;
+					break;
+			}
+		}
 	}
 
+	paste(event) {}
 	scroll(event) {
-		if (event.ctrlKey) {
+		if (!event.ctrlKey) {
 			this.scene.toolHandler.scroll(event);
 		} else {
-			if (0 < event.detail || event.wheelDelta < 0) {
-				this.scene.zoomOut()
-			} else if (0 > event.detail || event.wheelDelta > 0) {
-				this.scene.zoomIn()
-			}
+			this.scene.toolHandler.cache.get('camera').scroll(event);
 		}
 
 		let y = new Vector(event.clientX - this.canvas.offsetLeft, event.clientY - this.canvas.offsetTop + window.pageYOffset).toCanvas(this.canvas);
 		this.scene.cameraFocus || this.scene.camera.add(this.mouse.position.difference(y));
 	}
 
-	load(code = null) {
-		if (code === null) {
-			this.loadFile();
-			return;
+	load(code) {
+		this.init({ write: true });
+		if (!code) {
+			return this.openFile();
 		}
 
-		code && this.init(code);
+		this.scene.read(code);
 	}
 
-	async loadFile(options = {}) {
-		this.#readMultiple = Boolean(options.multiple);
+	async openFile(options = {}) {
 		if ('fileHandles' in options || 'showOpenFilePicker' in window) {
 			// store files in private local storage:
 			// const root = await navigator.storage.getDirectory();
@@ -385,14 +463,17 @@ export default class extends EventEmitter {
 			}, arguments[0])).catch(() => []);
 			for (const fileHandle of fileHandles) {
 				const fileData = await fileHandle.getFile();
-				this.#reader.readAsText(fileData);
+				this.scene.read(await fileData.text());
 				// auto-save opened file:
-				// if (fileHandles.length < 2) {
-				// 	this.#writable = await fileHandle.createWritable();
-				// }
+				if (fileHandles.length < 2) {
+					this.#openFile = fileHandle;
+				}
+
+				if (!options.multiple) {
+					break;
+				}
 			}
 
-			this.#readMultiple = false;
 			return true;
 		}
 
@@ -400,20 +481,41 @@ export default class extends EventEmitter {
 		picker.setAttribute('accept', 'text/plain');
 		picker.setAttribute('type', 'file');
 		picker.toggleAttribute('multiple', options.multiple);
-		picker.addEventListener('change', function() {
+		picker.addEventListener('change', async () => {
 			for (const file of this.files) {
-				this.#reader.readAsText(file);
+				this.scene.read(await file.text());
+				if (!options.multiple) {
+					break;
+				}
 			}
-
-			this.#readMultiple = false;
 		});
 		picker.click();
+	}
+
+	save() {
+		if (this.#openFile) {
+			this.#openFile.createWritable().then(writable => {
+				writable.write(this.scene.toString()).then(() => {
+					if ('toasts' in window) {
+						this.constructor.serveToast(Object.assign(document.createElement('div'), {
+							className: 'toast',
+							innerText: 'Changes successfully saved!'
+						}), 3e3);
+					}
+
+					return writable.close();
+				});
+			});
+			return true;
+		}
+
+		return this.saveAs();
 	}
 
 	async saveAs() {
 		// if ('showSaveFilePicker' in window) {
 		// 	const fileHandle = await window.showSaveFilePicker({
-		// 		suggestedName: 'bhr_track_' + new Date(new Date().setHours(new Date().getHours() - new Date().getTimezoneOffset() / 60)).toISOString().split(/t/i).join('_').replace(/\..+/, '').replace(/:/g, '-'),
+		// 		suggestedName: 'bhr_track-' + new Intl.DateTimeFormat('en-CA', { dateStyle: 'short', timeStyle: 'medium' }).format().replace(/[/:]/g, '-').replace(/,+\s*/, '_').replace(/\s+.*$/, ''),
 		// 		types: [{
 		// 			description: 'BHR File',
 		// 			accept: { 'text/plain': ['.txt'] }
@@ -427,18 +529,15 @@ export default class extends EventEmitter {
 		// 	}
 		// }
 
-		const date = new Date();
 		const link = document.createElement('a');
-		link.setAttribute('download', 'bhr_track_' + new Date(date.setHours(date.getHours() - date.getTimezoneOffset() / 60)).toISOString().split(/t/i).join('_').replace(/\..+/, '').replace(/:/g, '-'));
+		link.setAttribute('download', 'bhr_track-' + new Intl.DateTimeFormat('en-CA', { dateStyle: 'short', timeStyle: 'medium' }).format().replace(/[/:]/g, '-').replace(/,+\s*/, '_').replace(/\s+.*$/, ''));
 		link.setAttribute('href', URL.createObjectURL(new Blob([this.scene.toString()], { type: 'text/plain' })));
 		link.click();
 		return true;
 	}
 
 	reset() {
-		if (confirm("Do you really want to start a new track?")) {
-			this.init("-18 1i 18 1i###BMX");
-		}
+		confirm("Do you really want to start a new track?") && this.init({ write: true });
 	}
 
 	async close() {
@@ -450,8 +549,15 @@ export default class extends EventEmitter {
 		this.mouse.close();
 		this.scene = null;
 		window.onbeforeunload = null;
-		window.removeEventListener('resize', this.adjust);
+		window.removeEventListener('resize', this.constructor.adjust);
 		window.close();
+	}
+
+	static serveToast(toast, timeout) {
+		if ('toasts' in window) {
+			toasts.appendChild(toast).scrollIntoView({ block: 'end' });
+			timeout && setTimeout(() => toast.remove(), timeout);
+		}
 	}
 }
 

@@ -11,9 +11,10 @@ export default class {
 		return this.scene.parent.mouse;
 	}
 
-	scroll() {}
-	press() {}
-	stroke() {}
 	clip() {}
 	draw() {}
+	press() {}
+	scroll() {}
+	stroke() {}
+	update() {}
 }

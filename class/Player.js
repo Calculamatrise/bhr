@@ -71,13 +71,68 @@ export default class Player {
 		this.dead = true;
 	}
 
+	setVehicle(vehicle) {
+		this.vehicle.name = vehicle || (this.vehicle.name != 'BMX' ? 'BMX' : 'MTB');
+		this.scene.reset();
+		this.scene.cameraFocus = this.vehicle.head;
+	}
+
+	draw(ctx) {
+		ctx.save();
+		if (this.explosion) {
+			this.explosion.draw(ctx);
+		} else {
+			this.vehicle.draw(ctx);
+			if (this.dead) {
+				this.ragdoll.draw(ctx);
+				this.hat && this.hat.draw(ctx);
+			}
+		}
+
+		ctx.restore();
+	}
+
+	gotoCheckpoint(method) {
+		if (this.snapshots.length > 0) {
+			this.restore(this.snapshots.at(-1));
+			this.scene.freezeFrame = this.scene.parent.settings.ap;
+		} else {
+			this.scene.reset();
+		}
+
+		this.ghost || this.scene.checkpointEvent(method || 'gotoCheckpoint');
+	}
+
+	removeCheckpoint() {
+		this.snapshots.length > 0 && this.snapshots.cache.push(this.snapshots.pop());
+		this.gotoCheckpoint('removeCheckpoint');
+	}
+
+	restoreCheckpoint() {
+		this.snapshots.cache.length > 0 && this.snapshots.push(this.snapshots.cache.pop());
+		this.gotoCheckpoint('restoreCheckpoint');
+	}
+
+	save() {
+		return {
+			currentTime: this.scene.currentTime,
+			dead: this.dead,
+			downKeys: new Set(this.gamepad.downKeys),
+			gravity: this.gravity.clone(),
+			itemsCollected: new Set(this.itemsCollected),
+			records: this.records.map(record => new Set(record)),
+			slow: this.slow,
+			vehicle: this.vehicle.clone()
+		}
+	}
+
 	update(delta) {
 		if (this.pendingConsumables) {
 			if (this.pendingConsumables & 2) {
 				this.trackComplete();
 			} else if (this.pendingConsumables & 1) {
 				for (const player of this.scene.players) {
-					player.snapshots.push(player.snapshot());
+					player.snapshots.push(player.save());
 				}
 			}
 
@@ -86,9 +141,7 @@ export default class Player {
 
 		if (this.scene.targets > 0 && this.targetsCollected === this.scene.targets) {
 			return;
-		}
-
-		if (this.explosion) {
+		} else if (this.explosion) {
 			this.explosion.update();
 			return;
 		}
@@ -131,9 +184,7 @@ export default class Player {
 
 		this.scene.cameraFocus = this.vehicle.head;
 		if (typeof keys == 'string') {
-			keys = new Set([
-				keys
-			]);
+			keys = new Set([keys]);
 		}
 
 		if (keys.has('left') && !this.records[0].delete(this.scene.currentTime)) {
@@ -160,21 +211,6 @@ export default class Player {
 				this.vehicle.swap();
 			}
 		}
-	}
-
-	draw(ctx) {
-		ctx.save();
-		if (this.explosion) {
-			this.explosion.draw(ctx);
-		} else {
-			this.vehicle.draw(ctx);
-			if (this.dead) {
-				this.ragdoll.draw(ctx);
-				this.hat && this.hat.draw(ctx);
-			}
-		}
-
-		ctx.restore();
 	}
 
 	async trackComplete() {
@@ -207,19 +243,6 @@ export default class Player {
 
 				return response;
 			}));
-		}
-	}
-
-	snapshot() {
-		return {
-			currentTime: this.scene.currentTime,
-			dead: this.dead,
-			downKeys: new Set(this.gamepad.downKeys),
-			gravity: this.gravity.clone(),
-			itemsCollected: new Set(this.itemsCollected),
-			records: this.records.map(record => new Set(record)),
-			slow: this.slow,
-			vehicle: this.vehicle.clone()
 		}
 	}
 

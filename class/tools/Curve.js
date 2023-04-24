@@ -27,11 +27,11 @@ export default class extends Line {
 			return;
 		}
 
-		for (const line of this.lines) {
+		for (const line of this.lines.splice(0)) {
 			line.remove();
 		}
 
-		const points = []; this.lines = [];
+		const points = [];
 		for (let i = 0; i < 1; i += this.length / 100) {
 			points.push({
 				x: Math.pow((1 - i), 2) * this.anchorA.x + 2 * (1 - i) * i * this.mouse.position.x + Math.pow(i, 2) * this.anchorB.x,
@@ -53,7 +53,6 @@ export default class extends Line {
 		this.active = !this.active;
 		if (this.active) {
 			this.anchorB = this.mouse.position.clone();
-
 			return;
 		}
 

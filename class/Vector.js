@@ -5,21 +5,16 @@ export default class {
 				return new this.constructor(...arguments[0]);
 			}
 
-			if (arguments[0].hasOwnProperty('x')) {
-				this.x = parseFloat(arguments[0].x);
-			}
-
-			if (arguments[0].hasOwnProperty('y')) {
-				this.y = parseFloat(arguments[0].y);
-			}
+			arguments[0].hasOwnProperty('x') && (this.x = parseFloat(arguments[0].x));
+			arguments[0].hasOwnProperty('y') && (this.y = parseFloat(arguments[0].y));
 		}
 
-		this.x = this.x || parseFloat(x);
-		this.y = this.y || parseFloat(y);
+		this.x = this.x ?? parseFloat(x);
+		this.y = this.y ?? parseFloat(y);
 	}
 
-	static from() {
-		return new this(...arguments);
+	get length() {
+		return Math.sqrt(this.lengthSquared());
 	}
 
 	toCanvas(canvas) {
@@ -28,10 +23,6 @@ export default class {
 
 	toPixel() {
 		return this.constructor.from((this.x - window.game.scene.camera.x) * window.game.scene.zoom + window.game.canvas.width / 2, (this.y - window.game.scene.camera.y) * window.game.scene.zoom + window.game.canvas.height / 2);
-	}
-
-	getLength() {
-		return Math.sqrt(this.x * this.x + this.y * this.y);
 	}
 
 	set(vector) {
@@ -105,6 +96,10 @@ export default class {
 	}
 
 	toString() {
-		return Math.round(this.x).toString(32) + ' ' + Math.round(this.y).toString(32);
+		return this.x.toString(32) + ' ' + this.y.toString(32);
+	}
+
+	static from() {
+		return new this(...arguments);
 	}
 }

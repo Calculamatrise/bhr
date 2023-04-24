@@ -94,12 +94,12 @@ export default class {
 	}
 
 	updateControls() {
-		this.rearWheel.motor += (this.parent.gamepad.downKeys.has("up") - this.rearWheel.motor) / 10;
-		let rotate = this.parent.gamepad.downKeys.has("left") - this.parent.gamepad.downKeys.has("right");
+		this.rearWheel.motor += (this.parent.gamepad.downKeys.has('up') - this.rearWheel.motor) / 10;
+		let rotate = this.parent.gamepad.downKeys.has('left') - this.parent.gamepad.downKeys.has('right');
 		this.rearSpring.lean(rotate * this.dir * 5);
 		this.frontSpring.lean(-rotate * this.dir * 5);
 		this.chasse.rotate(rotate / this.rotationFactor);
-		if (this.parent.gamepad.downKeys.has("up")) {
+		if (this.parent.gamepad.downKeys.has('up')) {
 			this.pedalSpeed += this.rearWheel.pedalSpeed / 5;
 			if (!rotate) {
 				this.rearSpring.lean(-7);
@@ -121,7 +121,6 @@ export default class {
 		this.parent.dead = true;
 		this.head.collide = false;
 		this.rearWheel.motor = 0;
-
 		this.parent.createRagdoll();
 	}
 

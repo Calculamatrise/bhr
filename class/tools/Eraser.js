@@ -18,18 +18,16 @@ export default class extends Tool {
 	}
 
 	stroke() {
-		if (!this.mouse.down) {
-			return;
-		}
-
-		this.scene.erase(this.mouse.position);
+		this.mouse.down && this.scene.erase(this.mouse.position);
 	}
 
 	draw(ctx) {
-		const position = this.mouse.position.toPixel();
-		ctx.beginPath(),
-		ctx.fillStyle = '#ffb6c199',
-		ctx.arc(position.x, position.y, (this.size - 1) * this.scene.zoom, 0, 2 * Math.PI),
-		ctx.fill();
+		ctx.beginPath()
+		let position = this.mouse.position.toPixel();
+		ctx.arc(position.x, position.y, (this.size - 1) * this.scene.zoom, 0, 2 * Math.PI)
+		ctx.save()
+		ctx.fillStyle = '#ffb6c199'
+		ctx.fill()
+		ctx.restore();
 	}
 }
