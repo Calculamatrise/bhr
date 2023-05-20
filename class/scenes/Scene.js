@@ -95,13 +95,15 @@ export default class extends EventEmitter {
 		'id' in options && (this.id = options.id);
 		clearInterval(this.processingTimeout);
 		clearInterval(this.sprocessingTimeout);
+		this.collectables.splice(0);
 		this.grid.rows.clear();
+		this.ghosts.splice(0);
 		this.players.splice(0);
 		this.players.push(new Player(this, { vehicle: options.vehicle }));
-		this.processing = false;
-		this.progress = this.sprogress = 100;
+		// this.processing = false;
+		// this.progress = this.sprogress = 100;
 		this.cameraFocus = this.firstPlayer.vehicle.hitbox;
-		this.camera = this.firstPlayer.vehicle.hitbox.position.clone();
+		this.camera.set(this.cameraFocus.position);
 		this.editMode = options.write ?? this.editMode;
 		if (options.write) {
 			this.toolHandler.setTool('line');
@@ -137,12 +139,13 @@ export default class extends EventEmitter {
 	}
 
 	watchGhost(data, { id, vehicle = 'BMX' } = {}) {
-		const records = data.trim().split(/\s*,\s*/g).map(item => item.split(/\s+/g).reduce((newArr, arr) => isNaN(arr) ? arr : newArr.add(parseInt(arr)), new Set()));
-		const v = records.at(-1);
+		const parts = data.trim().split(/\s*,\s*/g);
+		const v = parts.pop();
 		if (['BMX', 'MTB'].includes(v.toUpperCase())) {
 			vehicle = v;
 		}
 
+		const records = parts.map(item => item.split(/\s+/g).reduce((newArr, arr) => isNaN(arr) ? arr : newArr.add(parseInt(arr)), new Set()));
 		this.reset();
 		let player = id && this.ghosts.find(player => player.id == id);
 		if (!id || !player) {
@@ -237,11 +240,11 @@ export default class extends EventEmitter {
 		let min = new Vector(0, 0).toCanvas(ctx.canvas).oppositeScale(this.grid.scale).map(Math.floor);
 		let max = new Vector(ctx.canvas.width, ctx.canvas.height).toCanvas(ctx.canvas).oppositeScale(this.grid.scale).map(Math.floor);
 		let sectors = this.grid.range(min, max);
-		for (const sector of sectors) {
-			sector.physics.length + sector.scenery.length > 0 && sector.render(ctx);
+		for (const sector of sectors.filter(sector => sector.physics.length + sector.scenery.length > 0)) {
+			sector.render(ctx);
 		}
 
-		for (const sector of sectors) {
+		for (const sector of sectors.filter(sector => sector.powerups.length > 0)) {
 			for (const powerup of sector.powerups) {
 				powerup.draw(ctx);
 			}
@@ -462,10 +465,6 @@ export default class extends EventEmitter {
 
 	reset() {
 		this.currentTime = 0;
-		for (const sector of this.grid.sectors) {
-			sector.fix();
-		}
-
 		for (const player of this.players) {
 			player.reset(...arguments);
 		}

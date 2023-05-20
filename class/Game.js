@@ -137,7 +137,8 @@ export default class extends EventEmitter {
 		options = Object.assign({}, arguments[0]);
 		this.#openFile = null;
 		this.scene.init(options);
-		this.scene.read(options.code || '-18 1i 18 1i###BMX');
+		options.default && this.scene.read('-18 1i 18 1i###BMX');
+		options.code && this.scene.read(options.code);
 		this.lastFrame = requestAnimationFrame(this.render.bind(this));
 	}
 
@@ -513,11 +514,11 @@ export default class extends EventEmitter {
 	}
 
 	load(code) {
-		this.init({ write: true });
 		if (!code) {
 			return this.openFile();
 		}
 
+		this.init({ write: true });
 		this.scene.read(code);
 	}
 
@@ -533,16 +534,19 @@ export default class extends EventEmitter {
 					accept: { 'text/plain': ['.txt'] }
 				}]
 			}, arguments[0])).catch(() => []);
-			for (const fileHandle of fileHandles) {
-				const fileData = await fileHandle.getFile();
-				this.scene.read(await fileData.text());
-				// auto-save opened file:
-				if (fileHandles.length < 2) {
-					this.#openFile = fileHandle;
-				}
+			if (fileHandles.length > 0) {
+				this.init({ write: true });
+				for (const fileHandle of fileHandles) {
+					const fileData = await fileHandle.getFile();
+					this.scene.read(await fileData.text());
+					// auto-save opened file:
+					if (fileHandles.length < 2) {
+						this.#openFile = fileHandle;
+					}
 
-				if (!options.multiple) {
-					break;
+					if (!options.multiple) {
+						break;
+					}
 				}
 			}
 
@@ -554,6 +558,7 @@ export default class extends EventEmitter {
 		picker.setAttribute('type', 'file');
 		picker.toggleAttribute('multiple', options.multiple);
 		picker.addEventListener('change', async () => {
+			this.init({ write: true });
 			for (const file of this.files) {
 				this.scene.read(await file.text());
 				if (!options.multiple) {
