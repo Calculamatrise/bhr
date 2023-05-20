@@ -1,30 +1,30 @@
-import BodyPart from "../bike/part/Entity.js";
 import Shard from "./Shard.js";
 
 export default class Explosion {
-	motor = 30 + 20 * Math.random();
+	duration = 80; // duration in milliseconds
+	size = 24 + 16 * Math.random();
 	constructor(parent, part) {
 		this.parent = parent;
-		this.head = new BodyPart(this.position, this);
-		this.head.velocity.x = 20;
 		this.position = part.position.clone();
 		this.shards = [
-			new Shard(this.parent, this.position),
-			new Shard(this.parent, this.position),
-			new Shard(this.parent, this.position),
-			new Shard(this.parent, this.position),
-			new Shard(this.parent, this.position)
+			new Shard(this, this.position),
+			new Shard(this, this.position),
+			new Shard(this, this.position),
+			new Shard(this, this.position),
+			new Shard(this, this.position)
 		]
+
+		this.sizeDiminution = this.size / (this.duration / (this.parent.scene.parent.ups / 2));
 	}
 
 	draw(ctx) {
-		if (this.motor > 0) {
-			this.motor -= 10;
+		if (this.size > 0) {
+			// this.size -= this.sizeDiminution;
 			ctx.beginPath()
 			let position = this.position.toPixel();
-			ctx.moveTo(position.x + this.motor / 2 * Math.cos(Math.random() * 2 * Math.PI), position.y + this.motor / 2 * Math.sin(Math.random() * 2 * Math.PI));
+			ctx.moveTo(position.x + this.size / 2 * Math.cos(Math.random() * 2 * Math.PI) * this.parent.scene.zoom, position.y + this.size / 2 * Math.sin(Math.random() * 2 * Math.PI) * this.parent.scene.zoom);
 			for (let a = 1; a < 16; a++) {
-				let d = (this.motor + 30 * Math.random()) / 2;
+				let d = (this.size + 30 * Math.random()) / 2 * this.parent.scene.zoom;
 				ctx.lineTo(position.x + d * Math.cos(Math.random() * 2 * Math.PI + 2 * Math.PI * a / 16), position.y + d * Math.sin(Math.random() * 2 * Math.PI + 2 * Math.PI * a / 16));
 			}
 
@@ -39,9 +39,16 @@ export default class Explosion {
 		}
 	}
 
-	update(delta) {
+	fixedUpdate() {
+		this.size -= this.sizeDiminution;
 		for (const shard of this.shards) {
-			shard.update(delta);
+			shard.fixedUpdate();
+		}
+	}
+
+	update(progress, delta) {
+		for (const shard of this.shards) {
+			shard.update(...arguments);
 		}
 	}
 }

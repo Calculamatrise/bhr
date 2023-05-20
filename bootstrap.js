@@ -2,8 +2,14 @@ import Game from "./class/Game.js";
 
 window.game = new Game(document.querySelector('#view'));
 
-const upload = document.querySelector('#upload');
-if (upload !== null) {
+window.game.scene.on('stateChange', function(paused) {
+	const playPauseButton = document.querySelector('.playpause > input');
+	if (playPauseButton !== null) {
+		playPauseButton.checked = !paused;
+	}
+});
+
+if ('upload' in window) {
 	upload.addEventListener('click', function () {
 		const code = game.scene.toString();
 		if (code.length < 1e3) {

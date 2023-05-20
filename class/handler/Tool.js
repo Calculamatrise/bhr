@@ -92,7 +92,7 @@ export default class {
 	draw(ctx) {
 		this.currentTool.draw(ctx);
 		if (/^(brush|circle|curve|ellipse|line|rectangle|select)$/i.test(this.selected)) {
-			let position = this.scene.parent.mouse.position.toPixel();
+			let position = this.scene.parent.mouse.rawPosition;
 			ctx.beginPath()
 			ctx.moveTo(position.x - 10 * window.devicePixelRatio, position.y)
 			ctx.lineTo(position.x + 10 * window.devicePixelRatio, position.y)

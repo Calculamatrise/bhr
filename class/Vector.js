@@ -18,7 +18,7 @@ export default class {
 	}
 
 	toCanvas(canvas) {
-		return this.constructor.from(Math.round((this.x * window.devicePixelRatio - canvas.width / 2) / window.game.scene.zoom + window.game.scene.camera.x), Math.round((this.y * window.devicePixelRatio - canvas.height / 2) / window.game.scene.zoom + window.game.scene.camera.y));
+		return this.constructor.from(Math.round((this.x - canvas.width / 2) / window.game.scene.zoom + window.game.scene.camera.x), Math.round((this.y - canvas.height / 2) / window.game.scene.zoom + window.game.scene.camera.y));
 	}
 
 	toPixel() {
@@ -53,7 +53,7 @@ export default class {
 		return new this.constructor(this.x + vector.x, this.y + vector.y);
 	}
 
-	difference(vector) {
+	difference(vector) { // delta
 		return new this.constructor(this.x - vector.x, this.y - vector.y);
 	}
 

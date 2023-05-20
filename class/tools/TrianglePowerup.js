@@ -16,7 +16,6 @@ export default class extends Powerup {
 	}
 
 	stroke() {
-		super.stroke();
-		this.mouse.down && (this.powerup.rotation = Math.round(180 * Math.atan2(-(this.mouse.position.x - this.mouse.old.x), this.mouse.position.y - this.mouse.old.y) / Math.PI));
+		this.mouse.down ? (this.powerup.rotation = Math.round(180 * Math.atan2(-(this.mouse.position.x - this.mouse.old.x), this.mouse.position.y - this.mouse.old.y) / Math.PI)) : super.stroke();
 	}
 }

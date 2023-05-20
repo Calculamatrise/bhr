@@ -35,7 +35,7 @@ export default class extends Tool {
 		ctx.moveTo(old.x, old.y)
 		ctx.lineTo(position.x, position.y)
 		ctx.save()
-		ctx.strokeStyle = '#f00'
+		ctx.strokeStyle = this.mouse.position.distanceTo(this.mouse.old) >= 2 ? '#0f0' : '#f00'
 		ctx.stroke()
 		ctx.restore();
 	}

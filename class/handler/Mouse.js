@@ -6,16 +6,17 @@ export default class extends EventEmitter {
 	down = false;
 	old = new Vector();
 	position = new Vector();
+	rawPosition = new Vector();
 	stroke = new Vector();
 	constructor(canvas) {
 		super();
 		this.canvas = canvas;
-		this.canvas.addEventListener('click', this.click.bind(this));
-		this.canvas.addEventListener('pointerdown', this.pointerdown.bind(this));
-		this.canvas.addEventListener('pointermove', this.move.bind(this));
-		this.canvas.addEventListener('pointerup', this.up.bind(this));
-		this.canvas.addEventListener('contextmenu', this.menu.bind(this));
-		this.canvas.addEventListener('wheel', this.wheel.bind(this));
+		this.canvas.addEventListener('click', this.click = this.click.bind(this));
+		this.canvas.addEventListener('pointerdown', this.pointerdown = this.pointerdown.bind(this));
+		this.canvas.addEventListener('pointermove', this.move = this.move.bind(this));
+		this.canvas.addEventListener('pointerup', this.up = this.up.bind(this));
+		this.canvas.addEventListener('contextmenu', this.menu = this.menu.bind(this));
+		this.canvas.addEventListener('wheel', this.wheel = this.wheel.bind(this));
 		// document.addEventListener('pointerlockchange', this.lockChangeAlert.bind(this), false);
 	}
 
@@ -41,7 +42,8 @@ export default class extends EventEmitter {
 		this.down = true;
 		this.old.set(this.position);
 		if (!this.locked) {
-			this.position.set(new Vector(event.offsetX, event.offsetY).toCanvas(this.canvas));
+			this.rawPosition.set(new Vector(event.offsetX * window.devicePixelRatio, event.offsetY * window.devicePixelRatio));
+			this.position.set(this.rawPosition.toCanvas(this.canvas));
 			this.canvas.setPointerCapture(event.pointerId);
 		}
 
@@ -51,9 +53,11 @@ export default class extends EventEmitter {
 	move(event) {
 		event.preventDefault();
 		if (this.locked) {
-			this.position.add(new Vector(event.movementX, event.movementY));
+			this.position.add(new Vector(event.movementX * window.devicePixelRatio, event.movementY * window.devicePixelRatio));
+			this.rawPosition.add(new Vector(event.movementX * window.devicePixelRatio, event.movementY * window.devicePixelRatio));
 		} else {
-			this.position.set(new Vector(event.offsetX, event.offsetY).toCanvas(this.canvas));
+			this.rawPosition.set(new Vector(event.offsetX * window.devicePixelRatio, event.offsetY * window.devicePixelRatio));
+			this.position.set(this.rawPosition.toCanvas(this.canvas));
 		}
 
 		this.emit('move', event);
@@ -63,7 +67,8 @@ export default class extends EventEmitter {
 		event.preventDefault();
 		this.down = false;
 		if (!this.locked) {
-			this.position.set(new Vector(event.offsetX, event.offsetY).toCanvas(this.canvas));
+			this.rawPosition.set(new Vector(event.offsetX * window.devicePixelRatio, event.offsetY * window.devicePixelRatio));
+			this.position.set(this.rawPosition.toCanvas(this.canvas));
 			this.canvas.releasePointerCapture(event.pointerId);
 		}
 
@@ -82,9 +87,9 @@ export default class extends EventEmitter {
 
 	close() {
 		this.canvas.removeEventListener('click', this.click);
-		this.canvas.removeEventListener('pointerdown', this.mousedown);
-		window.removeEventListener('pointermove', this.move);
-		window.removeEventListener('pointerup', this.up);
+		this.canvas.removeEventListener('pointerdown', this.pointerdown);
+		this.canvas.removeEventListener('pointermove', this.move);
+		this.canvas.removeEventListener('pointerup', this.up);
 		this.canvas.removeEventListener('contextmenu', this.menu);
 		this.canvas.removeEventListener('mousewheel', this.wheel);
 	}

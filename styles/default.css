@@ -60,10 +60,10 @@ bhr-game-container .ripple:active::before {
 }
 
 .bhr-dialog {
-	backdrop-filter: blur(1rem) brightness(0.5);
+	backdrop-filter: blur(1rem) brightness(0.75);
 	background-color: transparent;
 	border: none;
-	border-radius: 4px;
+	border-radius: 0.5rem;
 	box-shadow: hsl(0deg 0% 0% / 50%) 0px 0px 4px;
 }
 
@@ -238,6 +238,17 @@ bhr-game-container .ripple:active::before {
 
 .toast button:hover {
 	backdrop-filter: brightness(calc(1 + .2 * var(--brightness-multiplier)));
+}
+
+.disabled,
+:disabled,
+:placeholder-shown + * > .hidden-placeholder {
+	opacity: 0.5;
+	pointer-events: none;
+}
+
+.timebar:not(:hover)::-webkit-slider-thumb {
+	visibility: hidden;
 }
 
 textarea {

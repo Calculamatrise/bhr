@@ -1,21 +1,41 @@
-import Mass from "./Mass.js";
+import Vector from "../../Vector.js";
 
-export default class extends Mass {
-	drive(velocity) {
-		this.position.add(velocity.scale(-velocity.dot(this.velocity) * this.friction));
-		this.touching = true;
-	}
+export default class {
+	old = new Vector();
+	position = new Vector();
+	size = 10;
+	velocity = new Vector();
+	displayPosition = this.position.add(this.velocity);
+	constructor(parent, options) {
+		this.parent = parent;
+		for (const key in options = Object.assign({}, options)) {
+			const option = options[key];
+			switch (key) {
+				case 'position':
+				case 'velocity': {
+					typeof option == 'object' && this[key].set(option);
+					break;
+				}
 
-	update() {
-		this.velocity.add(this.parent.parent.gravity).scaleSelf(.99);
-		this.position.add(this.velocity);
-		this.touching = false;
-		if (this.collide) {
-			this.parent.parent.scene.collide(this);
+				case 'size': {
+					if (typeof option == 'number' || typeof option == 'string') {
+						this[key] = option;
+					}
+					break;
+				}
+			}
 		}
 
-		this.velocity = this.position.difference(this.old);
+		this.displayPosition = this.position.add(this.velocity);
 		this.old.set(this.position);
-		// super.update();
+		this.position.old = this.position.clone();
+	}
+
+	fixedUpdate() {
+		this.displayPosition = this.position;
+	}
+
+	update(progress) {
+		this.displayPosition = this.position.sum(this.velocity.scale(progress));
 	}
 }

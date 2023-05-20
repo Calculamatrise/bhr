@@ -7,7 +7,7 @@ export default class extends Tool {
 	}
 
 	stroke(event) {
-		let offset = new Vector(event.movementX / this.scene.zoom, event.movementY / this.scene.zoom);
+		let offset = new Vector(event.movementX * window.devicePixelRatio / this.scene.zoom, event.movementY * window.devicePixelRatio / this.scene.zoom);
 		this.mouse.down && (this.scene.camera.subtract(offset),
 		this.mouse.position.subtract(offset));
 	}

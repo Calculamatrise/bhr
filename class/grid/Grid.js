@@ -1,13 +1,18 @@
 import Vector from "../Vector.js";
 import Sector from "./sector/Sector.js";
 
+// use worker to cache grid?
 export default class {
 	rows = new Map();
 	scale = 100;
 	scene = null;
 	size = 1;
+	worker = new Worker("./class/grid/GridWorker.js");
 	constructor(parent) {
 		this.scene = parent;
+		this.worker.addEventListener('message', ({ data }) => {
+			console.log(data)
+		});
 	}
 
 	get sectors() {
@@ -19,6 +24,22 @@ export default class {
 		}
 
 		return sectors;
+	}
+
+	cache() {
+		for (const sector of this.sectors) {
+			sector.resize();
+		}
+		// this.sectors.forEach(sector => {
+		// 	// console.log(sector)
+		// 	this.worker.postMessage(JSON.parse(JSON.stringify(sector, [
+		// 		'column',
+		// 		'physics',
+		// 		'scenery',
+		// 		'powerups',
+		// 		'row'
+		// 	])));
+		// })
 	}
 
 	coords(vector) {

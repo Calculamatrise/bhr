@@ -6,7 +6,7 @@ export default class extends Array {
 	}
 
 	reset() {
-		this.splice(0, this.length);
+		this.splice(0);
 		this.cache.splice(0);
 	}
 }

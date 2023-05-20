@@ -2,11 +2,8 @@ import Powerup from "./Powerup.js";
 
 export default class extends Powerup {
 	clip() {
-		if (this.powerup.position.distanceTo(this.mouse.position) > 40) {
-			this.powerup.createAlt(this.mouse.position.x, this.mouse.position.y);
-			let x = Math.floor(this.powerup.alt.x / this.scene.grid.scale);
-			let y = Math.floor(this.powerup.alt.y / this.scene.grid.scale);
-			this.scene.grid.sector(x, y, true).powerups.push(this.powerup);
+		if (this.powerup.position.distanceTo(this.mouse.old) > 40) {
+			this.powerup.createAlt(this.mouse.old.x, this.mouse.old.y);
 			super.clip();
 		} else {
 			this.powerup.alt.set(this.mouse.position);
@@ -34,7 +31,7 @@ export default class extends Powerup {
 			ctx.moveTo(old.x, old.y)
 			ctx.lineTo(position.x, position.y)
 			ctx.save()
-			ctx.strokeStyle = '#f00'
+			ctx.strokeStyle = this.mouse.position.distanceTo(this.mouse.old) > 40 ? '#0f0' : '#f00'
 			ctx.stroke()
 			ctx.restore();
 		}
@@ -44,7 +41,7 @@ export default class extends Powerup {
 
 	stroke() {
 		super.stroke(...arguments);
-		this.powerup.alt.set(this.mouse.position);
+		this.mouse.down && this.powerup.alt.set(this.mouse.old);
 	}
 
 	update() {

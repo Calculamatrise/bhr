@@ -1,12 +1,12 @@
 import Tool from "./Tool.js";
-import Antigravity from "../item/Antigravity.js";
-import Bomb from "../item/Bomb.js";
-import Boost from "../item/Boost.js";
-import Checkpoint from "../item/Checkpoint.js";
-import Gravity from "../item/Gravity.js";
-import Slowmo from "../item/Slowmo.js";
-import Target from "../item/Target.js";
-import Teleporter from "../item/Teleporter.js";
+import Antigravity from "../items/Antigravity.js";
+import Bomb from "../items/Bomb.js";
+import Boost from "../items/Boost.js";
+import Checkpoint from "../items/Checkpoint.js";
+import Gravity from "../items/Gravity.js";
+import Slowmo from "../items/Slowmo.js";
+import Target from "../items/Target.js";
+import Teleporter from "../items/Teleporter.js";
 
 const P = {
 	antigravity: Antigravity,
@@ -24,8 +24,13 @@ export default class extends Tool {
 		let x = Math.floor(powerup.position.x / this.scene.grid.scale);
 		let y = Math.floor(powerup.position.y / this.scene.grid.scale);
 		this.scene.grid.sector(x, y, true).powerups.push(powerup);
-		if (['goal', 'checkpoint', 'teleporter'].includes(this.parent.selected)) {
+		if (/^(checkpoint|goal|teleporter)$/i.test(this.parent.selected)) {
 			this.scene.collectables.push(powerup);
+			if (powerup instanceof Teleporter) {
+				x = Math.floor(powerup.alt.x / this.scene.grid.scale);
+				y = Math.floor(powerup.alt.y / this.scene.grid.scale);
+				this.scene.grid.sector(x, y, true).powerups.push(powerup);
+			}
 		}
 	}
 
@@ -43,7 +48,7 @@ export default class extends Tool {
 	}
 
 	stroke() {
-		this.mouse.down || this.powerup.position.set(this.mouse.position);
+		this.powerup.position.set(this.mouse.position);
 	}
 
 	update() {

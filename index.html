@@ -18,13 +18,13 @@
 			<section class="bottom center island">
 				<button class="toolbar-item rewind" title="Cancel Checkpoint - Backspace" onclick="game.scene.firstPlayer.removeCheckpoint()"></button>
 				<button class="toolbar-item backtrack" title="Checkpoint - Enter" onclick="game.scene.firstPlayer.gotoCheckpoint()"></button>
-				<label class="toolbar-item playpause" title="Pause/Play - Space"><input type="checkbox" style="display: none;" onchange="game.scene.paused = !this.checked" checked></label>
+				<label class="toolbar-item playpause" title="Pause/Play - Space"><input type="checkbox" style="display: none;" onchange="game.scene.paused = !this.checked" checked></label><!-- ▶ -->
 				<button class="toolbar-item backtrack" title="Checkpoint - Shift + Enter" style="rotate: 180deg;" onclick="game.scene.firstPlayer.gotoCheckpoint()"></button>
 				<button class="toolbar-item rewind" title="Cancel Checkpoint - Shift + Backspace" style="rotate: 180deg;" onclick="game.scene.firstPlayer.restoreCheckpoint()"></button>
 			</section>
 			<section class="center island top" id="recorder" style="display: none;/*visibility: hidden;*/">
 				<!-- Display recording time -->
-				<button id="toggle" title="Stop recording - Ctrl + Shift + R" onclick="game.mediaRecorder.addEventListener('stop', event => (this.parentElement.style.setProperty('display', 'none'), document.querySelector('#settings-overlay').checked = true));game.mediaRecorder.stop()">Stop recording</button>
+				<button id="toggle" title="Stop recording - Ctrl + Shift + R" onclick="game.mediaRecorder.addEventListener('stop', event => (this.parentElement.style.setProperty('display', 'none'), document.querySelector('#game-overlay').checked = true));game.mediaRecorder.stop()">Stop recording</button>
 				<!-- <button class="toolbar-item recordstop" title="(Start/Stop??) Record - Ctrl + R" onclick="game.scene.removeCheckpoint()">🔴</button>
 				<button class="toolbar-item" title="Stop recording - Backspace" onclick="game.scene.removeCheckpoint()">◾</button>◼ /◾ -->
 			</section>
@@ -60,7 +60,7 @@
 				<div id="powerups" style="display: none;">
 					<label class="toolbar-item powerup target" title="Goal"><input type="radio" name="powerup" style="display: none;" onchange="game.scene.toolHandler.setTool('goal')" checked>●</label>
 					<label class="toolbar-item powerup checkpoint" title="Checkpoint"><input type="radio" name="powerup" style="display: none;" onchange="game.scene.toolHandler.setTool('checkpoint')">●</label>
-					<label class="toolbar-item powerup triangle boost" title="Boost"><input type="radio" name="powerup" style="display: none;" onchange="game.scene.toolHandler.setTool('boost')"></label>
+					<label class="toolbar-item powerup triangle boost" title="Boost"><input type="radio" name="powerup" style="display: none;" onchange="game.scene.toolHandler.setTool('boost')"></label><!-- ➠ -->
 					<label class="toolbar-item powerup triangle gravity" title="Gravity"><input type="radio" name="powerup" style="display: none;" onchange="game.scene.toolHandler.setTool('gravity')"></label>
 					<label class="toolbar-item powerup bomb" title="Bomb"><input type="radio" name="powerup" style="display: none;" onchange="game.scene.toolHandler.setTool('bomb')">●</label>
 					<label class="toolbar-item powerup slowmo" title="Slow-motion"><input type="radio" name="powerup" style="display: none;" onchange="game.scene.toolHandler.setTool('slow-mo')">●</label>
@@ -79,10 +79,12 @@
 				</div>
 				<!-- <button class="toolbar-item fullscreen" title="Fullscreen - F" onclick="document.fullscreenElement ? document.exitFullscreen() : game.container.requestFullscreen()"></button> -->
 			</section>
+			<!-- <input type="range" class="bottom timebar" style="left: 0;margin: 0;position: absolute;right: 0;"> -->
 		</bhr-game-toolbar>
 		<div class="bhr-game-overlay" style="display: none;">
-			<input type="checkbox" id="settings-overlay" style="display: none;">
+			<input type="checkbox" id="game-overlay" style="display: none;">
 			<nav>
+				<!-- Track upload tab -->
 				<label class="ripple" for="track">Track</label>
 				<label class="ripple" for="ghost">Ghost</label>
 				<label class="ripple" for="recorder-toggle">Recorder</label>
@@ -93,35 +95,34 @@
 				<div style="display: grid;grid-gap: .125rem;grid-template-columns: repeat(auto-fit, minmax(25vmin, 1fr));">
 					<!-- Toggle move/edit mode button -->
 					<label><input type="checkbox" onchange="game.scene.transformMode = event.target.checked;">Transform Mode</label>
-					<button onclick="game.reset()">Clear</button>
-					<button onclick="loadtrack.showModal()">Load</button>
+					<button onclick="game.reset()" style="background-color: hsl(0deg 40% 40% / calc(50% + 10% * var(--brightness-multiplier)));">Clear</button>
+					<button onclick="trackdialog.showModal()">Load</button>
 					<button onclick="game.openFile({ multiple: event.ctrlKey })">Open File...</button>
 					<!-- Open folder option allowing users to work on multiple tracks at once w/ different layers.
 						This could help with "stop motion" tracks -->
-					<button onclick="code.value = game.scene.toString()">Save</button>
+					<button onclick="code.value = game.scene.toString();trackdialog.showModal();">Save</button>
 					<button onclick="game.saveAs()">Save As...</button>
 					<button onclick="game.showRecentFiles()">Show Recent Files</button>
 					<button id="upload">Upload</button>
 				</div>
 				<!-- Display recently opened tracks -->
-				<dialog class="bhr-dialog" id="loadtrack" onclose="code.value = null,event.target.returnValue == 'default' && (game.load(code.value),document.querySelector('#settings-overlay').checked = false)">
+				<dialog class="bhr-dialog" id="trackdialog" onclose="event.target.returnValue == 'default' && (game.load(code.value),document.querySelector('#game-overlay').checked = false),code.value = null">
 					<form method="dialog" style="margin: 0;">
-						<div class="input-container">
-							<textarea placeholder="Code" cols="30" rows="7" id="code" ondrop="Promise.all(Array.from(event.dataTransfer.items).filter(({ kind }) => kind === 'file').map(item => item.getAsFileSystemHandle())).then(fileHandles => game.loadFile({ fileHandles }));" onkeydown="event.stopPropagation()" onkeyup="event.stopPropagation()"></textarea>
-							<button value="default" style="bottom: .25rem;position: absolute;right: .25rem;">Load</button>
-						</div>
+						<textarea placeholder="Code" cols="30" rows="7" id="code" ondrop="Promise.all(Array.from(event.dataTransfer.items).filter(({ kind }) => kind === 'file').map(item => item.getAsFileSystemHandle())).then(fileHandles => game.loadFile({ fileHandles }));" onkeydown="event.stopPropagation()" onkeyup="event.stopPropagation()"></textarea>
+						<!-- Show track size in textarea -->
 						<div style="display: flex;gap: .25rem;margin-top: .25rem;">
-							<button value="cancel">Cancel</button>
-							<!-- <button id="confirmBtn" value="default">Load</button> -->
+							<button value="cancel" style="width: -webkit-fill-available;">Cancel</button>
+							<button value="default" class="hidden-placeholder" style="width: -webkit-fill-available;">Load</button>
 						</div>
 					</form>
 				</dialog>
-				<dialog class="bhr-dialog" id="loadrecenttracks" onclose="code.value = null,event.target.returnValue == 'default' && (game.load(code.value),document.querySelector('#settings-overlay').checked = false)">
+				<dialog class="bhr-dialog" id="loadrecenttracks" onclose="event.target.returnValue != 'cancel' && (document.querySelector('#game-overlay').checked = false)">
 					<form method="dialog" style="margin: 0;">
-						<div id="recenttracks" class="input-container"></div>
+						<!-- Show last opened time + other metadata possibly in a table -->
+						<div id="recenttracks" style="display: grid;"></div>
 						<div style="display: flex;gap: .25rem;margin-top: .25rem;">
-							<button value="cancel">Cancel</button>
-							<!-- <button id="confirmBtn" value="default">Load</button> -->
+							<!-- <button>🗘</button> -->
+							<button value="cancel" style="width: -webkit-fill-available;">Close</button>
 						</div>
 					</form>
 				</dialog>
@@ -129,9 +130,8 @@
 			<section style="display: none;gap: 2px;">
 				<input type="radio" name="bhr-game-overlay-nav" id="ghost" style="display: none;">
 				<div style="display: grid;grid-gap: .125rem;grid-template-columns: repeat(auto-fit, minmax(25vmin, 1fr));">
-					
-					<button onclick="game.scene.players.splice(1, game.scene.players.length)">Clear Ghosts</button>
-					<button onclick="loadghost.showModal()">Load</button>
+					<button onclick="game.scene.players.splice(1);game.scene.ghostPlayers.splice(0);" style="background-color: hsl(0deg 40% 40% / calc(50% + 10% * var(--brightness-multiplier)));">Clear</button>
+					<button onclick="gcode.nextElementSibling.lastElementChild.style.setProperty('display', 'none');gcode.nextElementSibling.lastElementChild.previousElementSibling.style.removeProperty('display');ghostdialog.showModal();">Load</button>
 					<button onclick="
 						Object.assign(document.createElement('input'), {
 							accept: 'text/plain',
@@ -143,31 +143,33 @@
 							}
 						}).click();
 					">Load File...</button>
-					<button onclick="recorder.style.removeProperty('display'),document.querySelector('#settings-overlay').checked = false">Show Recorder</button>
-					<button onclick="gcode.value = game.scene.firstPlayer.records.map(record => Array.from(record).join(' ')).join(',') + ',' + game.scene.firstPlayer.vehicle.name">Save</button>
+					<button onclick="gcode.value = game.scene.firstPlayer.records.map(record => Array.from(record).join(' ')).join(',') + ',' + game.scene.firstPlayer.vehicle.name;gcode.nextElementSibling.lastElementChild.style.removeProperty('display');gcode.nextElementSibling.lastElementChild.previousElementSibling.style.setProperty('display', 'none');ghostdialog.showModal();">Save</button>
 					<button onclick="
 						Object.assign(document.createElement('a'), {
-							download: 'bhr_ghost-' + new Intl.DateTimeFormat('en-CA', { dateStyle: 'short', timeStyle: 'medium' }).format().replace(/[/:]/g, '-').replace(/,+\s*/, '_').replace(/\s+.*$/, ''),
-							href: window.URL.createObjectURL(new Blob([game.scene.firstPlayer.records.map(record => Array.from(record).join(' ')).concat(game.scene.firstPlayer.vehicle.name).join(',')], { type: 'text/plain' }))
+							download: 'bhr_ghost-' + new Intl.DateTimeFormat(navigator.language, { dateStyle: 'short', timeStyle: 'medium' }).format().replace(/[/:]/g, '-').replace(/,+\s*/, '_').replace(/\s+.*$/, ''),
+							href: window.URL.createObjectURL(new Blob([gcode.value], { type: 'text/plain' }))
 						}).click();
 					">Save As...</button>
 				</div>
-				<dialog class="bhr-dialog" id="loadghost" onclose="gcode.value = null,event.target.returnValue == 'default' && (game.scene.watchGhost(gcode.value),document.querySelector('#settings-overlay').checked = false)">
+				<dialog class="bhr-dialog" id="ghostdialog" onclose="event.target.returnValue == 'default' && (game.scene.watchGhost(gcode.value),document.querySelector('#game-overlay').checked = false),gcode.value = null">
 					<form method="dialog" style="margin: 0;">
-						<div class="input-container">
-							<textarea placeholder="Ghost data" cols="30" rows="7" id="gcode" onkeydown="event.stopPropagation()" onkeyup="event.stopPropagation()"></textarea>
-							<button value="default" style="bottom: .25rem;position: absolute;right: .25rem;">Load</button>
-						</div>
+						<textarea placeholder="Ghost data" cols="30" rows="7" id="gcode" onkeydown="event.stopPropagation()" onkeyup="event.stopPropagation()"></textarea>
 						<div style="display: flex;gap: .25rem;margin-top: .25rem;">
-							<button value="cancel">Cancel</button>
-							<!-- <button id="confirmBtn" value="default">Load</button> -->
+							<button value="cancel" style="width: -webkit-fill-available;">Cancel</button>
+							<button value="default" class="hidden-placeholder" style="width: -webkit-fill-available;">Load</button>
+							<button value="download" class="hidden-placeholder" onclick="
+								Object.assign(document.createElement('a'), {
+									download: 'bhr_ghost-' + new Intl.DateTimeFormat(navigator.language, { dateStyle: 'short', timeStyle: 'medium' }).format().replace(/[/:]/g, '-').replace(/,+\s*/, '_').replace(/\s+.*$/, ''),
+									href: window.URL.createObjectURL(new Blob([gcode.value], { type: 'text/plain' }))
+								}).click();
+							" style="display: none;width: -webkit-fill-available;">Save As...</button>
 						</div>
 					</form>
 				</dialog>
 			</section>
 			<section style="display: none;">
 				<input type="radio" name="bhr-game-overlay-nav" id="recorder-toggle" style="display: none;">
-				<button style="width: -webkit-fill-available;" onclick="game.createRecorder(blobURL => download.href = blobURL).start(),recorder.style.removeProperty('display'),document.querySelector('#settings-overlay').checked = false" onkeydown="event.stopPropagation()" onkeyup="event.stopPropagation()">Start Recorder</button>
+				<button style="width: -webkit-fill-available;" onclick="game.createRecorder(blobURL => download.href = blobURL).start(),recorder.style.removeProperty('display'),document.querySelector('#game-overlay').checked = false" onkeydown="event.stopPropagation()" onkeyup="event.stopPropagation()">Start Recorder</button>
 				<label>FPS&emsp;<input type="number" min="10" max="300" step="10" value="50"></label>
 				<button style="width: -webkit-fill-available;"><a download="bhr_recording" id="download">Download</a></button>
 				<dialog class="bhr-dialog" id="loadrecording">
@@ -175,23 +177,24 @@
 						<button style="width: -webkit-fill-available;"><a download="bhr_recording" id="download">Download</a></button>
 						<div style="display: flex;gap: .25rem;margin-top: .25rem;">
 							<button value="cancel">Close</button>
-							<!-- <button id="confirmBtn" value="default">Load</button> -->
+							<!-- <button value="default">Load</button> -->
 						</div>
 					</form>
 				</dialog>
 			</section>
 			<section style="display: none;grid-gap: 1rem;margin: revert;margin-bottom: auto;">
 				<input type="radio" name="bhr-game-overlay-nav" id="settings" style="display: none;">
+				<!-- Add section for Discord RPC -->
 				<section title="Editor" style="width: -webkit-fill-available;">
-					<label>Auto save&emsp;<input type="checkbox" onchange="(() => game.settings.autoSave = event.target.checked)()"></label>
+					<label>Auto save&emsp;<input type="checkbox" id="auto-save" onchange="game.settings.autoSave = event.target.checked;"></label>
 				</section>
 				<section title="Game" style="width: -webkit-fill-available;">
-					<label>Auto pause&emsp;<input type="checkbox" onchange="(() => game.settings.ap = event.target.checked)()"></label>
+					<label>Auto pause&emsp;<input type="checkbox" id="auto-pause" onchange="game.settings.autoPause = event.target.checked;"></label>
 				</section>
 				<section title="Appearance" style="display: grid;grid-gap: .125rem;width: -webkit-fill-available;">
-					<label><input type="radio" name="bhr-theme" id="dark" style="display: none;" onchange="(() => game.settings.theme = event.target.id)()">Dark</label>
-					<label><input type="radio" name="bhr-theme" id="light" style="display: none;" onchange="(() => game.settings.theme = event.target.id)()">Light</label>
-					<label><input type="radio" name="bhr-theme" id="midnight" style="display: none;" onchange="(() => game.settings.theme = event.target.id)()">Midnight</label>
+					<label><input type="radio" name="bhr-theme" id="dark" style="display: none;" onchange="game.settings.theme = event.target.id;">Dark</label>
+					<label><input type="radio" name="bhr-theme" id="light" style="display: none;" onchange="game.settings.theme = event.target.id;">Light</label>
+					<label><input type="radio" name="bhr-theme" id="midnight" style="display: none;" onchange="game.settings.theme = event.target.id;">Midnight</label>
 				</section>
 			</section>
 			<button style="max-width: 25vmin;" onclick="window.close()">Exit to desktop ⍈</button>

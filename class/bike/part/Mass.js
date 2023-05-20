@@ -1,15 +1,25 @@
-import Vector from "../../Vector.js";
+import Entity from "./Entity.js";
 
-export default class {
-	friction = 0;
-	collide = true;
-	friction = 0;
-	old = new Vector();
-	position = new Vector();
-	size = 10;
+export default class extends Entity {
+	motor = 0;
+	tangible = true;
 	touching = false;
-	velocity = new Vector();
-	constructor(parent) {
-		this.parent = parent;
+	addFriction(vector) {
+		this.position.add(vector.scale(-vector.dot(this.velocity) * this.motor));
+	}
+
+	drive(vector) {
+		this.addFriction(vector);
+		this.touching = true;
+	}
+
+	fixedUpdate() {
+		this.velocity.add(this.parent.parent.gravity).scaleSelf(.99);
+		this.position.add(this.velocity);
+		this.touching = false;
+		this.tangible && this.parent.parent.scene.collide(this);
+		this.velocity = this.position.difference(this.old);
+		this.old.set(this.position);
+		super.fixedUpdate();
 	}
 }

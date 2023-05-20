@@ -1,13 +1,12 @@
-import PhysicsLine from "./PhysicsLine.js";
-import SceneryLine from "./SceneryLine.js";
+import PhysicsLine from "../../items/line/PhysicsLine.js";
+import SceneryLine from "../../items/line/SceneryLine.js";
 
 export default class {
 	physics = []
 	scenery = []
 	powerups = []
 	rendered = false;
-	// cache separate canvas for scenery lines
-	canvas = document.createElement('canvas'); // new OffscreenCanvas(0,0)
+	canvas = document.createElement('canvas');
 	ctx = this.canvas.getContext('2d');
 	constructor(parent, row, column) {
 		this.parent = parent;
@@ -18,16 +17,18 @@ export default class {
 
 	// don't necessarily have to redraw every single line.
 	// when a line is added, it can be drawn normally on top of the canvas.
-	cache() {
-		let offsetX = this.row * this.parent.scale * this.parent.scene.zoom;
-		let offsetY = this.column * this.parent.scale * this.parent.scene.zoom;
+	cache(offsetX = this.row * this.parent.scale, offsetY = this.column * this.parent.scale) {
 		this.ctx.clearRect(0, 0, this.canvas.width, this.canvas.height);
-		this.ctx.strokeStyle = /^(dark|midnight)$/i.test(this.parent.scene.parent.settings.theme) ? '#666' : '#aaa';
-		for (const line of this.scenery) {
-			line.draw(this.ctx, offsetX, offsetY);
+		if (this.scenery.length > 0) {
+			this.ctx.save();
+			this.ctx.strokeStyle = /^(dark|midnight)$/i.test(this.parent.scene.parent.settings.theme) ? '#666' : '#aaa';
+			for (const line of this.scenery) {
+				line.draw(this.ctx, offsetX, offsetY);
+			}
+
+			this.ctx.restore();
 		}
 
-		this.ctx.strokeStyle = /^dark$/i.test(this.parent.scene.parent.settings.theme) ? '#fbfbfb' : /^midnight$/i.test(this.parent.scene.parent.settings.theme) ? '#ccc' : '#000';
 		for (const line of this.physics) {
 			line.draw(this.ctx, offsetX, offsetY);
 		}
@@ -37,14 +38,13 @@ export default class {
 	}
 
 	render(ctx) {
-		let offsetX = this.row * this.parent.scale * this.parent.scene.zoom;
-		let offsetY = this.column * this.parent.scale * this.parent.scene.zoom;
+		let offsetX = this.row * this.parent.scale;
+		let offsetY = this.column * this.parent.scale;
 		if (!this.rendered) {
-			this.cache();
+			this.cache(offsetX, offsetY);
 		}
 
-		ctx.drawImage(this.canvas, Math.floor(ctx.canvas.width / 2 - this.parent.scene.camera.x * this.parent.scene.zoom + offsetX), Math.floor(ctx.canvas.height / 2 - this.parent.scene.camera.y * this.parent.scene.zoom + offsetY));
-		// ctx.drawImage(this.canvas, Math.floor(ctx.canvas.width / 2 - this.parent.scene.camera.x * this.parent.scene.zoom + offsetX), Math.floor(ctx.canvas.height / 2 - this.parent.scene.camera.y * this.parent.scene.zoom + offsetY));
+		ctx.drawImage(this.canvas, Math.floor(ctx.canvas.width / 2 - this.parent.scene.camera.x * this.parent.scene.zoom + offsetX * this.parent.scene.zoom), Math.floor(ctx.canvas.height / 2 - this.parent.scene.camera.y * this.parent.scene.zoom + offsetY * this.parent.scene.zoom));
 	}
 
 	resize() {
@@ -53,12 +53,12 @@ export default class {
 		this.ctx.lineCap = 'round';
 		this.ctx.lineJoin = 'round';
 		this.ctx.lineWidth = Math.max(2 * this.parent.scene.zoom, 0.5);
-		// this.ctx.setTransform(this.parent.scene.zoom, 0, 0, this.parent.scene.zoom, 0, 0);
+		this.ctx.strokeStyle = /^dark$/i.test(this.parent.scene.parent.settings.theme) ? '#fbfbfb' : /^midnight$/i.test(this.parent.scene.parent.settings.theme) ? '#ccc' : '#000';
 		this.rendered = false;
 	}
 
 	fix() { // escape collision
-		for (const line of this.physics) {
+		for (const line of this.physics.filter(line => line.collided)) {
 			line.collided = false;
 		}
 	}
