@@ -36,9 +36,9 @@ export default class extends EventEmitter {
 	paused = false;
 	pictureMode = false;
 	players = []
-	processing = true;
-	progress = 0;
-	sprogress = 0;
+	processing = false;
+	progress = 100;
+	sprogress = 100;
 	toolHandler = new ToolHandler(this);
 	transformMode = false;
 	zoomFactor = .6 * window.devicePixelRatio;
@@ -363,8 +363,8 @@ export default class extends EventEmitter {
 		// 	code: arguments[0]
 		// });
 		const [physics, scenery, powerups] = a.split('#');
-		physics && this.processChunk(physics.split(/,+/g));
-		scenery && this.processChunk(scenery.split(/,+/g), 1);
+		physics && (this.progress = 0, this.processChunk(physics.split(/,+/g)));
+		scenery && (this.sprogress = 0, this.processChunk(scenery.split(/,+/g), 1));
 		if (powerups) {
 			for (let powerup of powerups.split(/,+/g)) {
 				powerup = powerup.split(/\s+/g);
@@ -431,8 +431,8 @@ export default class extends EventEmitter {
 			++index;
 		}
 
+		this[(scenery ? 's' : '') + 'progress'] = Math.round(index * 100 / array.length);
 		if (index < array.length) {
-			this[(scenery ? 's' : '') + 'progress'] = Math.round(index * 100 / array.length);
 			this[(scenery ? 's' : '') + 'processingTimeout'] = setTimeout(this.processChunk.bind(this), 0, array, scenery, index);
 			return;
 		}
