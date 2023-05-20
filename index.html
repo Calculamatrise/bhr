@@ -130,7 +130,7 @@
 			<section style="display: none;gap: 2px;">
 				<input type="radio" name="bhr-game-overlay-nav" id="ghost" style="display: none;">
 				<div style="display: grid;grid-gap: .125rem;grid-template-columns: repeat(auto-fit, minmax(25vmin, 1fr));">
-					<button onclick="game.scene.players.splice(1);game.scene.ghostPlayers.splice(0);" style="background-color: hsl(0deg 40% 40% / calc(50% + 10% * var(--brightness-multiplier)));">Clear</button>
+					<button onclick="game.scene.ghosts.splice(0);" style="background-color: hsl(0deg 40% 40% / calc(50% + 10% * var(--brightness-multiplier)));">Clear</button>
 					<button onclick="gcode.nextElementSibling.lastElementChild.style.setProperty('display', 'none');gcode.nextElementSibling.lastElementChild.previousElementSibling.style.removeProperty('display');ghostdialog.showModal();">Load</button>
 					<button onclick="
 						Object.assign(document.createElement('input'), {
@@ -169,15 +169,14 @@
 			</section>
 			<section style="display: none;">
 				<input type="radio" name="bhr-game-overlay-nav" id="recorder-toggle" style="display: none;">
-				<button style="width: -webkit-fill-available;" onclick="game.createRecorder(blobURL => download.href = blobURL).start(),recorder.style.removeProperty('display'),document.querySelector('#game-overlay').checked = false" onkeydown="event.stopPropagation()" onkeyup="event.stopPropagation()">Start Recorder</button>
+				<button style="width: -webkit-fill-available;" onclick="game.createRecorder(blobURL => (download.href = blobURL) && loadrecording.showModal()).start(),recorder.style.removeProperty('display'),document.querySelector('#game-overlay').checked = false" onkeydown="event.stopPropagation()" onkeyup="event.stopPropagation()">Start Recorder</button>
 				<label>FPS&emsp;<input type="number" min="10" max="300" step="10" value="50"></label>
-				<button style="width: -webkit-fill-available;"><a download="bhr_recording" id="download">Download</a></button>
+				<button style="width: -webkit-fill-available;" disabled><a download="bhr_recording" id="adownload">Download</a></button>
 				<dialog class="bhr-dialog" id="loadrecording">
 					<form method="dialog" style="margin: 0;">
 						<button style="width: -webkit-fill-available;"><a download="bhr_recording" id="download">Download</a></button>
 						<div style="display: flex;gap: .25rem;margin-top: .25rem;">
-							<button value="cancel">Close</button>
-							<!-- <button value="default">Load</button> -->
+							<button value="cancel" style="width: -webkit-fill-available;">Close</button>
 						</div>
 					</form>
 				</dialog>
@@ -203,9 +202,13 @@
     </bhr-game-container>
     <script type="module" src="bootstrap.js"></script>
 	<script type="module">
-		// const demo = await fetch('demo.txt').then(r => r.text());
-		// game.init({ code: demo, write: true });
-		game.init({ write: true });
+		const demo = await fetch('demo.txt').then(r => r.text());
+		game.init({ code: demo, write: true });
+		game.scene.on('load', async function() {
+			const demoGhost = await fetch('demoghost.txt').then(r => r.text());
+			this.watchGhost(demoGhost);
+		});
+		// game.init({ write: true });
 	</script>
 </body>
 </html>

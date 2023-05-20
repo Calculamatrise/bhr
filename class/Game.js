@@ -114,10 +114,18 @@ export default class extends EventEmitter {
 			console.warn('Storage:', err);
 		});
 
+		navigation.onnavigate = this.close.bind(this);
+
 		// new ResizeObserver(this.setCanvasSize.bind(this)).observe(this.canvas);
 		window.addEventListener('resize', this.setCanvasSize.bind(this));
 		window.dispatchEvent(new Event('resize'));
-		window.onbeforeunload = this.close.bind(this);
+		// window.onbeforeunload = this.close.bind(this);
+		// window.onunload = this.close.bind(this);
+		window.addEventListener('beforeunload', this.close.bind(this));
+		window.addEventListener('beforeunload', function(event) {
+			event.preventDefault();
+			event.returnValue = false;
+		});
 	}
 
 	get max() {
@@ -604,17 +612,19 @@ export default class extends EventEmitter {
 		confirm("Do you really want to start a new track?") && this.init({ write: true });
 	}
 
-	async close() {
-		await this.#privateWritable.write(this.scene.toString()).then(() => {
-			return this.#privateWritable.close();
-		});
-
-		// check if page is really closing before cancelling animation frame and whatnot
-		cancelAnimationFrame(this.lastFrame);
-		this.mouse.close();
-		// this.scene.close();
-		window.onbeforeunload = null;
-		window.removeEventListener('resize', this.constructor.adjust);
+	async close(event) {
+		await this.#privateWritable.write(this.scene.toString());
+		// if (event.returnValue) return; // check if page is really closing before cancelling animation frame and whatnot
+		await this.#privateWritable.close();
+		if (event instanceof BeforeUnloadEvent) {
+			window.onresize = null;
+			window.removeEventListener('resize', this.constructor.adjust);
+		} else if (event instanceof NavigateEvent) {
+			cancelAnimationFrame(this.lastFrame);
+			this.mouse.close();
+			// this.scene.close();
+			navigation.onnavigate = null;
+		}
 	}
 
 	static serveToast(toast, timeout) {

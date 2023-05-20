@@ -61,7 +61,7 @@ export default class extends EventEmitter {
 	}
 
 	get timeText() {
-		let t = (this.ghostInFocus ? this.ghostInFocus.ticks * this.parent.max : this.currentTime) / this.parent.max / .03;
+		let t = (this.ghostInFocus ? this.ghostInFocus.ticks : (this.currentTime / this.parent.max)) / .03;
 		return Math.floor(t / 6e4) + ':' + String((t % 6e4 / 1e3).toFixed(2)).padStart(5, '0');
 	}
 
@@ -98,6 +98,8 @@ export default class extends EventEmitter {
 		this.grid.rows.clear();
 		this.players.splice(0);
 		this.players.push(new Player(this, { vehicle: options.vehicle }));
+		this.processing = false;
+		this.progress = this.sprogress = 100;
 		this.cameraFocus = this.firstPlayer.vehicle.hitbox;
 		this.camera = this.firstPlayer.vehicle.hitbox.position.clone();
 		this.editMode = options.write ?? this.editMode;
@@ -127,6 +129,10 @@ export default class extends EventEmitter {
 		this.camera.set(this.cameraFocus.position);
 		for (let i = 1; i < this.players.length; i++) {
 			this.players[i][method]();
+		}
+
+		for (const playerGhost of this.ghosts) {
+			playerGhost[method]();
 		}
 	}
 
@@ -438,6 +444,9 @@ export default class extends EventEmitter {
 		}
 
 		this.processing = this.progress < 100 || this.sprogress < 100;
+		if (!this.processing) {
+			this.emit('load');
+		}
 	}
 
 	remove(item) {
@@ -463,7 +472,6 @@ export default class extends EventEmitter {
 
 		for (const playerGhost of this.ghosts) {
 			playerGhost.reset();
-			playerGhost.ghostIterator = playerGhost.ghostPlayer();
 		}
 
 		this.cameraFocus = this.firstPlayer.vehicle.hitbox;

@@ -21,14 +21,10 @@ export default class extends Tool {
 
 		let min = new Vector(this.points[0], this.points[1]).toCanvas(this.scene.parent.canvas);
 		let max = new Vector(this.points[0] + this.points[2], this.points[1] + this.points[3]).toCanvas(this.scene.parent.canvas);
-		for (const sector of this.scene.grid.range(min.map(value => Math.floor(value / this.scene.grid.scale)), max.map(value => Math.floor(value / this.scene.grid.scale)))) {
-			if (sector.physics.length <= 0 && sector.scenery.length <= 0) {
-				continue;
-			}
-
+		for (const sector of this.scene.grid.range(min.map(value => Math.floor(value / this.scene.grid.scale)), max.map(value => Math.floor(value / this.scene.grid.scale))).filter(sector => sector.physics.length + sector.scenery.length > 0)) {
 			const types = sector.search(min, max);
 			for (const type in types) {
-				typeof this.selected[type] == 'object' && this.selected[type].push(...types[type]);
+				typeof this.selected[type] == 'object' && this.selected[type].push(...types[type].filter(object => this.selected[type].indexOf(object) === -1));
 			}
 		}
 
@@ -38,6 +34,7 @@ export default class extends Tool {
 
 	deleteSelected() {
 		for (const type in this.selected) {
+			if (typeof this.selected[type] != 'object') return;
 			for (const object of this.selected[type]) {
 				object.remove();
 			}
