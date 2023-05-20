@@ -232,7 +232,7 @@ export default class Player {
 
 	*ghostPlayer(nextTick = this.ticks + 1) {
 		let snapshots = new Map();
-		this.ticks = Math.max(0, ~~arguments[0]);
+		this.ticks = 0;
 		while (this.targetsCollected !== this.scene.targets) {
 			snapshots.has(this.ticks) || snapshots.set(this.ticks, this.save());
 			if (this.ticks >= nextTick) {
@@ -370,7 +370,6 @@ export default class Player {
 		if (this.ghost) {
 			this.gamepad.downKeys.clear();
 			this.ghostIterator = this.ghostPlayer();
-			this.ticks = 0;
 		} else {
 			this.records.forEach(set => set.clear());
 			this.updateRecords(this.gamepad.downKeys);

@@ -132,10 +132,6 @@ export default class extends EventEmitter {
 		for (let i = 1; i < this.players.length; i++) {
 			this.players[i][method]();
 		}
-
-		// for (const playerGhost of this.ghosts) {
-		// 	playerGhost[method]();
-		// }
 	}
 
 	watchGhost(data, { id, vehicle = 'BMX' } = {}) {
