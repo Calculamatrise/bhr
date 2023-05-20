@@ -202,13 +202,13 @@
     </bhr-game-container>
     <script type="module" src="bootstrap.js"></script>
 	<script type="module">
-		const demo = await fetch('demo.txt').then(r => r.text());
-		game.init({ code: demo, write: true });
-		game.scene.on('load', async function() {
-			const demoGhost = await fetch('demoghost.txt').then(r => r.text());
-			this.watchGhost(demoGhost);
-		});
-		// game.init({ write: true });
+		// const demo = await fetch('demo.txt').then(r => r.text());
+		// game.init({ code: demo, write: true });
+		// game.scene.on('load', async function() {
+		// 	const demoGhost = await fetch('demoghost.txt').then(r => r.text());
+		// 	this.watchGhost(demoGhost);
+		// });
+		game.init({ write: true });
 	</script>
 </body>
 </html>
