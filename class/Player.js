@@ -99,7 +99,7 @@ export default class Player {
 	gotoCheckpoint(method) {
 		if (this.snapshots.length > 0) {
 			this.restore(this.snapshots.at(-1));
-		} else {
+		} else if (!this.ghost) {
 			this.scene.reset();
 		}
 

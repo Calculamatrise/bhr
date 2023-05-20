@@ -133,9 +133,9 @@ export default class extends EventEmitter {
 			this.players[i][method]();
 		}
 
-		for (const playerGhost of this.ghosts) {
-			playerGhost[method]();
-		}
+		// for (const playerGhost of this.ghosts) {
+		// 	playerGhost[method]();
+		// }
 	}
 
 	watchGhost(data, { id, vehicle = 'BMX' } = {}) {
@@ -474,6 +474,7 @@ export default class extends EventEmitter {
 		}
 
 		this.cameraFocus = this.firstPlayer.vehicle.hitbox;
+		this.paused = false;
 		this.parent.settings.autoPause && (this.frozen = true);
 	}
 
