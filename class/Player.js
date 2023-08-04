@@ -25,12 +25,13 @@ export default class Player {
 	slow = false;
 	slowParity = 0;
 	snapshots = new SnapshotHandler();
-	constructor(parent, { records, vehicle }) {
+	constructor(parent, { records, time, vehicle }) {
 		this.scene = parent;
 		if (records !== void 0) {
 			this.ghostIterator = this.ghostPlayer();
 			this.records = records;
-			this.ticks = 0;
+			this.runTime = time;
+			// this.playbackTicks = 0;
 		} else {
 			this.gamepad.init();
 			this.gamepad.on('down', this.updateRecords.bind(this));
@@ -48,6 +49,10 @@ export default class Player {
 
 	get targetsCollected() {
 		return this.scene.collectables.filter(item => item.type == 'T' && this.itemsCollected.has(item.id)).length;
+	}
+
+	get trackComplete() {
+		return this.targetsCollected === this.scene.targets;
 	}
 
 	createCosmetics() {
@@ -96,14 +101,15 @@ export default class Player {
 		ctx.restore();
 	}
 
-	gotoCheckpoint(method) {
+	gotoCheckpoint() {
 		if (this.snapshots.length > 0) {
 			this.restore(this.snapshots.at(-1));
 		} else if (!this.ghost) {
 			this.scene.reset();
+			return;
 		}
 
-		this.ghost || this.scene.checkpointEvent(method || 'gotoCheckpoint');
+		this.ghost || this.scene.checkpointEvent();
 	}
 
 	removeCheckpoint() {
@@ -131,9 +137,8 @@ export default class Player {
 
 	fixedUpdate() {
 		if (this.pendingConsumables) {
-			if (this.pendingConsumables & 2) {
-				this.trackComplete();
-			} else if (this.pendingConsumables & 1) {
+			if (this.pendingConsumables & 2) this.checkComplete();
+			if (this.pendingConsumables & 1) {
 				for (const player of this.scene.players) {
 					player.snapshots.push(player.save());
 				}
@@ -149,18 +154,20 @@ export default class Player {
 			return;
 		}
 
-		if (this.ghost) {
-			this.records[0].has(this.scene.currentTime) && this.gamepad.toggle('left');
-			this.records[1].has(this.scene.currentTime) && this.gamepad.toggle('right');
-			this.records[2].has(this.scene.currentTime) && this.gamepad.toggle('up');
-			this.records[3].has(this.scene.currentTime) && this.gamepad.toggle('down');
-			this.records[4].has(this.scene.currentTime) && this.vehicle.swap();
-		}
+		// if (this.ghost) {
+		// 	this.records[0].has(this.scene.currentTime) && this.gamepad.toggle('left');
+		// 	this.records[1].has(this.scene.currentTime) && this.gamepad.toggle('right');
+		// 	this.records[2].has(this.scene.currentTime) && this.gamepad.toggle('up');
+		// 	this.records[3].has(this.scene.currentTime) && this.gamepad.toggle('down');
+		// 	this.records[4].has(this.scene.currentTime) && this.vehicle.swap();
+		// }
 
 		this.vehicle.fixedUpdate();
 		if (this.dead) {
 			this.ragdoll.fixedUpdate();
 			this.hat && this.hat.fixedUpdate();
+		} else {
+			this.ragdoll.setPosition(this.vehicle.rider);
 		}
 	}
 
@@ -181,9 +188,8 @@ export default class Player {
 
 	nativeUpdate() {
 		if (this.pendingConsumables) {
-			if (this.pendingConsumables & 2) {
-				this.trackComplete();
-			} else if (this.pendingConsumables & 1) {
+			if (this.pendingConsumables & 2) this.checkComplete();
+			if (this.pendingConsumables & 1) {
 				for (const player of this.scene.players) {
 					player.snapshots.push(player.save());
 				}
@@ -209,7 +215,7 @@ export default class Player {
 
 		this.vehicle.nativeUpdate();
 		if (this.dead) {
-			this.ragdoll.fixedUpdate();
+			this.ragdoll.nativeUpdate();
 			this.hat && this.hat.fixedUpdate();
 		} else {
 			this.ragdoll.setPosition(this.vehicle.rider);
@@ -230,18 +236,19 @@ export default class Player {
 	// 	this.#ticks = value;
 	// }
 
-	*ghostPlayer(nextTick = this.ticks + 1) {
-		let snapshots = new Map();
-		this.ticks = 0;
+	*ghostPlayer(nextTick = 0) {
+		const progress = document.querySelector('.replay-progress');
+		const snapshots = new Map();
+		this.playbackTicks = 0;
 		while (this.targetsCollected !== this.scene.targets) {
-			snapshots.has(this.ticks) || snapshots.set(this.ticks, this.save());
-			if (this.ticks >= nextTick) {
-				const value = parseInt(yield this.ticks);
+			snapshots.has(this.playbackTicks) || snapshots.set(this.playbackTicks, this.save());
+			if (this.playbackTicks >= nextTick) {
+				const value = parseInt(yield this.playbackTicks);
 				if (isFinite(value)) {
 					// create new ghost player and skip to previous tick to rewind
 					if (snapshots.has(value)) {
 						this.restore(snapshots.get(value));
-						this.ticks = value;
+						this.playbackTicks = value;
 					}
 
 					this.scene.cameraFocus = this.vehicle.hitbox;
@@ -249,23 +256,24 @@ export default class Player {
 					nextTick = value;
 					continue;
 				} else {
-					nextTick = this.ticks + 1;
+					nextTick = this.playbackTicks + 1;
 				}
 			}
 
 			if (this.ghost) {
-				this.records[0].has(this.ticks * this.scene.parent.max) && this.gamepad.toggle('left');
-				this.records[1].has(this.ticks * this.scene.parent.max) && this.gamepad.toggle('right');
-				this.records[2].has(this.ticks * this.scene.parent.max) && this.gamepad.toggle('up');
-				this.records[3].has(this.ticks * this.scene.parent.max) && this.gamepad.toggle('down');
-				this.records[4].has(this.ticks * this.scene.parent.max) && this.vehicle.swap();
+				this.records[0].has(this.playbackTicks * this.scene.parent.max) && this.gamepad.toggle('left');
+				this.records[1].has(this.playbackTicks * this.scene.parent.max) && this.gamepad.toggle('right');
+				this.records[2].has(this.playbackTicks * this.scene.parent.max) && this.gamepad.toggle('up');
+				this.records[3].has(this.playbackTicks * this.scene.parent.max) && this.gamepad.toggle('down');
+				this.records[4].has(this.playbackTicks * this.scene.parent.max) && this.vehicle.swap();
 			}
 
-			this.nativeUpdate();
-			this.ticks++;
+			this.scene.parent.ups !== 50 ? this.nativeUpdate() : this.fixedUpdate();
+			this.playbackTicks++;
+			progress && progress.setAttribute('value', this.playbackTicks);
 		}
 
-		return this.ticks;
+		return snapshots;
 	}
 
 	updateRecords(keys) {
@@ -298,29 +306,14 @@ export default class Player {
 		}
 	}
 
-	async trackComplete() {
+	checkComplete() {
 		if (this.targetsCollected === this.scene.targets && this.scene.currentTime > 0 && !this.scene.editMode) {
-			const options = {
-				body: new URLSearchParams({
-					id: window.location.pathname.split('/')[2],
-					vehicle: this.vehicle.name,
-					time: this.scene.currentTime,
-					code: `${game.scene.firstPlayer.records.map(record => [...record].join(" ")).join(",")},${this.scene.currentTime},${this.vehicle.name}`
-				}),
-				method: 'post'
-			}
-			alert(await fetch("/tracks/ghosts/save", options).then(r => r.text()).then(function(response) {
-				if (response !== "Ghost saved!") {
-					if (confirm(response)) {
-						options.body.set('overwrite', 'true');
-						return fetch("/tracks/ghosts/save", options).then(r => r.text());
-					} else {
-						return "Ghost not saved.";
-					}
-				}
-
-				return response;
-			}));
+			this.scene.parent.emit('trackComplete', {
+				code: `${this.scene.firstPlayer.records.map(record => Array.from(record).join(' ')).join(',')},${this.scene.currentTime},${this.vehicle.name}`,
+				id: this.scene.id ?? location.pathname.split('/')[2],
+				time: this.scene.currentTime,
+				vehicle: this.vehicle.name
+			});
 		}
 	}
 
@@ -369,6 +362,7 @@ export default class Player {
 		this.snapshots.reset();
 		if (this.ghost) {
 			this.gamepad.downKeys.clear();
+			this.playbackTicks = 0;
 			this.ghostIterator = this.ghostPlayer();
 		} else {
 			this.records.forEach(set => set.clear());

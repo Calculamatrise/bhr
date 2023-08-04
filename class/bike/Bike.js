@@ -66,7 +66,7 @@ export default class {
 	destroy() {
 		this.parent.dead = true;
 		this.hitbox.tangible = false;
-		this.rearWheel.acceleration = 0;
+		this.rearWheel.speed = 0;
 		this.parent.createRagdoll();
 	}
 
@@ -144,7 +144,7 @@ export default class {
 	}
 
 	updatePhysics() {
-		this.rearWheel.acceleration += (this.parent.gamepad.downKeys.has('up') - this.rearWheel.acceleration) / 10;
+		this.rearWheel.speed += (this.parent.gamepad.downKeys.has('up') - this.rearWheel.speed) / 10;
 		let rotate = this.parent.gamepad.downKeys.has('left') - this.parent.gamepad.downKeys.has('right');
 		this.rearSpring.lean(rotate * this.dir * 5);
 		this.frontSpring.lean(-rotate * this.dir * 5);
@@ -172,20 +172,17 @@ export default class {
 		clone.dir = this.dir;
 
 		clone.hitbox.position.set(this.hitbox.position);
-		clone.hitbox.displayPosition.set(this.hitbox.displayPosition);
 		clone.hitbox.old.set(this.hitbox.old);
 		clone.hitbox.velocity.set(this.hitbox.velocity);
 
 		clone.frontWheel.position.set(this.frontWheel.position);
-		clone.frontWheel.displayPosition.set(this.frontWheel.displayPosition);
 		clone.frontWheel.old.set(this.frontWheel.old);
 		clone.frontWheel.velocity.set(this.frontWheel.velocity);
 
 		clone.rearWheel.position.set(this.rearWheel.position);
-		clone.rearWheel.displayPosition.set(this.rearWheel.displayPosition);
 		clone.rearWheel.old.set(this.rearWheel.old);
 		clone.rearWheel.velocity.set(this.rearWheel.velocity);
-		clone.rearWheel.acceleration = this.rearWheel.acceleration;
+		clone.rearWheel.speed = this.rearWheel.speed;
 
 		clone.rearSpring.leff = this.rearSpring.leff;
 		clone.chasse.leff = this.chasse.leff;

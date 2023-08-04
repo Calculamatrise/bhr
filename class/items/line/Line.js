@@ -32,17 +32,14 @@ export default class {
 			b > 0 && c.add(this.vector.oppositeScale(this.length).scale(b));
 		}
 
-		return vector.difference(c).length <= this.scene.toolHandler.currentTool.size && (this.scene.history.push({
-			undo: () => this.scene.addLineInternal(this),
-			redo: this.remove.bind(this)
-		}), this.remove());
+		return vector.difference(c).length <= this.scene.toolHandler.currentTool.size;
 	}
 
 	move(vector) {
 		this.scene.remove(this);
 		this.a.add(vector);
 		this.b.add(vector);
-		this.scene.addLineInternal(this);
+		this.scene.grid.addItem(this);
 		if (arguments[1] !== false) {
 			this.scene.history.push({
 				undo: () => this.move(Vector.from(vector).scale(-1), false),
@@ -53,6 +50,7 @@ export default class {
 
 	remove() {
 		this.scene.remove(this);
+		this.removed = true;
 		return this;
 	}
 

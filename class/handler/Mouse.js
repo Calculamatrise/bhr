@@ -7,21 +7,22 @@ export default class extends EventEmitter {
 	old = new Vector();
 	position = new Vector();
 	rawPosition = new Vector();
+	target = null;
 	stroke = new Vector();
-	constructor(canvas) {
-		super();
-		this.canvas = canvas;
-		this.canvas.addEventListener('click', this.click = this.click.bind(this));
-		this.canvas.addEventListener('pointerdown', this.pointerdown = this.pointerdown.bind(this));
-		this.canvas.addEventListener('pointermove', this.move = this.move.bind(this));
-		this.canvas.addEventListener('pointerup', this.up = this.up.bind(this));
-		this.canvas.addEventListener('contextmenu', this.menu = this.menu.bind(this));
-		this.canvas.addEventListener('wheel', this.wheel = this.wheel.bind(this));
-		// document.addEventListener('pointerlockchange', this.lockChangeAlert.bind(this), false);
+	get locked() {
+		return document.pointerLockElement === this.target;
 	}
 
-	get locked() {
-		return document.pointerLockElement === this.canvas;
+	setTarget(target) {
+		this.target !== null && this.close();
+		this.target = target;
+		this.target.addEventListener('click', this.click = this.click.bind(this));
+		this.target.addEventListener('pointerdown', this.pointerdown = this.pointerdown.bind(this));
+		this.target.addEventListener('pointermove', this.move = this.move.bind(this));
+		this.target.addEventListener('pointerup', this.up = this.up.bind(this));
+		this.target.addEventListener('contextmenu', this.menu = this.menu.bind(this));
+		this.target.addEventListener('wheel', this.wheel = this.wheel.bind(this));
+		// document.addEventListener('pointerlockchange', this.lockChangeAlert.bind(this), false);
 	}
 
 	async click(event) {
@@ -34,7 +35,7 @@ export default class extends EventEmitter {
 	}
 
 	lock(options = {}) {
-		return this.canvas.requestPointerLock(Object.assign({ unadjustedMovement: true }, arguments[0]));
+		return this.target.requestPointerLock(Object.assign({ unadjustedMovement: true }, arguments[0]));
 	}
 
 	pointerdown(event) {
@@ -43,8 +44,8 @@ export default class extends EventEmitter {
 		this.old.set(this.position);
 		if (!this.locked) {
 			this.rawPosition.set(new Vector(event.offsetX * window.devicePixelRatio, event.offsetY * window.devicePixelRatio));
-			this.position.set(this.rawPosition.toCanvas(this.canvas));
-			this.canvas.setPointerCapture(event.pointerId);
+			this.position.set(this.rawPosition.toCanvas(this.target));
+			this.target.setPointerCapture(event.pointerId);
 		}
 
 		this.emit('down', event);
@@ -57,7 +58,7 @@ export default class extends EventEmitter {
 			this.rawPosition.add(new Vector(event.movementX * window.devicePixelRatio, event.movementY * window.devicePixelRatio));
 		} else {
 			this.rawPosition.set(new Vector(event.offsetX * window.devicePixelRatio, event.offsetY * window.devicePixelRatio));
-			this.position.set(this.rawPosition.toCanvas(this.canvas));
+			this.position.set(this.rawPosition.toCanvas(this.target));
 		}
 
 		this.emit('move', event);
@@ -68,8 +69,8 @@ export default class extends EventEmitter {
 		this.down = false;
 		if (!this.locked) {
 			this.rawPosition.set(new Vector(event.offsetX * window.devicePixelRatio, event.offsetY * window.devicePixelRatio));
-			this.position.set(this.rawPosition.toCanvas(this.canvas));
-			this.canvas.releasePointerCapture(event.pointerId);
+			this.position.set(this.rawPosition.toCanvas(this.target));
+			this.target.releasePointerCapture(event.pointerId);
 		}
 
 		this.emit('up', event);
@@ -86,11 +87,12 @@ export default class extends EventEmitter {
 	}
 
 	close() {
-		this.canvas.removeEventListener('click', this.click);
-		this.canvas.removeEventListener('pointerdown', this.pointerdown);
-		this.canvas.removeEventListener('pointermove', this.move);
-		this.canvas.removeEventListener('pointerup', this.up);
-		this.canvas.removeEventListener('contextmenu', this.menu);
-		this.canvas.removeEventListener('mousewheel', this.wheel);
+		this.target.removeEventListener('click', this.click);
+		this.target.removeEventListener('pointerdown', this.pointerdown);
+		this.target.removeEventListener('pointermove', this.move);
+		this.target.removeEventListener('pointerup', this.up);
+		this.target.removeEventListener('contextmenu', this.menu);
+		this.target.removeEventListener('mousewheel', this.wheel);
+		this.target = null;
 	}
 }

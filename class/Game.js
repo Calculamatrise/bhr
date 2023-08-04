@@ -12,6 +12,7 @@ export default class extends EventEmitter {
 	lastTime = performance.now();
 	progress = 0;
 	ups = 25; // 50;
+	mouse = new Mouse();
 	scene = new Scene(this);
 	settings = new RecursiveProxy(Object.assign({
 		autoPause: false,
@@ -33,14 +34,9 @@ export default class extends EventEmitter {
 	storage = null;
 	constructor(canvas) {
 		super();
-		this.canvas = canvas;
-		// const offscreen = this.canvas.transferControlToOffscreen();
-		// this.scene.helper.postMessage({ canvas: offscreen }, [offscreen]);
-		this.ctx = canvas.getContext('2d');
-		this.ctx.textBaseline = 'middle';
-		this.container = canvas.parentElement;
 
-		this.mouse = new Mouse(canvas);
+		this.setCanvas(canvas);
+		// this.mouse.setTarget(canvas);
 		this.mouse.on('down', this.press.bind(this));
 		this.mouse.on('move', this.stroke.bind(this));
 		this.mouse.on('up', this.clip.bind(this));
@@ -118,7 +114,6 @@ export default class extends EventEmitter {
 
 		// new ResizeObserver(this.setCanvasSize.bind(this)).observe(this.canvas);
 		window.addEventListener('resize', this.setCanvasSize.bind(this));
-		window.dispatchEvent(new Event('resize'));
 		// window.onbeforeunload = this.close.bind(this);
 		// window.onunload = this.close.bind(this);
 		window.addEventListener('beforeunload', this.close.bind(this));
@@ -142,15 +137,10 @@ export default class extends EventEmitter {
 		this.lastFrame = requestAnimationFrame(this.render.bind(this));
 	}
 
+	// ups = 50;
 	// render(time) {
 	// 	this.lastFrame = requestAnimationFrame(this.render.bind(this));
 	// 	let delta = time - this.lastTime;
-	// 	// if (delta < this.max) {
-	// 	// 	// this.scene.update();
-	// 	// 	// this.scene.render(this.ctx);
-	// 	// 	return;
-	// 	// }
-
 	// 	if (delta > 1000) {
 	// 		delta = this.max;
 	// 	}
@@ -164,10 +154,8 @@ export default class extends EventEmitter {
 	// 		this.progress--;
 	// 	}
 
-	// 	// this.scene.fixedUpdate();
 	// 	this.scene.update(this.progress, delta);
 	// 	this.scene.render(this.ctx);
-	// 	// this.lastTime = time;
 	// }
 
 	render(time) {
@@ -179,7 +167,7 @@ export default class extends EventEmitter {
 			return;
 		}
 
-		this.scene.nativeUpdate();
+		this.scene.nativeUpdate(delta);
 		this.scene.render(this.ctx);
 		this.lastTime = time;
 	}
@@ -196,6 +184,16 @@ export default class extends EventEmitter {
 			this.emit('recorderStart', event);
 		})
 		return this.mediaRecorder;
+	}
+
+	setCanvas(canvas) {
+		this.canvas = canvas;
+		// const offscreen = this.canvas.transferControlToOffscreen();
+		// this.scene.helper.postMessage({ canvas: offscreen }, [offscreen]);
+		this.ctx = this.canvas.getContext('2d');
+		this.container = canvas.parentElement;
+		this.setCanvasSize();
+		this.mouse.setTarget(canvas);
 	}
 
 	// create a separate overlaying canvas for scenery lines with a transparent background
@@ -303,8 +301,8 @@ export default class extends EventEmitter {
 				const focusedPlayerGhost = this.scene.ghosts.find(playerGhost => playerGhost.vehicle.hitbox == this.scene.cameraFocus);
 				if (focusedPlayerGhost) {
 					this.scene.paused = true;
-					focusedPlayerGhost.ticks = Math.max(0, focusedPlayerGhost.ticks - 5);
-					focusedPlayerGhost.ghostIterator.next(focusedPlayerGhost.ticks);
+					focusedPlayerGhost.playbackTicks = Math.max(0, focusedPlayerGhost.playbackTicks - 5);
+					focusedPlayerGhost.ghostIterator.next(focusedPlayerGhost.playbackTicks);
 				}
 				break;
 			}
@@ -313,7 +311,7 @@ export default class extends EventEmitter {
 				const focusedPlayerGhost = this.scene.ghosts.find(playerGhost => playerGhost.vehicle.hitbox == this.scene.cameraFocus);
 				if (focusedPlayerGhost) {
 					this.scene.paused = true;
-					focusedPlayerGhost.ghostIterator.next(focusedPlayerGhost.ticks + 5);
+					focusedPlayerGhost.ghostIterator.next(focusedPlayerGhost.playbackTicks + 5);
 				}
 				break;
 			}
@@ -349,6 +347,11 @@ export default class extends EventEmitter {
 				this.scene.cameraFocus = playersToFocus[index];
 				this.scene.paused = false;
 				this.scene.frozen = false;
+
+				let progress = document.querySelector('.replay-progress');
+				progress && index === 0 ? progress.style.setProperty('display', 'none') : (progress.style.removeProperty('display'),
+				progress.setAttribute('max', playersToFocus[index].parent.parent.runTime ?? 100),
+				progress.setAttribute('value', playersToFocus[index].parent.parent.playbackTicks));
 				break;
 			}
 
@@ -614,7 +617,7 @@ export default class extends EventEmitter {
 	}
 
 	reset() {
-		confirm("Do you really want to start a new track?") && this.init({ write: true });
+		this.init({ default: true, write: true });
 	}
 
 	async close(event) {

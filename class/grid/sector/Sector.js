@@ -13,11 +13,72 @@ export default class {
 		this.row = row;
 		this.column = column;
 		this.resize();
+		this.parent.helper.postMessage({
+			cmd: 'CREATE_SECTOR',
+			row, column
+		});
+	}
+
+	add(item) {
+		if (arguments.length > 1) {
+			for (const item of arguments)
+				this.add(item);
+			return this;
+		} else if (item instanceof Array) {
+			return this.add(...item);
+		} else if (this.physics.includes(item) || this.scenery.includes(item) || this.powerups.includes(item)) {
+			return this;
+		}
+
+		if (item.type == 'physics') {
+			this.physics.push(item);
+		} else if (item.type == 'scenery') {
+			this.scenery.push(item);
+		} else {
+			this.powerups.push(item);
+		}
+
+		return this;
 	}
 
 	// don't necessarily have to redraw every single line.
 	// when a line is added, it can be drawn normally on top of the canvas.
 	cache(offsetX = this.row * this.parent.scale, offsetY = this.column * this.parent.scale) {
+		// this.parent.helper.postMessage({
+		// 	cmd: 'CACHE_SECTOR',
+		// 	row: this.row,
+		// 	column: this.column,
+		// 	physics: this.physics.map(line => ({
+		// 		start: {
+		// 			x: line.a.x,
+		// 			y: line.a.y
+		// 		},
+		// 		end: {
+		// 			x: line.b.x,
+		// 			y: line.b.y
+		// 		}
+		// 	})),
+		// 	scenery: this.scenery.map(line => ({
+		// 		start: {
+		// 			x: line.a.x,
+		// 			y: line.a.y
+		// 		},
+		// 		end: {
+		// 			x: line.b.x,
+		// 			y: line.b.y
+		// 		}
+		// 	})),
+		// 	// powerups: this.powerups.map(powerup => ({
+		// 	// 	x: powerup.x,
+		// 	// 	y: powerup.y,
+		// 	// 	type: powerup.type
+		// 	// })),
+		// 	scale: this.parent.scale,
+		// 	zoom: this.parent.scene.zoom
+		// });
+		// // this.rendered = true;
+		// return;
+		
 		this.ctx.clearRect(0, 0, this.canvas.width, this.canvas.height);
 		if (this.scenery.length > 0) {
 			this.ctx.save();
@@ -44,7 +105,7 @@ export default class {
 			this.cache(offsetX, offsetY);
 		}
 
-		ctx.drawImage(this.canvas, Math.floor(ctx.canvas.width / 2 - this.parent.scene.camera.x * this.parent.scene.zoom + offsetX * this.parent.scene.zoom), Math.floor(ctx.canvas.height / 2 - this.parent.scene.camera.y * this.parent.scene.zoom + offsetY * this.parent.scene.zoom));
+		ctx.drawImage(this.image || this.canvas, Math.floor(ctx.canvas.width / 2 - this.parent.scene.camera.x * this.parent.scene.zoom + offsetX * this.parent.scene.zoom), Math.floor(ctx.canvas.height / 2 - this.parent.scene.camera.y * this.parent.scene.zoom + offsetY * this.parent.scene.zoom));
 	}
 
 	resize() {
@@ -87,20 +148,26 @@ export default class {
 	erase(vector) {
 		let cache = [];
 		if (!this.parent.scene.toolHandler.currentTool.ignoring.has('physics')) {
-			for (let line of this.physics) {
-				(line = line.erase(vector)) && cache.push(line);
+			for (const line of this.physics) {
+				if (line.removed || line.erase(vector)) {
+					cache.push(this.remove(line));
+				}
 			}
 		}
 
 		if (!this.parent.scene.toolHandler.currentTool.ignoring.has('scenery')) {
-			for (let line of this.scenery) {
-				(line = line.erase(vector)) && cache.push(line);
+			for (const line of this.scenery) {
+				if (line.removed || line.erase(vector)) {
+					cache.push(this.remove(line));
+				}
 			}
 		}
 
 		if (!this.parent.scene.toolHandler.currentTool.ignoring.has('powerups')) {
-			for (let powerup of this.powerups) {
-				(powerup = powerup.erase(vector)) && cache.push(powerup);
+			for (const item of this.powerups) {
+				if (item.removed || item.erase(vector)) {
+					cache.push(this.remove(item));
+				}
 			}
 		}
 
@@ -120,10 +187,12 @@ export default class {
 			}
 		}
 
+		item.removed = true;
 		this.rendered = false;
+		return item;
 	}
 
 	delete() {
-		return this.parent.rows.has(this.row) && this.parent.rows.get(this.row).delete(this.column);
+		return this.parent.delete(this.row, this.column);
 	}
 }

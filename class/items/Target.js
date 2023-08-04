@@ -4,6 +4,7 @@ export default class Target extends Collectable {
 	type = 'T';
 	static color = '#ff0'
 	activate(part) {
+		super.activate(part);
 		if (part.parent.parent.ghost) {
 			return;
 		}

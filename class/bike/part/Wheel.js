@@ -1,9 +1,9 @@
 import Mass from "./Mass.js";
 
 export default class extends Mass {
-	acceleration = 0;
 	motor = 0.3;
 	rotationSpeed = 0;
+	speed = 0;
 	draw(ctx) {
 		let position = this.displayPosition.toPixel();
 		ctx.beginPath();
@@ -12,7 +12,7 @@ export default class extends Mass {
 	}
 
 	drive(vector) {
-		this.position.add(vector.scale(this.acceleration * this.parent.dir));
+		this.position.add(vector.scale(this.speed * this.parent.dir));
 		this.parent.parent.gamepad.downKeys.has('down') && this.addFriction(vector);
 		this.rotationSpeed = vector.dot(this.velocity) / this.size;
 		this.touching = true;

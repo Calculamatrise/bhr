@@ -30,12 +30,12 @@ export default class Spring {
 	}
 
 	swap() {
-		let a = this.a.position.clone();
+		let a = this.a.displayPosition.clone();
+		this.a.displayPosition = this.b.displayPosition.clone();
+		this.b.displayPosition = a.clone();
+		a.set(this.a.position);
 		this.a.position.set(this.b.position);
 		this.b.position.set(a);
-		// a.set(this.a.displayPosition);
-		// this.a.displayPosition.set(this.b.displayPosition);
-		// this.b.displayPosition.set(a);
 		a.set(this.a.old);
 		this.a.old.set(this.b.old);
 		this.b.old.set(a);

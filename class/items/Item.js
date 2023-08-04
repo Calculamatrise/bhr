@@ -3,7 +3,6 @@ import Vector from "../Vector.js";
 export default class {
 	scene = null;
 	size = 7;
-	removed = false;
 	constructor(scene, x, y) {
 		this.scene = scene;
 		this.position = new Vector(x, y);
@@ -24,12 +23,12 @@ export default class {
 	}
 
 	erase(vector) {
-		return vector.distanceTo(this.position) < this.scene.toolHandler.currentTool.size + this.size && this.remove();
+		return vector.distanceTo(this.position) < this.scene.toolHandler.currentTool.size + this.size;
 	}
 
 	remove() {
-		this.removed = true;
 		this.scene.remove(this);
+		this.removed = true;
 		return this;
 	}
 

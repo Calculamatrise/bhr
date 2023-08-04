@@ -1,16 +1,17 @@
 <!-- <!DOCTYPE html> -->
 <html lang="en">
 <head>
-    <meta charset="UTF-8">
-    <meta http-equiv="X-UA-Compatible" content="IE=edge">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Black Hat Rider - Calculamatrise</title>
-    <link rel="stylesheet" href="styles/default.css">
-    <link rel="stylesheet" href="styles/dark.css" id="theme">
+	<meta charset="UTF-8">
+	<meta http-equiv="X-UA-Compatible" content="IE=edge">
+	<meta name="viewport" content="width=device-width, initial-scale=1.0">
+	<title>Black Hat Rider - Calculamatrise</title>
+	<link rel="stylesheet" href="styles/default.css">
+	<link rel="stylesheet" href="styles/dark.css" id="theme">
 </head>
 <body>
-    <bhr-game-container>
-        <canvas id="view"></canvas>
+	<!-- Add tabs for multiple editor capabilities -->
+	<bhr-game-container>
+		<canvas id="view"></canvas>
 		<bhr-game-toolbar>
 			<!-- <section class="bottom island right">
 				<button class="toolbar-item fullscreen" title="Fullscreen - F" onclick="document.fullscreenElement ? document.exitFullscreen() : game.container.requestFullscreen()"></button>
@@ -81,6 +82,7 @@
 			</section>
 			<!-- <input type="range" class="bottom timebar" style="left: 0;margin: 0;position: absolute;right: 0;"> -->
 		</bhr-game-toolbar>
+		<progress class="replay-progress" max="100" min="0" value="40" style="display: none;"></progress>
 		<div class="bhr-game-overlay" style="display: none;">
 			<input type="checkbox" id="game-overlay" style="display: none;">
 			<nav>
@@ -95,7 +97,7 @@
 				<div style="display: grid;grid-gap: .125rem;grid-template-columns: repeat(auto-fit, minmax(25vmin, 1fr));">
 					<!-- Toggle move/edit mode button -->
 					<label><input type="checkbox" onchange="game.scene.transformMode = event.target.checked;">Transform Mode</label>
-					<button onclick="game.reset()" style="background-color: hsl(0deg 40% 40% / calc(50% + 10% * var(--brightness-multiplier)));">Clear</button>
+					<button onclick="confirm('Do you really want to start a new track?') && game.reset()" style="background-color: hsl(0deg 40% 40% / calc(50% + 10% * var(--brightness-multiplier)));">Clear</button>
 					<button onclick="trackdialog.showModal()">Load</button>
 					<button onclick="game.openFile({ multiple: event.ctrlKey })">Open File...</button>
 					<!-- Open folder option allowing users to work on multiple tracks at once w/ different layers.
@@ -104,11 +106,122 @@
 					<button onclick="game.saveAs()">Save As...</button>
 					<button onclick="game.showRecentFiles()">Show Recent Files</button>
 					<button id="upload">Upload</button>
+					<script>
+						upload.addEventListener('click', function () {
+                            const code = game.scene.toString();
+                            if (code.length < 1e3) {
+                                return alert("Sorry, but your track must be bigger or more detailed.");
+                            } else if (game.scene.targets < 1) {
+                                return alert("Sorry, but your track must have at least 1 target!");
+                            }
+
+                            // add 'collaborators' input
+                            game.scene.paused = true;
+                            game.scene.toolHandler.setTool('camera');
+                            game.scene.pictureMode = {width: 250, height: 150};
+                            game.scene.zoom = 0.6 * window.devicePixelRatio;
+                            game.scene.grid.sectors.forEach(sector => sector.rendered = false);
+                            document.getElementById('track_menu')?.style.setAttribute('display', 'none');
+                            var container = document.createElement('div');
+                            container.setAttribute('id', 'track_menu');
+                            container.style.setProperty('display', 'flex');
+                            container.style.setProperty('flex-direction', 'column');
+                            var select = Object.assign(document.createElement('select'), {
+                                id: 'visibility'
+                            });
+                            select.style.setProperty('width', '-webkit-fill-available');
+                            select.append(...[
+                                Object.assign(document.createElement('option'), {
+                                    disabled: true,
+                                    innerText: 'Visibility'
+                                }),
+                                Object.assign(document.createElement('option'), {
+                                    innerText: 'Public',
+                                    value: 'public'
+                                }),
+                                Object.assign(document.createElement('option'), {
+                                    innerText: 'Private',
+                                    value: 'private'
+                                })
+                            ]);
+
+                            container.append(...[
+                                Object.assign(document.createElement('input'), {
+                                    id: 'title',
+                                    placeholder: 'Title',
+                                    type: 'text',
+                                    onkeydown: event => event.stopPropagation(),
+                                    onkeypress: event => event.stopPropagation(),
+                                    onkeyup: event => event.stopPropagation()
+                                }),
+                                Object.assign(document.createElement('textarea'), {
+                                    id: 'description',
+                                    placeholder: 'Description',
+                                    rows: 4,
+                                    onkeydown: event => event.stopPropagation(),
+                                    onkeypress: event => event.stopPropagation(),
+                                    onkeyup: event => event.stopPropagation()
+                                }),
+                                select,
+                                Object.assign(document.createElement('button'), {
+                                    innerText: 'Publish',
+                                    onclick() {
+                                        const title = document.querySelector('#track_menu #title');
+                                        if (title.value.length < 4)
+                                            return alert("The track name is too short!");
+
+                                        const description = document.querySelector('#track_menu #description');
+                                        if (description.value.length < 16)
+                                            return alert("The track description is too short!");
+
+                                        const visibility = document.querySelector('#track_menu #visibility');
+                                        const canvas = document.createElement('canvas');
+                                        canvas.width = 250;
+                                        canvas.height = 150;
+                                        const ctx = canvas.getContext('2d');
+                                        ctx.fillStyle = game.canvas.computedStyleMap().get('background-color').toString();
+                                        ctx.fillRect(0, 0, canvas.width, canvas.height);
+                                        ctx.drawImage(game.canvas, game.canvas.width / 2 - canvas.width / 2, game.canvas.height / 2 - canvas.height / 2, canvas.width, canvas.height, 0, 0, canvas.width, canvas.height);
+                                        game.scene.pictureMode = false;
+                                        this.disabled = true;
+                                        fetch('/api/tracks/upload.php', {
+                                            method: 'post',
+                                            body: new URLSearchParams({
+                                                name: title.value,
+                                                code,
+                                                description: description.value,
+                                                display: visibility.value,
+                                                thumbnail: canvas.toDataURL('image/jpeg')
+                                            })
+                                        }).then(r => r.text()).then(r => {
+                                            if (+r === 1) {
+                                                location.href = '/';
+                                            } else {
+                                                this.disabled = false;
+                                                const error = document.createElement('p');
+                                                error.classList.add('error');
+                                                error.innerText = r;
+                                                this.after(error);
+                                                setTimeout(() => {
+                                                    error.remove()
+                                                }, 5e3);
+                                                // document.write("Something went wrong!");
+                                            }
+                                        });
+                                    }
+                                })
+                            ]);
+                            this.replaceWith(container);
+                        });
+					</script>
 				</div>
 				<!-- Display recently opened tracks -->
 				<dialog class="bhr-dialog" id="trackdialog" onclose="event.target.returnValue == 'default' && (game.load(code.value),document.querySelector('#game-overlay').checked = false),code.value = null">
 					<form method="dialog" style="margin: 0;">
-						<textarea placeholder="Code" cols="30" rows="7" id="code" ondrop="Promise.all(Array.from(event.dataTransfer.items).filter(({ kind }) => kind === 'file').map(item => item.getAsFileSystemHandle())).then(fileHandles => game.loadFile({ fileHandles }));" onkeydown="event.stopPropagation()" onkeyup="event.stopPropagation()"></textarea>
+						<div class="input-container">
+							<textarea class="track-input" placeholder="Code" cols="30" rows="7" id="code" ondrop="Promise.all(Array.from(event.dataTransfer.items).filter(({ kind }) => kind === 'file').map(item => item.getAsFileSystemHandle())).then(fileHandles => game.loadFile({ fileHandles }));" oninput="this.nextElementSibling.innerText = Math.round(this.value.length / 1e3);" onkeydown="event.stopPropagation()" onkeyup="event.stopPropagation()"></textarea>
+							<span class="char-counter" title="Size">0</span>
+						</div>
 						<!-- Show track size in textarea -->
 						<div style="display: flex;gap: .25rem;margin-top: .25rem;">
 							<button value="cancel" style="width: -webkit-fill-available;">Cancel</button>
@@ -129,6 +242,7 @@
 			</section>
 			<section style="display: none;gap: 2px;">
 				<input type="radio" name="bhr-game-overlay-nav" id="ghost" style="display: none;">
+				<!-- Display races (game.scene.races/game.scene.players/game.scene.ghosts) -->
 				<div style="display: grid;grid-gap: .125rem;grid-template-columns: repeat(auto-fit, minmax(25vmin, 1fr));">
 					<button onclick="game.scene.ghosts.splice(0);" style="background-color: hsl(0deg 40% 40% / calc(50% + 10% * var(--brightness-multiplier)));">Clear</button>
 					<button onclick="gcode.nextElementSibling.lastElementChild.style.setProperty('display', 'none');gcode.nextElementSibling.lastElementChild.previousElementSibling.style.removeProperty('display');ghostdialog.showModal();">Load</button>
@@ -143,7 +257,7 @@
 							}
 						}).click();
 					">Load File...</button>
-					<button onclick="gcode.value = game.scene.firstPlayer.records.map(record => Array.from(record).join(' ')).join(',') + ',' + game.scene.firstPlayer.vehicle.name;gcode.nextElementSibling.lastElementChild.style.removeProperty('display');gcode.nextElementSibling.lastElementChild.previousElementSibling.style.setProperty('display', 'none');ghostdialog.showModal();">Save</button>
+					<button onclick="gcode.value = game.scene.firstPlayer.records.map(record => Array.from(record).join(' ')).join(',') + ',' + game.scene.currentTime + ',' + game.scene.firstPlayer.vehicle.name;gcode.nextElementSibling.lastElementChild.style.removeProperty('display');gcode.nextElementSibling.lastElementChild.previousElementSibling.style.setProperty('display', 'none');ghostdialog.showModal();">Save</button>
 					<button onclick="
 						Object.assign(document.createElement('a'), {
 							download: 'bhr_ghost-' + new Intl.DateTimeFormat(navigator.language, { dateStyle: 'short', timeStyle: 'medium' }).format().replace(/[/:]/g, '-').replace(/,+\s*/, '_').replace(/\s+.*$/, ''),
@@ -199,15 +313,15 @@
 			<button style="max-width: 25vmin;" onclick="window.close()">Exit to desktop ⍈</button>
 		</div>
 		<div class="toast-container" id="toasts"></div>
-    </bhr-game-container>
-    <script type="module" src="bootstrap.js"></script>
+	</bhr-game-container>
+	<script type="module" src="bootstrap.js"></script>
 	<script type="module">
 		// const demo = await fetch('demo.txt').then(r => r.text());
-		// game.init({ code: demo, write: true });
-		// game.scene.on('load', async function() {
+		// game.once('load', async function() {
 		// 	const demoGhost = await fetch('demoghost.txt').then(r => r.text());
-		// 	this.watchGhost(demoGhost);
+		// 	this.scene.watchGhost(demoGhost);
 		// });
+		// game.init({ code: demo, write: true });
 		game.init({ default: true, write: true });
 	</script>
 </body>

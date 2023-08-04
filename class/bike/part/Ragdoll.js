@@ -114,6 +114,26 @@ export default class {
 		}
 	}
 
+	nativeUpdate() {
+		for (const joint of this.joints) {
+			joint.fixedUpdate();
+		}
+
+		for (const point of this.points) {
+			point.fixedUpdate();
+		}
+
+		if (!this.parent.slow || this.parent.slowParity === 0) {
+			for (const joint of this.joints) {
+				joint.fixedUpdate();
+			}
+	
+			for (const point of this.points) {
+				point.fixedUpdate();
+			}
+		}
+	}
+
 	setPosition(stickman) {
 		for (const part in stickman) {
 			if (part in this) {

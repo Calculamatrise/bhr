@@ -1,4 +1,6 @@
 import Vector from "../Vector.js";
+import PhysicsLine from "../items/line/PhysicsLine.js";
+import SceneryLine from "../items/line/SceneryLine.js";
 import Sector from "./sector/Sector.js";
 
 // use worker to cache grid?
@@ -7,43 +9,81 @@ export default class {
 	scale = 100;
 	scene = null;
 	size = 1;
-	worker = new Worker("./class/grid/GridWorker.js");
+	helper = new Worker("./class/grid/GridHelper.js");
 	constructor(parent) {
 		this.scene = parent;
-		this.worker.addEventListener('message', ({ data }) => {
-			console.log(data)
+		this.helper.addEventListener('message', ({ data }) => {
+			switch(data.event) {
+				// case 'ADD_LINE': {
+				// 	for (let coords of data.sectors) {
+				// 		let sector = this.sector(coords.x, coords.y);
+				// 		sector[data.type].push(new (data.type === 'scenery' ? SceneryLine : PhysicsLine)(data.start.x, data.start.y, data.end.x, data.end.y, this.scene));
+				// 	}
+				// 	break;
+				// }
+
+				// case 'ADD_LINES': {
+				// 	for (let line of data.combined) {
+				// 		for (let coords of line.sectors) {
+				// 			let sector = this.sector(coords.x, coords.y);
+				// 			sector[data.type].push(new (data.type !== 'scenery' ? PhysicsLine : SceneryLine)(data.start.x, data.start.y, data.end.x, data.end.y, this.scene));
+				// 			sector.rendered = false;
+				// 		}
+				// 	}
+				// 	break;
+				// }
+
+				case 'INSERT_LINE': {
+					let sector = this.sector(data.sector.x, data.sector.y);
+					sector[data.type].push(new (data.type !== 'scenery' ? PhysicsLine : SceneryLine)(data.start.x, data.start.y, data.end.x, data.end.y, this.scene));
+					// sector.rendered = false;
+					break;
+				}
+
+				case 'SECTOR_CACHED': {
+					let sector = this.sector(data.row, data.column);
+					sector.image = data.image;
+					sector.rendered = true;
+					break;
+				}
+			}
 		});
 	}
 
 	get sectors() {
 		let sectors = [];
 		for (const row of this.rows.values()) {
-			for (const column of row.values()) {
-				sectors.push(column);
+			for (const sector of row.values()) {
+				sectors.push(sector);
 			}
 		}
 
 		return sectors;
 	}
 
-	cache() {
-		for (const sector of this.sectors) {
-			sector.resize();
+	addItem(item) {
+		let from = item.a || item.start || item.position;
+		let to = item.b || item.end || a;
+		for (const sector of this.findTouchingSectors(from, to)) {
+			sector.add(item);
+			sector.rendered = false;
 		}
-		// this.sectors.forEach(sector => {
-		// 	// console.log(sector)
-		// 	this.worker.postMessage(JSON.parse(JSON.stringify(sector, [
-		// 		'column',
-		// 		'physics',
-		// 		'scenery',
-		// 		'powerups',
-		// 		'row'
-		// 	])));
-		// })
+	}
+
+	cache() {
+		for (const row of this.rows.values()) {
+			for (const sector of row.values()) {
+				sector.rendered = false;
+			}
+		}
 	}
 
 	coords(vector) {
 		return new Vector(Math.floor(vector.x / this.scale), Math.floor(vector.y / this.scale));
+	}
+
+	delete(x, y) {
+		return this.rows.has(x) && this.rows.get(x).delete(y);
 	}
 
 	findTouchingSectors(from, to) {
@@ -90,6 +130,14 @@ export default class {
 		}
 
 		return sectors;
+	}
+
+	resize() {
+		for (const row of this.rows.values()) {
+			for (const sector of row.values()) {
+				sector.resize();
+			}
+		}
 	}
 
 	sector(x, y, add) {

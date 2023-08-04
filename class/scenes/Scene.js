@@ -1,4 +1,3 @@
-import EventEmitter from "../EventEmitter.js";
 import Player from "../Player.js";
 
 import ToolHandler from "../handler/Tool.js";
@@ -20,7 +19,7 @@ import Slowmo from "../items/Slowmo.js";
 import Teleporter from "../items/Teleporter.js";
 
 // implement Track class w/ draw/move/scale/flip methods etc..
-export default class extends EventEmitter {
+export default class {
 	camera = new Vector();
 	cameraLock = false;
 	cameraFocus = null;
@@ -30,20 +29,19 @@ export default class extends EventEmitter {
 	frozen = false;
 	ghosts = [];
 	grid = new Grid(this);
-	helper = new Worker('./class/scenes/TrackRenderer.js');
 	history = new UndoManager();
 	parent = null;
 	paused = false;
 	pictureMode = false;
-	players = []
+	players = [];
 	processing = false;
 	progress = 100;
 	sprogress = 100;
 	toolHandler = new ToolHandler(this);
-	transformMode = false;
+	// transformMode = false;
 	zoomFactor = .6 * window.devicePixelRatio;
+	canvasPool = []
 	constructor(parent) {
-		super();
 		this.parent = parent;
 		// this.helper.postMessage({ canvas: this.parent.canvas.transferControlToOffscreen() }, [offscreen]);
 		// this.helper.addEventListener('message', ({ data }) => {
@@ -52,8 +50,41 @@ export default class extends EventEmitter {
 		// 			this.addLine(...data.args);
 		// 			break;
 		// 		}
+
+		// 		case 'ADD_LINES': {
+		// 			// this.addLine(...data.args);
+		// 			console.log(data)
+		// 			data.combined.forEach(line => {
+		// 				this.addLine(...line);
+		// 			});
+
+		// 			this.processing = false;
+		// 			break;
+		// 		}
 		// 	}
 		// });
+		this.grid.helper.addEventListener('message', ({ data }) => {
+			switch(data.cmd) {
+				case 'CANVAS_POOL': {
+					this.canvasPool = Array.from(data.pool);
+					break;
+				}
+			}
+		})
+	}
+
+	#transformMode = false;
+	get transformMode() {
+		return this.#transformMode;
+	}
+
+	set transformMode(value) {
+		this.#transformMode = value;
+		this.toolHandler.setTool('camera');
+		if (!value) {
+			const cameraTool = this.toolHandler.cache.get('camera');
+			this.moveTrack(cameraTool.trackOffset);
+		}
 	}
 
 	get targets() {
@@ -61,7 +92,7 @@ export default class extends EventEmitter {
 	}
 
 	get timeText() {
-		let t = (this.ghostInFocus ? this.ghostInFocus.ticks : (this.currentTime / this.parent.max)) / .03;
+		let t = (this.ghostInFocus ? this.ghostInFocus.playbackTicks : (this.currentTime / this.parent.max)) / .03;
 		return Math.floor(t / 6e4) + ':' + String((t % 6e4 / 1e3).toFixed(2)).padStart(5, '0');
 	}
 
@@ -70,7 +101,7 @@ export default class extends EventEmitter {
 	}
 
 	get ghostInFocus() {
-		return this.ghosts.find(playerGhost => playerGhost.vehicle.hitbox == this.cameraFocus);
+		return this.ghosts.find(({ vehicle }) => vehicle.hitbox == this.cameraFocus);
 	}
 
 	get zoom() {
@@ -78,12 +109,9 @@ export default class extends EventEmitter {
 	}
 
 	set zoom(value) {
-		this.zoomFactor = Math.min(window.devicePixelRatio * 4, Math.max(window.devicePixelRatio / 5, Math.round(value * window.devicePixelRatio * 10) / 10));
+		this.zoomFactor = Math.min(window.devicePixelRatio * 4, Math.max(window.devicePixelRatio / 5, Math.round(value * 10) / 10));
 		this.parent.ctx.lineWidth = Math.max(2 * this.zoom, 0.5);
-		// for (const sector of this.grid.sectors) {
-		// 	sector.resize();
-		// }
-		this.grid.cache();
+		this.grid.resize();
 	}
 
 	init(options = {}) {
@@ -98,16 +126,15 @@ export default class extends EventEmitter {
 		this.collectables.splice(0);
 		this.grid.rows.clear();
 		this.ghosts.splice(0);
+		this.firstPlayer && this.firstPlayer.gamepad.close();
 		this.players.splice(0);
 		this.players.push(new Player(this, { vehicle: options.vehicle }));
-		// this.processing = false;
-		// this.progress = this.sprogress = 100;
+		this.processing = false;
+		this.progress = this.sprogress = 100;
 		this.cameraFocus = this.firstPlayer.vehicle.hitbox;
 		this.camera.set(this.cameraFocus.position);
 		this.editMode = options.write ?? this.editMode;
-		if (options.write) {
-			this.toolHandler.setTool('line');
-		}
+		this.toolHandler.setTool(this.editMode ? 'line' : 'camera');
 	}
 
 	zoomIn() {
@@ -122,40 +149,49 @@ export default class extends EventEmitter {
 		this.firstPlayer.setVehicle(this.firstPlayer.vehicle.name != 'BMX' ? 'BMX' : 'MTB');
 	}
 
-	checkpointEvent(method) {
+	checkpointEvent() {
+		// for (const ghostPlayer of this.ghosts) {
+		// 	ghostPlayer.ghostIterator.next(this.currentTime);
+		// }
+
 		this.paused = false;
-		// this.parent.container.querySelector('.playpause > input').checked = !this.paused;
-		this.emit('stateChange', this.paused);
+		this.parent.emit('stateChange', this.paused);
 		this.parent.settings.autoPause && (this.frozen = true);
 		this.cameraFocus = this.firstPlayer.vehicle.hitbox;
 		this.camera.set(this.cameraFocus.position);
-		for (let i = 1; i < this.players.length; i++) {
-			this.players[i][method]();
-		}
 	}
 
 	watchGhost(data, { id, vehicle = 'BMX' } = {}) {
 		const parts = data.trim().split(/\s*,\s*/g);
-		const v = parts.pop();
-		if (['BMX', 'MTB'].includes(v.toUpperCase())) {
-			vehicle = v;
-		}
+		let v = parts.pop();
+		let time = parts.at(-1);
+
+		/^(BMX|MTB)$/i.test(v) && (vehicle = v);
 
 		const records = parts.map(item => item.split(/\s+/g).reduce((newArr, arr) => isNaN(arr) ? arr : newArr.add(parseInt(arr)), new Set()));
-		this.reset();
 		let player = id && this.ghosts.find(player => player.id == id);
 		if (!id || !player) {
 			player = new Player(this, {
 				records,
+				time,
 				vehicle
 			});
 			player.id = id;
-			player.ghostIterator = player.ghostPlayer();
 			this.ghosts.push(player);
 		}
 
+		this.reset();
 		this.cameraFocus = player.vehicle.hitbox;
+		this.camera.set(this.cameraFocus.position);
+		this.frozen = false;
 		this.paused = false;
+
+		let progress = document.querySelector('.replay-progress');
+		progress && (progress.style.removeProperty('display'),
+		progress.setAttribute('max', player.runTime ?? 100),
+		progress.setAttribute('value', player.ticks));
+
+		this.parent.emit('replayQueued', player, arguments);
 	}
 
 	collide(part) {
@@ -180,6 +216,11 @@ export default class extends EventEmitter {
 				player.fixedUpdate();
 			}
 
+			for (const playerGhost of this.ghosts) {
+				playerGhost.ghostIterator.next();
+				// playerGhost.fixedUpdate();
+			}
+
 			this.currentTime += this.parent.max;
 			// this.currentTime++
 		}
@@ -187,15 +228,19 @@ export default class extends EventEmitter {
 
 	update(progress, delta) {
 		if (!this.paused && !this.processing && !this.frozen) {
-			for (const player of this.players) {
+			for (const player of this.players.filter(player => player.targetsCollected !== this.targets)) {
 				player.update(...arguments);
+			}
+
+			for (const playerGhost of this.ghosts.filter(ghostPlayer => ghostPlayer.targetsCollected !== this.targets)) {
+				playerGhost.update(...arguments);
 			}
 		}
 
 		this.cameraFocus && this.camera.add(this.cameraFocus.position.difference(this.camera).scale(delta / 100));
 	}
 
-	nativeUpdate() {
+	nativeUpdate(delta) {
 		this.parent.settings.autoPause && this.firstPlayer.gamepad.downKeys.size > 0 && (this.frozen = false);
 		if (!this.paused && !this.processing && !this.frozen) {
 			for (const player of this.players) {
@@ -210,21 +255,19 @@ export default class extends EventEmitter {
 			// this.currentTime++
 		}
 
-		this.cameraFocus && this.camera.add(this.cameraFocus.position.difference(this.camera).scale(.3));
+		this.cameraFocus && this.camera.add(this.cameraFocus.position.difference(this.camera).scale(delta / 100));
 	}
 
 	render(ctx) {
-		// return this.helper.postMessage({
-		// 	cmd: 'RENDER_SCENE',
-		// 	grid: this.grid.sectors
-		// });
 		this.draw(ctx);
-		for (const playerGhost of this.ghosts) {
-			playerGhost.draw(ctx);
-		}
+		if (!this.transformMode) {
+			for (const playerGhost of this.ghosts) {
+				playerGhost.draw(ctx);
+			}
 
-		for (let i = this.players.length - 1; i >= 0; i--) {
-			this.players[i].draw(ctx);
+			for (let i = this.players.length - 1; i >= 0; i--) {
+				this.players[i].draw(ctx);
+			}
 		}
 
 		this.cameraFocus || this.toolHandler.draw(ctx);
@@ -240,11 +283,10 @@ export default class extends EventEmitter {
 			sector.render(ctx);
 		}
 
-		for (const sector of sectors.filter(sector => sector.powerups.length > 0)) {
-			for (const powerup of sector.powerups) {
-				powerup.draw(ctx);
-			}
-		}
+		// for (const sector of this.canvasPool) {
+		// 	// sector.render(ctx);
+		// 	ctx.drawImage(sector.canvas.image, Math.floor(sector.canvas.width / 2 - this.camera.x * this.zoom + sector.row * this.zoom), Math.floor(sector.canvas.height / 2 - this.camera.y * this.zoom + sector.column * this.zoom));
+		// }
 
 		if (this.pictureMode) {
 			const imageData = ctx.getImageData(ctx.canvas.width / 2 - this.pictureMode.width / 2, ctx.canvas.height / 2 - this.pictureMode.height / 2, this.pictureMode.width, this.pictureMode.height);
@@ -264,88 +306,106 @@ export default class extends EventEmitter {
 			return;
 		}
 
-		// // centered timer
-		// ctx.save()
-		// // ctx.font = '20px Arial';
-		// ctx.textAlign = 'center';
-		// ctx.fillText(this.timeText, ctx.canvas.width / 2, 10);
-		// ctx.restore()
-
-		// replace with message display system
-		let i = this.timeText;
-		if (this.processing) {
-			i = "Loading, please wait... " + Math.floor((this.progress + this.sprogress) / 2);
-		} else if (this.paused) {
-			i += " - Game paused";
-		} else if (this.firstPlayer && this.firstPlayer.dead && this.cameraFocus == this.firstPlayer.vehicle.hitbox) {
-			i = "Press ENTER to restart";
-			if (this.firstPlayer.snapshots.length > 1) {
-				i += " or BACKSPACE to cancel Checkpoint"
-			}
-		} else if (this.editMode) {
-			i += " - " + this.toolHandler.selected.replace(/^\w/, char => char.toUpperCase());
-			if (this.toolHandler.selected === 'brush') {
-				i += " ( size " + this.toolHandler.currentTool.length + " )";
+		for (const sector of sectors.filter(sector => sector.powerups.length > 0)) {
+			for (const powerup of sector.powerups) {
+				powerup.draw(ctx);
 			}
 		}
+		
+		if (!this.transformMode) {
+			// // centered timer
+			// ctx.save()
+			// // ctx.font = '20px Arial';
+			// ctx.textAlign = 'center';
+			// ctx.fillText(this.timeText, ctx.canvas.width / 2, 10);
+			// ctx.restore()
 
-		i = this.firstPlayer.targetsCollected + ` / ${this.targets}  -  ` + i
-		let text = ctx.measureText(i)
-		const goalRadius = (text.fontBoundingBoxAscent + text.fontBoundingBoxDescent) / 2;
-		const goalStrokeWidth = 1;
-		const left = 12;
-		ctx.roundedRect(left - goalRadius / 2, 12 - goalRadius / 2, text.width + goalRadius + goalStrokeWidth / 2 + 10, goalRadius, 40, { padding: 5 });
-		ctx.save()
-		ctx.fillStyle = 'hsl(0deg 0% 50% / 50%)'
-		ctx.fill()
-		ctx.restore()
-		ctx.fillText(i, left + goalRadius * 2, 12)
-		ctx.save()
-		// drawImage for powerups
-		ctx.beginPath()
-		ctx.fillStyle = '#ff0'
-		ctx.lineWidth = goalStrokeWidth
-		ctx.arc(left, 12, goalRadius / 1.5, 0, 2 * Math.PI)
-		ctx.fill()
-		ctx.stroke()
-		ctx.restore()
-		if (this.ghosts.length > 0) {
-			ctx.save();
-			ctx.textAlign = 'right'
-			for (const index in this.ghosts) {
-				let playerGhost = this.ghosts[index];
-				i = (playerGhost.name || 'Ghost') + (playerGhost.targetsCollected === this.targets ? " finished!" : ": " + playerGhost.targetsCollected + " / " + this.targets);
-				text = ctx.measureText(i)
-				const textHeight = text.actualBoundingBoxAscent + text.actualBoundingBoxDescent;
-				ctx.roundedRect(ctx.canvas.width - 12 - text.width, 12 + textHeight * index + index * 12 - textHeight / 2, text.width, (text.fontBoundingBoxAscent + text.fontBoundingBoxDescent) / 2, 40, { padding: 5 });
-				ctx.save()
-				ctx.fillStyle = 'hsl(0deg 0% 50% / 50%)' // if ghost is in focus, make it apparent
-				ctx.fill()
-				ctx.restore()
-				ctx.fillText(i, ctx.canvas.width - 12, 12 + textHeight * index + index * 12)
+			// replace with message display system
+			let i = this.timeText;
+			if (this.processing) {
+				i = "Loading, please wait... " + Math.floor((this.progress + this.sprogress) / 2);
+			} else if (this.paused) {
+				i += " - Game paused";
+			} else if (this.firstPlayer && this.firstPlayer.dead && this.cameraFocus == this.firstPlayer.vehicle.hitbox) {
+				i = "Press ENTER to restart";
+				if (this.firstPlayer.snapshots.length > 1) {
+					i += " or BACKSPACE to cancel Checkpoint"
+				}
+			} else if (this.editMode) {
+				i += " - " + this.toolHandler.selected.replace(/^\w/, char => char.toUpperCase());
+				if (this.toolHandler.selected === 'brush') {
+					i += " ( size " + this.toolHandler.currentTool.length + " )";
+				}
 			}
 
+			i = this.firstPlayer.targetsCollected + ` / ${this.targets}  -  ` + i
+			let text = ctx.measureText(i)
+			const goalRadius = (text.fontBoundingBoxAscent + text.fontBoundingBoxDescent) / 2;
+			const goalStrokeWidth = 1;
+			const left = 12;
+			ctx.roundedRect(left - goalRadius / 2, 12 - goalRadius / 2, text.width + goalRadius + goalStrokeWidth / 2 + 10, goalRadius, 40, { padding: 5 });
+			ctx.save()
+			ctx.fillStyle = 'hsl(0deg 0% 50% / 50%)'
+			ctx.fill()
 			ctx.restore()
+			ctx.fillText(i, left + goalRadius * 2, 12)
+			ctx.save()
+			// drawImage for powerups
+			ctx.beginPath()
+			ctx.fillStyle = '#ff0'
+			ctx.lineWidth = goalStrokeWidth
+			ctx.arc(left, 12, goalRadius / 1.5, 0, 2 * Math.PI)
+			ctx.fill()
+			ctx.stroke()
+			ctx.restore()
+			if (this.ghosts.length > 0) {
+				ctx.save();
+				ctx.textAlign = 'right'
+				for (const index in this.ghosts) {
+					let playerGhost = this.ghosts[index];
+					i = (playerGhost.name || 'Ghost') + (playerGhost.targetsCollected === this.targets ? " finished!" : ": " + playerGhost.targetsCollected + " / " + this.targets);
+					text = ctx.measureText(i)
+					const textHeight = text.actualBoundingBoxAscent + text.actualBoundingBoxDescent;
+					ctx.roundedRect(ctx.canvas.width - 12 - text.width, 12 + textHeight * index + index * 12 - textHeight / 2, text.width, (text.fontBoundingBoxAscent + text.fontBoundingBoxDescent) / 2, 40, { padding: 5 });
+					ctx.save()
+					ctx.fillStyle = 'hsl(0deg 0% 50% / 50%)' // if ghost is in focus, make it apparent
+					ctx.fill()
+					ctx.restore()
+					ctx.fillText(i, ctx.canvas.width - 12, 12 + textHeight * index + index * 12)
+				}
+
+				ctx.restore()
+			}
 		}
 	}
 
 	erase(vector) {
 		let x = Math.floor(vector.x / this.grid.scale - 0.5);
 		let y = Math.floor(vector.y / this.grid.scale - 0.5);
-		this.grid.sector(x, y).erase(vector);
-		this.grid.sector(x, y + 1).erase(vector);
-		this.grid.sector(x + 1, y).erase(vector);
-		this.grid.sector(x + 1, y + 1).erase(vector);
+		let cache = [];
+		cache.push(...this.grid.sector(x, y).erase(vector));
+		cache.push(...this.grid.sector(x + 1, y).erase(vector));
+		cache.push(...this.grid.sector(x + 1, y + 1).erase(vector));
+		cache.push(...this.grid.sector(x, y + 1).erase(vector));
+		cache = Array.from(new Set(cache));
+		this.history.push({
+			undo: () => cache.forEach(item => this.grid.addItem(item)),
+			redo: () => cache.forEach(item => item.remove())
+		});
 	}
 
 	addLine(start, end, type) {
 		const line = new (type ? SceneryLine : PhysicsLine)(start.x, start.y, end.x, end.y, this);
 		if (line.length >= 2 && line.length < 1e5) {
-			this.addLineInternal(line);
+			// this.offscreenGrid.postMessage({
+			// 	cmd: 'ADD_LINE',
+			// 	args: { start, end, type }
+			// });
+			this.grid.addItem(line);
 			if (arguments[3] !== false) {
 				this.history.push({
 					undo: line.remove.bind(line),
-					redo: () => this.addLineInternal(line)
+					redo: () => this.grid.addItem(line)
 				});
 			}
 
@@ -353,21 +413,15 @@ export default class extends EventEmitter {
 		}
 	}
 
-	addLineInternal(line) {
-		for (const sector of this.grid.findTouchingSectors(line.a, line.b)) {
-			sector[line.type].push(line);
-			sector.rendered = false;
-		}
-	}
-
 	// Fix this garbage.
 	read(a = "-18 1i 18 1i###BMX") {
-		this.processing = true;
-		// this.helper.postMessage({
+		// this.grid.helper.postMessage({
 		// 	cmd: 'PARSE_TRACK',
 		// 	code: arguments[0]
 		// });
-		const [physics, scenery, powerups] = a.split('#');
+		// return;
+		this.processing = true;
+		const [physics, scenery, powerups] = String(a).split('#');
 		physics && (this.progress = 0, this.processChunk(physics.split(/,+/g)));
 		scenery && (this.sprogress = 0, this.processChunk(scenery.split(/,+/g), 1));
 		if (powerups) {
@@ -424,13 +478,13 @@ export default class extends EventEmitter {
 	processChunk(array, scenery = false, index = 0) {
 		let chunk = 100; // 100
 		while (chunk-- && index < array.length) {
-			let line = array[index].split(/\s+/g);
-			if (line.length < 4) return;
-			for (let o = 0; o < line.length - 2; o += 2) {
-				let x = parseInt(line[o], 32),
-					y = parseInt(line[o + 1], 32),
-					l = parseInt(line[o + 2], 32),
-					c = parseInt(line[o + 3], 32);
+			let coords = array[index].split(/\s+/g);
+			if (coords.length < 4) continue; // return; // ?
+			for (let o = 0; o < coords.length - 2; o += 2) {
+				let x = parseInt(coords[o], 32),
+					y = parseInt(coords[o + 1], 32),
+					l = parseInt(coords[o + 2], 32),
+					c = parseInt(coords[o + 3], 32);
 				isNaN(x + y + l + c) || this.addLine({ x, y }, { x: l, y: c }, scenery, false)
 			}
 			++index;
@@ -443,9 +497,21 @@ export default class extends EventEmitter {
 		}
 
 		this.processing = this.progress < 100 || this.sprogress < 100;
-		if (!this.processing) {
-			this.emit('load');
+		this.processing || this.parent.emit('load');
+	}
+
+	moveTrack(offset) {
+		let physics = [];
+		let scenery = [];
+		let powerups = [];
+		for (const sector of this.grid.sectors) {
+			physics.push(...sector.physics.filter(line => (line = this.grid.coords(line.a)) && line.x == sector.row && line.y == sector.column));
+			scenery.push(...sector.scenery.filter(line => (line = this.grid.coords(line.a)) && line.x == sector.row && line.y == sector.column));
+			powerups.push(...sector.powerups.map(powerup => powerup.position.add(offset) && powerup));
 		}
+
+		this.init({ write: true });
+		this.read(Array(Array.from(new Set(physics)).map(line => line.a.add(offset) && line.b.add(offset) && line).join(','), scenery.map(line => line.a.add(offset) && line.b.add(offset) && line).join(','), powerups.join(','), this.firstPlayer.vehicle.name).join('#'));
 	}
 
 	remove(item) {
@@ -470,8 +536,14 @@ export default class extends EventEmitter {
 		}
 
 		this.cameraFocus = this.firstPlayer.vehicle.hitbox;
+		this.camera.set(this.cameraFocus.position);
 		this.paused = false;
 		this.parent.settings.autoPause && (this.frozen = true);
+
+		let progress = document.querySelector('.replay-progress');
+		progress && (this.cameraFocus === this.firstPlayer.vehicle.hitbox ? progress.style.setProperty('display', 'none') : (progress.style.removeProperty('display'),
+		progress.setAttribute('max', this.cameraFocus.parent.parent.runTime ?? 100),
+		progress.setAttribute('value', this.cameraFocus.parent.parent.ticks)));
 	}
 
 	toString() {
@@ -484,7 +556,7 @@ export default class extends EventEmitter {
 			powerups.push(...sector.powerups);
 		}
 
-		return Array(physics.map(line => line.toString()).join(','), scenery.map(line => line.toString()).join(','), powerups.map(powerup => powerup.toString()).join(','), this.firstPlayer.vehicle.name).join('#');
+		return Array(physics.join(','), scenery.join(','), powerups.join(','), this.firstPlayer.vehicle.name).join('#');
 	}
 }
 

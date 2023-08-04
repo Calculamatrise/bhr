@@ -2,8 +2,12 @@ import Item from "./Item.js";
 
 export default class extends Item {
 	id = self.crypto.randomUUID();
-	get used() {
+	get used() { // collected
 		return this.scene.firstPlayer.itemsCollected.has(this.id);
+	}
+
+	activate(part) {
+		part.parent.parent.itemsCollected.add(this.id);
 	}
 
 	draw(ctx, position = this.position.toPixel()) {
@@ -17,11 +21,11 @@ export default class extends Item {
 	}
 
 	collide(part) {
-		if (part.position.distanceToSquared(this.position) > 500 || part.parent.parent.dead || part.parent.parent.itemsCollected.has(this.id)) {
+		// part.position.distanceTo(this.position) < part.size + this.size + ctx.lineWidth
+		if (part.position.distanceToSquared(this.position) >= 500 || part.parent.parent.dead || part.parent.parent.itemsCollected.has(this.id)) {
 			return;
 		}
 
-		part.parent.parent.itemsCollected.add(this.id);
 		this.activate(part);
 	}
 }

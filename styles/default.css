@@ -4,6 +4,25 @@
 	}
 }
 
+::-webkit-scrollbar {
+    height: 10px;
+    width: 10px;
+}
+
+::-webkit-scrollbar-track {
+    background-color: hsl(0deg 0% 50% / 5%);
+    border-radius: 30px;
+}
+
+::-webkit-scrollbar-thumb {
+    background-color: hsl(0deg 0% 50% / 25%);
+    border-radius: 30px;
+}
+
+::-webkit-scrollbar-corner {
+    display: none;
+}
+
 html {
 	background-color: var(--background-color);
 	color: var(--text-color);
@@ -17,12 +36,16 @@ body {
 canvas#view {
 	background-color: var(--background-color);
 	height: 100vh;
+	min-height: 240px;
 	touch-action: none;
 	width: 100vw;
 }
 
 :fullscreen canvas#view {
-	height: 100vh;
+	height: 100% !important;
+	max-height: none;
+	max-width: none;
+	width: 100% !important;
 }
 
 bhr-game-container {
@@ -59,6 +82,31 @@ bhr-game-container .ripple:active::before {
 	transition: 0s;
 }
 
+bhr-game-container .replay-progress {
+	border: none;
+	bottom: 0;
+	height: 4px;
+	left: 0;
+	position: absolute;
+	right: 0;
+	transition: height 100ms ease 0s;
+	width: auto;
+}
+
+bhr-game-container .replay-progress:hover {
+	cursor: pointer;
+	filter: brightness(1.25);
+	height: 6px;
+}
+
+bhr-game-container .replay-progress::-webkit-progress-value {
+	background: var(--border-color);
+}
+
+bhr-game-container .replay-progress::-webkit-progress-bar {
+	background: var(--background-color);
+}
+
 .bhr-dialog {
 	backdrop-filter: blur(1rem) brightness(0.75);
 	background-color: transparent;
@@ -73,6 +121,23 @@ bhr-game-container .ripple:active::before {
 
 .input-container:has(> :placeholder-shown)> :last-child {
 	visibility: hidden;
+}
+
+.input-container > .char-counter {
+	-webkit-user-select: none;
+	bottom: 0;
+	color: hsl(0deg 0% 50% / 85%);
+	content: attr(content);
+	font-family: monospace;
+	padding: .5rem;
+	position: absolute;
+	pointer-events: none;
+	right: 0;
+	user-select: none;
+}
+
+.input-container > .char-counter::after {
+	content: "k";
 }
 
 .toast-container {
@@ -124,7 +189,7 @@ bhr-game-container .ripple:active::before {
 	margin-left: auto;
 	margin-right: auto;
 	max-width: 50%;
-	min-width: 100vmin;
+	width: 100vmin;
 }
 
 .bhr-game-overlay nav>label {
@@ -242,7 +307,8 @@ bhr-game-container .ripple:active::before {
 
 .disabled,
 :disabled,
-:placeholder-shown + * > .hidden-placeholder {
+:placeholder-shown + * > .hidden-placeholder,
+.input-container:has(> :placeholder-shown) + * > .hidden-placeholder {
 	opacity: 0.5;
 	pointer-events: none;
 }
