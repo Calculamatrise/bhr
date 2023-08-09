@@ -25,7 +25,7 @@ export default class {
 	cameraFocus = null;
 	collectables = [];
 	currentTime = 0;
-	editMode = false
+	editMode = false;
 	frozen = false;
 	ghosts = [];
 	grid = new Grid(this);
@@ -43,6 +43,23 @@ export default class {
 	canvasPool = []
 	constructor(parent) {
 		this.parent = parent;
+		this.parent.on('checkpoint', this.checkpoint.bind(this));
+		this.parent.on('removeCheckpoint', () => {
+			this.firstPlayer.removeCheckpoint();
+			for (const playerGhost of this.ghosts) {
+				playerGhost.removeCheckpoint();
+			}
+
+			this.checkpoint();
+		});
+		this.parent.on('restoreCheckpoint', () => {
+			this.firstPlayer.restoreCheckpoint();
+			for (const playerGhost of this.ghosts) {
+				playerGhost.restoreCheckpoint();
+			}
+
+			this.checkpoint();
+		});
 		// this.helper.postMessage({ canvas: this.parent.canvas.transferControlToOffscreen() }, [offscreen]);
 		// this.helper.addEventListener('message', ({ data }) => {
 		// 	switch (data.cmd) {
@@ -80,10 +97,12 @@ export default class {
 
 	set transformMode(value) {
 		this.#transformMode = value;
-		this.toolHandler.setTool('camera');
 		if (!value) {
 			const cameraTool = this.toolHandler.cache.get('camera');
-			this.moveTrack(cameraTool.trackOffset);
+			cameraTool.trackOffset.length > 0 && this.moveTrack(cameraTool.trackOffset);
+		} else {
+			this.toolHandler.setTool('camera');
+			this.reset();
 		}
 	}
 
@@ -149,10 +168,15 @@ export default class {
 		this.firstPlayer.setVehicle(this.firstPlayer.vehicle.name != 'BMX' ? 'BMX' : 'MTB');
 	}
 
-	checkpointEvent() {
-		// for (const ghostPlayer of this.ghosts) {
-		// 	ghostPlayer.ghostIterator.next(this.currentTime);
-		// }
+	checkpoint() {
+		let checkpointExists = this.firstPlayer.gotoCheckpoint();
+		if (checkpointExists) {
+			for (const playerGhost of this.ghosts) {
+				playerGhost.gotoCheckpoint();
+			}
+		} else {
+			this.reset();
+		}
 
 		this.paused = false;
 		this.parent.emit('stateChange', this.paused);
@@ -216,7 +240,7 @@ export default class {
 				player.fixedUpdate();
 			}
 
-			for (const playerGhost of this.ghosts) {
+			for (const playerGhost of this.ghosts.filter(ghostPlayer => ghostPlayer.targetsCollected !== this.targets)) {
 				playerGhost.ghostIterator.next();
 				// playerGhost.fixedUpdate();
 			}
@@ -247,7 +271,7 @@ export default class {
 				player.nativeUpdate();
 			}
 
-			for (const playerGhost of this.ghosts) {
+			for (const playerGhost of this.ghosts.filter(ghostPlayer => ghostPlayer.targetsCollected !== this.targets)) {
 				playerGhost.ghostIterator.next();
 			}
 
@@ -255,7 +279,7 @@ export default class {
 			// this.currentTime++
 		}
 
-		this.cameraFocus && this.camera.add(this.cameraFocus.position.difference(this.camera).scale(delta / 100));
+		this.cameraFocus && this.camera.add(this.cameraFocus.position.difference(this.camera).scale(delta / 125));
 	}
 
 	render(ctx) {
@@ -276,7 +300,7 @@ export default class {
 	draw(ctx) {
 		ctx.clearRect(0, 0, ctx.canvas.width, ctx.canvas.height);
 		// ctx.clearRect(0, 0, ctx.canvas.width / this.zoom, ctx.canvas.height / this.zoom);
-		let min = new Vector(0, 0).toCanvas(ctx.canvas).oppositeScale(this.grid.scale).map(Math.floor);
+		let min = new Vector().toCanvas(ctx.canvas).oppositeScale(this.grid.scale).map(Math.floor);
 		let max = new Vector(ctx.canvas.width, ctx.canvas.height).toCanvas(ctx.canvas).oppositeScale(this.grid.scale).map(Math.floor);
 		let sectors = this.grid.range(min, max);
 		for (const sector of sectors.filter(sector => sector.physics.length + sector.scenery.length > 0)) {
@@ -512,17 +536,6 @@ export default class {
 
 		this.init({ write: true });
 		this.read(Array(Array.from(new Set(physics)).map(line => line.a.add(offset) && line.b.add(offset) && line).join(','), scenery.map(line => line.a.add(offset) && line.b.add(offset) && line).join(','), powerups.join(','), this.firstPlayer.vehicle.name).join('#'));
-	}
-
-	remove(item) {
-		for (const sector of this.grid.findTouchingSectors(item.a ?? item.position, item.b ?? item.position)) {
-			sector.remove(item);
-		}
-
-		// const collectable = this.parent.scene.collectables.indexOf(item);
-		// if (collectable !== -1) {
-		// 	this.parent.scene.collectables.splice(collectable, 1);
-		// }
 	}
 
 	reset() {

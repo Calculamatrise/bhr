@@ -13,30 +13,70 @@ addEventListener('message', ({ data }) => {
 		}
 
 		case 'CACHE_SECTOR': {
-			let sector = self.sector(data.row, data.column);
-			sector.ctx.clearRect(0, 0, sector.width, sector.height);
-			sector.ctx.strokeStyle = '#000';
-			for (const line of data.physics) {
-				sector.ctx.beginPath();
-				sector.ctx.moveTo(line.start.x, line.start.y);
-				sector.ctx.lineTo(line.end.x, line.end.y);
-				sector.ctx.stroke();
-			}
+			// let sector = self.sector(data.row, data.column);
+			// sector.ctx.clearRect(0, 0, sector.width, sector.height);
+			// sector.ctx.strokeStyle = '#000';
+			// for (const line of data.physics) {
+			// 	sector.ctx.beginPath();
+			// 	sector.ctx.moveTo(line.start.x, line.start.y);
+			// 	sector.ctx.lineTo(line.end.x, line.end.y);
+			// 	sector.ctx.stroke();
+			// }
 
-			sector.ctx.strokeStyle = '#aaa';
-			for (const line of data.scenery) {
-				sector.ctx.beginPath();
-				sector.ctx.moveTo(line.start.x, line.start.y);
-				sector.ctx.lineTo(line.end.x, line.end.y);
-				sector.ctx.stroke();
-			}
+			// sector.ctx.strokeStyle = '#aaa';
+			// for (const line of data.scenery) {
+			// 	sector.ctx.beginPath();
+			// 	sector.ctx.moveTo(line.start.x, line.start.y);
+			// 	sector.ctx.lineTo(line.end.x, line.end.y);
+			// 	sector.ctx.stroke();
+			// }
 
-			self.postMessage({
-				event: 'SECTOR_CACHED',
-				row: data.row,
-				column: data.column,
-				image: sector.transferToImageBitmap()
-			});
+			// self.postMessage({
+			// 	event: 'SECTOR_CACHED',
+			// 	row: data.row,
+			// 	column: data.column,
+			// 	image: sector.transferToImageBitmap()
+			// });
+			self.cacheSector(data.row, data.column, data);
+
+			// self.postMessage({
+			// 	event: 'SECTOR_CACHED',
+			// 	row: data.row,
+			// 	column: data.column
+			// 	// image: ctx.canvas.transferToImageBitmap()
+			// });
+			break;
+		}
+
+		case 'INIT_SECTOR': {
+			if (!self.rows.has(data.row)) {
+				self.rows.set(data.row, new Map());
+			}
+		
+			const row = self.rows.get(data.row);
+			const ctx = data.offscreen.getContext('2d');
+			ctx.canvas.width = data.size;
+			ctx.canvas.height = data.size;
+			ctx.lineCap = 'round';
+			ctx.lineJoin = 'round';
+			ctx.strokeWidth = data.lineWidth;
+				ctx.strokeStyle = data.strokeStyle;
+			row.set(data.column, ctx);
+			// console.log(data)
+			break;
+		}
+
+		case 'RESIZE_SECTOR': {
+			const ctx = self.rows.get(data.row)?.get(data.column);
+			if (ctx) {
+				ctx.canvas.width = data.size;
+				ctx.canvas.height = data.size;
+				ctx.lineCap = 'round';
+				ctx.lineJoin = 'round';
+				ctx.strokeWidth = data.lineWidth;
+				ctx.strokeStyle = data.strokeStyle;
+				self.cacheSector(data.row, data.column);
+			}
 			break;
 		}
 
@@ -168,6 +208,33 @@ self.sector = function(x, y, options = {}) {
 	}
 
 	return row.get(y);
+}
+
+self.cacheSector = function(x, y, data) {
+	let ctx = self.sector(x, y);
+	ctx.clearRect(0, 0, ctx.canvas.width, ctx.canvas.height);
+	ctx.strokeStyle = '#000';
+	for (const line of data.physics) {
+		ctx.beginPath();
+		ctx.moveTo(line.start.x, line.start.y);
+		ctx.lineTo(line.end.x, line.end.y);
+		ctx.stroke();
+	}
+
+	ctx.strokeStyle = '#aaa';
+	for (const line of data.scenery) {
+		ctx.beginPath();
+		ctx.moveTo(line.start.x, line.start.y);
+		ctx.lineTo(line.end.x, line.end.y);
+		ctx.stroke();
+	}
+
+	// self.postMessage({
+	// 	event: 'SECTOR_CACHED',
+	// 	row: data.row,
+	// 	column: data.column
+	// 	// image: ctx.canvas.transferToImageBitmap()
+	// });
 }
 
 function parseLines(lines, scenery) {

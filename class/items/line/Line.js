@@ -36,7 +36,7 @@ export default class {
 	}
 
 	move(vector) {
-		this.scene.remove(this);
+		this.scene.grid.removeItem(this);
 		this.a.add(vector);
 		this.b.add(vector);
 		this.scene.grid.addItem(this);
@@ -49,7 +49,7 @@ export default class {
 	}
 
 	remove() {
-		this.scene.remove(this);
+		this.scene.grid.removeItem(this);
 		this.removed = true;
 		return this;
 	}

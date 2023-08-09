@@ -42,8 +42,8 @@ export default class {
 
 				case 'SECTOR_CACHED': {
 					let sector = this.sector(data.row, data.column);
-					sector.image = data.image;
-					sector.rendered = true;
+					// sector.image = data.image;
+					// sector.rendered = true;
 					break;
 				}
 			}
@@ -68,6 +68,8 @@ export default class {
 			sector.add(item);
 			sector.rendered = false;
 		}
+
+		return item;
 	}
 
 	cache() {
@@ -130,6 +132,16 @@ export default class {
 		}
 
 		return sectors;
+	}
+
+	removeItem(item) {
+		let from = item.a || item.start || item.position;
+		let to = item.b || item.end || a;
+		for (const sector of this.findTouchingSectors(from, to)) {
+			sector.remove(item);
+		}
+
+		return item;
 	}
 
 	resize() {

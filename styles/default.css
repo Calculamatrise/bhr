@@ -333,8 +333,20 @@ bhr-game-toolbar>section {
 	backdrop-filter: blur(2px) brightness(.8);
 	border: 1px solid var(--accent-color);
 	border-radius: 4px;
+	overflow: hidden;
 	position: absolute;
 }
+
+/* experimental animations - add settings to enable/disable */
+bhr-game-toolbar>section:hover {
+	scale: 1.05;
+	transition: scale 200ms;
+}
+
+bhr-game-toolbar .toolbar-item:hover:active::before {
+	scale: 0.8;
+}
+/* experimental animations end */
 
 bhr-game-toolbar .bottom {
 	bottom: 0;
@@ -424,8 +436,8 @@ bhr-game-toolbar .editor-tools .toolbar-item::before {
 bhr-game-toolbar button:hover,
 bhr-game-toolbar .toolbar-item:hover,
 bhr-game-toolbar .toolbar-item:has(> input:checked):not(.playpause):hover {
-	transition: all 40ms;
 	background-color: hsla(0, 0%, calc(50% - 40% * var(--brightness-multiplier)), 0.8);
+	transition: all 40ms;
 }
 
 bhr-game-toolbar .toolbar-item:has(> input:checked):not(.playpause) {
@@ -453,57 +465,65 @@ bhr-game-toolbar .toolbar-item>* {
 
 .playpause::before {
 	/* content: "▶"; */
-	clip-path: polygon(0 0,
-			50% 25%,
-			50% 75%,
-			50% 75%,
-			50% 25%,
-			100% 50%,
-			100% 50%,
-			0 100%);
+	clip-path: polygon(
+		10% 10%,
+		50% 30%,
+		50% 70%,
+		50% 70%,
+		50% 30%,
+		90% 50%,
+		90% 50%,
+		10% 90%
+	);
 }
 
 .playpause:has(> :checked)::before {
-	clip-path: polygon(0 0,
-			40% 0,
-			40% 100%,
-			60% 100%,
-			60% 0,
-			100% 0,
-			100% 100%,
-			0 100%);
+	clip-path: polygon(
+		10% 10%,
+		40% 10%,
+		40% 90%,
+		60% 90%,
+		60% 10%,
+		90% 10%,
+		90% 90%,
+		10% 90%
+	);
 }
 
 .backtrack::before {
-	clip-path: polygon(0 0,
-			20% 0,
-			20% 50%,
-			100% 0,
-			100% 100%,
-			20% 50%,
-			20% 100%,
-			0 100%);
+	clip-path: polygon(
+		15% 10%,
+		25% 10%,
+		25% 50%,
+		85% 10%,
+		85% 90%,
+		25% 50%,
+		25% 90%,
+		15% 90%
+	);
 }
 
 .rewind::before {
-	clip-path: polygon(0 0,
-			20% 0,
-			20% 50%,
+	clip-path: polygon(
+		0 10%,
+		15% 10%,
+		15% 50%,
 
-			/* arrow left midway end */
-			60% 0,
-			60% 50%,
+		/* arrow left midway end */
+		60% 10%,
+		60% 50%,
 
-			/* arrow left midway arrow left*/
-			100% 0,
-			100% 100%,
-			50% 50%,
-			60% 50%,
+		/* arrow left midway arrow left*/
+		100% 10%,
+		100% 90%,
+		50% 50%,
+		60% 50%,
 
-			60% 100%,
-			20% 50%,
-			20% 100%,
-			0 100%);
+		60% 90%,
+		15% 50%,
+		15% 90%,
+		0 90%
+	);
 }
 
 .wheel:active>svg {

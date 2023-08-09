@@ -102,24 +102,19 @@ export default class Player {
 	}
 
 	gotoCheckpoint() {
-		if (this.snapshots.length > 0) {
-			this.restore(this.snapshots.at(-1));
-		} else if (!this.ghost) {
-			this.scene.reset();
-			return;
-		}
-
-		this.ghost || this.scene.checkpointEvent();
+		let snapshotExists = this.snapshots.length > 0;
+		snapshotExists && this.restore(this.snapshots.at(-1));
+		return snapshotExists;
 	}
 
 	removeCheckpoint() {
 		this.snapshots.length > 0 && this.snapshots.cache.push(this.snapshots.pop());
-		this.gotoCheckpoint('removeCheckpoint');
+		// this.gotoCheckpoint();
 	}
 
 	restoreCheckpoint() {
 		this.snapshots.cache.length > 0 && this.snapshots.push(this.snapshots.cache.pop());
-		this.gotoCheckpoint('restoreCheckpoint');
+		// this.gotoCheckpoint();
 	}
 
 	save() {
@@ -129,6 +124,7 @@ export default class Player {
 			downKeys: new Set(this.gamepad.downKeys),
 			gravity: this.gravity.clone(),
 			itemsCollected: new Set(this.itemsCollected),
+			playbackTicks: this.playbackTicks ?? this.scene.currentTime,
 			records: this.records.map(record => new Set(record)),
 			slow: this.slow,
 			vehicle: this.vehicle.clone()
@@ -139,8 +135,9 @@ export default class Player {
 		if (this.pendingConsumables) {
 			if (this.pendingConsumables & 2) this.checkComplete();
 			if (this.pendingConsumables & 1) {
-				for (const player of this.scene.players) {
-					player.snapshots.push(player.save());
+				this.snapshots.push(this.save());
+				for (const playerGhost of this.scene.ghosts) {
+					playerGhost.snapshots.push(playerGhost.save());
 				}
 			}
 
@@ -190,8 +187,9 @@ export default class Player {
 		if (this.pendingConsumables) {
 			if (this.pendingConsumables & 2) this.checkComplete();
 			if (this.pendingConsumables & 1) {
-				for (const player of this.scene.players) {
-					player.snapshots.push(player.save());
+				this.snapshots.push(this.save());
+				for (const playerGhost of this.scene.ghosts) {
+					playerGhost.snapshots.push(playerGhost.save());
 				}
 			}
 
@@ -260,13 +258,11 @@ export default class Player {
 				}
 			}
 
-			if (this.ghost) {
-				this.records[0].has(this.playbackTicks * this.scene.parent.max) && this.gamepad.toggle('left');
-				this.records[1].has(this.playbackTicks * this.scene.parent.max) && this.gamepad.toggle('right');
-				this.records[2].has(this.playbackTicks * this.scene.parent.max) && this.gamepad.toggle('up');
-				this.records[3].has(this.playbackTicks * this.scene.parent.max) && this.gamepad.toggle('down');
-				this.records[4].has(this.playbackTicks * this.scene.parent.max) && this.vehicle.swap();
-			}
+			this.records[0].has(this.playbackTicks * this.scene.parent.max) && this.gamepad.toggle('left');
+			this.records[1].has(this.playbackTicks * this.scene.parent.max) && this.gamepad.toggle('right');
+			this.records[2].has(this.playbackTicks * this.scene.parent.max) && this.gamepad.toggle('up');
+			this.records[3].has(this.playbackTicks * this.scene.parent.max) && this.gamepad.toggle('down');
+			this.records[4].has(this.playbackTicks * this.scene.parent.max) && this.vehicle.swap();
 
 			this.scene.parent.ups !== 50 ? this.nativeUpdate() : this.fixedUpdate();
 			this.playbackTicks++;
@@ -281,33 +277,29 @@ export default class Player {
 		this.scene.cameraFocus = this.vehicle.hitbox;
 		this.scene.parent.settings.autoPause && (this.scene.frozen = false);
 		typeof keys == 'string' && (keys = new Set([keys]));
-		if (keys.has('left') && !this.records[0].delete(this.scene.currentTime)) {
-			this.records[0].add(this.scene.currentTime);
-		}
-
-		if (keys.has('right') && !this.records[1].delete(this.scene.currentTime)) {
-			this.records[1].add(this.scene.currentTime);
-		}
-
-		if (keys.has('up') && !this.records[2].delete(this.scene.currentTime)) {
-			this.records[2].add(this.scene.currentTime);
-		}
-
-		if (keys.has('down') && !this.records[3].delete(this.scene.currentTime)) {
-			this.records[3].add(this.scene.currentTime);
-		}
-
+		let t = this.scene.currentTime;
+		keys.has('left') && !this.records[0].delete(t) && this.records[0].add(t);
+		keys.has('right') && !this.records[1].delete(t) && this.records[1].add(t);
+		keys.has('up') && !this.records[2].delete(t) && this.records[2].add(t);
+		keys.has('down') && !this.records[3].delete(t) && this.records[3].add(t);
 		if (keys.has('z') && this.gamepad.downKeys.has('z')) {
-			if (!this.records[4].delete(this.scene.currentTime)) {
-				this.records[4].add(this.scene.currentTime);
-			}
-
+			this.records[4].delete(t) || this.records[4].add(t);
 			this.vehicle.swap();
 		}
 	}
 
 	checkComplete() {
 		if (this.targetsCollected === this.scene.targets && this.scene.currentTime > 0 && !this.scene.editMode) {
+			if (!navigator.onLine) {
+				this.scene.parent.once('trackComplete', function(record) {
+					const TEMP_KEY = 'bhr-temp';
+					let data = localStorage.getItem(TEMP_KEY) || {};
+					data.savedGhosts ||= [];
+					data.savedGhosts.push(record);
+					localStorage.setItem(TEMP_KEY, JSON.stringify(data));
+				});
+			}
+
 			this.scene.parent.emit('trackComplete', {
 				code: `${this.scene.firstPlayer.records.map(record => Array.from(record).join(' ')).join(',')},${this.scene.currentTime},${this.vehicle.name}`,
 				id: this.scene.id ?? location.pathname.split('/')[2],
@@ -332,6 +324,7 @@ export default class Player {
 		this.createRagdoll();
 		if (this.ghost) {
 			this.gamepad.downKeys = new Set(snapshot.downKeys);
+			this.playbackTicks = snapshot.playbackTicks;
 			return;
 		}
 

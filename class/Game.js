@@ -112,6 +112,22 @@ export default class extends EventEmitter {
 
 		navigation.onnavigate = this.close.bind(this);
 
+		window.addEventListener('online', event => {
+			const TEMP_KEY = 'bhr-temp';
+			let data = JSON.parse(localStorage.getItem(TEMP_KEY));
+			if (data && data.hasOwnProperty('savedGhosts')) {
+				if (data.savedGhosts.length > 0) {
+					for (const record of data.savedGhosts) {
+						this.emit('trackComplete', record);
+					}
+
+					delete data.savedGhosts;
+				}
+
+				localStorage.setItem(TEMP_KEY, JSON.stringify(data));
+			}
+		});
+		window.addEventListener('load', () => window.dispatchEvent(new Event('online')));
 		// new ResizeObserver(this.setCanvasSize.bind(this)).observe(this.canvas);
 		window.addEventListener('resize', this.setCanvasSize.bind(this));
 		// window.onbeforeunload = this.close.bind(this);
@@ -318,21 +334,21 @@ export default class extends EventEmitter {
 
 			case 'backspace': {
 				if (event.shiftKey) {
-					this.scene.firstPlayer.restoreCheckpoint();
+					this.emit('restoreCheckpoint');
 					break;
 				}
 
-				this.scene.firstPlayer.removeCheckpoint();
+				this.emit('removeCheckpoint');
 				break;
 			}
 
 			case 'enter': {
 				if (event.shiftKey) {
-					this.scene.firstPlayer.restoreCheckpoint();
+					this.emit('restoreCheckpoint');
 					break;
 				}
 
-				this.scene.firstPlayer.gotoCheckpoint();
+				this.emit('checkpoint');
 				break;
 			}
 
@@ -365,7 +381,7 @@ export default class extends EventEmitter {
 			case 'p':
 			case ' ':
 				(this.scene.paused = !this.scene.paused) || (this.scene.frozen = false);
-				document.querySelector('.playpause > input').checked = !this.scene.paused;
+				this.emit('stateChange', this.scene.paused);
 				break;
 		}
 

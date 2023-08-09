@@ -27,7 +27,7 @@ export default class {
 	}
 
 	remove() {
-		this.scene.remove(this);
+		this.scene.grid.removeItem(this);
 		this.removed = true;
 		return this;
 	}

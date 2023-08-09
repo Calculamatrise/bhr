@@ -1,7 +1,7 @@
 import Item from "./Item.js";
 
 export default class extends Item {
-	id = self.crypto.randomUUID();
+	id = self.crypto.randomUUID(); // generate ID based on position?
 	get used() { // collected
 		return this.scene.firstPlayer.itemsCollected.has(this.id);
 	}
