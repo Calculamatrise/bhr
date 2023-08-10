@@ -17,11 +17,11 @@
 				<button class="toolbar-item fullscreen" title="Fullscreen - F" onclick="document.fullscreenElement ? document.exitFullscreen() : game.container.requestFullscreen()"></button>
 			</section> -->
 			<section class="bottom center island">
-				<button class="toolbar-item rewind" title="Cancel Checkpoint - Backspace" onclick="game.scene.firstPlayer.removeCheckpoint()"></button>
-				<button class="toolbar-item backtrack" title="Checkpoint - Enter" onclick="game.scene.firstPlayer.gotoCheckpoint()"></button>
+				<button class="toolbar-item rewind" title="Cancel Checkpoint - Backspace" onclick="game.scene.removeCheckpoint()"></button>
+				<button class="toolbar-item backtrack" title="Checkpoint - Enter" onclick="game.scene.returnToCheckpoint()"></button>
 				<label class="toolbar-item playpause" title="Pause/Play - Space"><input type="checkbox" style="display: none;" onchange="game.scene.paused = !this.checked" checked></label><!-- ▶ -->
-				<button class="toolbar-item backtrack" title="Checkpoint - Shift + Enter" style="rotate: 180deg;" onclick="game.scene.firstPlayer.gotoCheckpoint()"></button>
-				<button class="toolbar-item rewind" title="Cancel Checkpoint - Shift + Backspace" style="rotate: 180deg;" onclick="game.scene.firstPlayer.restoreCheckpoint()"></button>
+				<button class="toolbar-item backtrack" title="Checkpoint - Shift + Enter" style="rotate: 180deg;" onclick="game.scene.returnToCheckpoint()"></button>
+				<button class="toolbar-item rewind" title="Cancel Checkpoint - Shift + Backspace" style="rotate: 180deg;" onclick="game.scene.restoreCheckpoint()"></button>
 			</section>
 			<section class="center island top" id="recorder" style="display: none;/*visibility: hidden;*/">
 				<!-- Display recording time -->
@@ -305,6 +305,7 @@
 					<label>Auto pause&emsp;<input type="checkbox" id="auto-pause" onchange="game.settings.autoPause = event.target.checked;"></label>
 				</section>
 				<section title="Appearance" style="display: grid;grid-gap: .125rem;width: -webkit-fill-available;">
+					<label class="disabled"><input type="radio" name="bhr-theme" id="system" style="display: none;" onchange="game.settings.theme = event.target.id;" disabled>System</label>
 					<label><input type="radio" name="bhr-theme" id="dark" style="display: none;" onchange="game.settings.theme = event.target.id;">Dark</label>
 					<label><input type="radio" name="bhr-theme" id="light" style="display: none;" onchange="game.settings.theme = event.target.id;">Light</label>
 					<label><input type="radio" name="bhr-theme" id="midnight" style="display: none;" onchange="game.settings.theme = event.target.id;">Midnight</label>

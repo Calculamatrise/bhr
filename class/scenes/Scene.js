@@ -25,6 +25,7 @@ export default class {
 	cameraFocus = null;
 	collectables = [];
 	currentTime = 0;
+	discreteEvents = new Set();
 	editMode = false;
 	frozen = false;
 	ghosts = [];
@@ -44,22 +45,8 @@ export default class {
 	constructor(parent) {
 		this.parent = parent;
 		this.parent.on('checkpoint', this.checkpoint.bind(this));
-		this.parent.on('removeCheckpoint', () => {
-			this.firstPlayer.removeCheckpoint();
-			for (const playerGhost of this.ghosts) {
-				playerGhost.removeCheckpoint();
-			}
-
-			this.checkpoint();
-		});
-		this.parent.on('restoreCheckpoint', () => {
-			this.firstPlayer.restoreCheckpoint();
-			for (const playerGhost of this.ghosts) {
-				playerGhost.restoreCheckpoint();
-			}
-
-			this.checkpoint();
-		});
+		this.parent.on('removeCheckpoint', this.checkpoint.bind(this));
+		this.parent.on('restoreCheckpoint', this.checkpoint.bind(this));
 		// this.helper.postMessage({ canvas: this.parent.canvas.transferControlToOffscreen() }, [offscreen]);
 		// this.helper.addEventListener('message', ({ data }) => {
 		// 	switch (data.cmd) {
@@ -169,6 +156,14 @@ export default class {
 	}
 
 	checkpoint() {
+		this.paused = false;
+		this.parent.emit('stateChange', this.paused);
+		this.parent.settings.autoPause && (this.frozen = true);
+		this.cameraFocus = this.firstPlayer.vehicle.hitbox;
+		this.camera.set(this.cameraFocus.position);
+	}
+
+	returnToCheckpoint(noemit) {
 		let checkpointExists = this.firstPlayer.gotoCheckpoint();
 		if (checkpointExists) {
 			for (const playerGhost of this.ghosts) {
@@ -178,11 +173,27 @@ export default class {
 			this.reset();
 		}
 
-		this.paused = false;
-		this.parent.emit('stateChange', this.paused);
-		this.parent.settings.autoPause && (this.frozen = true);
-		this.cameraFocus = this.firstPlayer.vehicle.hitbox;
-		this.camera.set(this.cameraFocus.position);
+		noemit || this.parent.emit('checkpoint');
+	}
+
+	removeCheckpoint() {
+		this.firstPlayer.removeCheckpoint();
+		for (const playerGhost of this.ghosts) {
+			playerGhost.removeCheckpoint();
+		}
+
+		this.returnToCheckpoint(true);
+		this.parent.emit('removeCheckpoint');
+	}
+
+	restoreCheckpoint() {
+		this.firstPlayer.restoreCheckpoint();
+		for (const playerGhost of this.ghosts) {
+			playerGhost.restoreCheckpoint();
+		}
+
+		this.returnToCheckpoint(true);
+		this.parent.emit('restoreCheckpoint');
 	}
 
 	watchGhost(data, { id, vehicle = 'BMX' } = {}) {
@@ -247,6 +258,25 @@ export default class {
 
 			this.currentTime += this.parent.max;
 			// this.currentTime++
+		}
+
+		for (const event of this.discreteEvents) {
+			switch (event) {
+				case 'PAUSE': {
+					this.paused = true;
+					this.parent.emit('stateChange', this.paused);
+					break;
+				}
+
+				case 'UNPAUSE': {
+					this.paused = false;
+					this.frozen = false
+					this.parent.emit('stateChange', this.paused);
+					break;
+				}
+			}
+
+			this.discreteEvents.delete(event);
 		}
 	}
 

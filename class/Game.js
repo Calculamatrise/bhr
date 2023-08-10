@@ -57,7 +57,7 @@ export default class extends EventEmitter {
 			'theme' in window && theme.setAttribute('href', 'styles/' + settings.theme + '.css');
 			this.ctx.fillStyle = '#'.padEnd(7, this.settings.theme == 'dark' ? 'fb' : '0');
 			this.ctx.strokeStyle = this.ctx.fillStyle;
-			this.scene.grid.sectors.forEach(sector => sector.rendered = false);
+			this.scene.grid.sectors.forEach(sector => sector.resize());
 			for (const setting in settings) {
 				if (typeof settings[setting] != 'boolean' || setting == 'theme') continue;
 				const id = setting.replace(/([A-Z])/g, '-$1').toLowerCase();
@@ -154,38 +154,36 @@ export default class extends EventEmitter {
 	}
 
 	// ups = 50;
-	// render(time) {
-	// 	this.lastFrame = requestAnimationFrame(this.render.bind(this));
-	// 	let delta = time - this.lastTime;
-	// 	if (delta > 1000) {
-	// 		delta = this.max;
-	// 	}
-
-	// 	this.progress += delta / this.max;
-	// 	this.lastTime = time;
-
-	// 	while (this.progress >= 1) {
-	// 		this.scene.fixedUpdate();
-	// 		this.updates++;
-	// 		this.progress--;
-	// 	}
-
-	// 	this.scene.update(this.progress, delta);
-	// 	this.scene.render(this.ctx);
-	// }
-
 	render(time) {
 		this.lastFrame = requestAnimationFrame(this.render.bind(this));
 		let delta = time - this.lastTime;
-		if (delta < this.max) {
-			// this.scene.update();
-			// this.scene.render(this.ctx);
-			return;
+		if (this.ups > 25) {
+			if (delta > 1000) {
+				delta = this.max;
+			}
+
+			this.progress += delta / this.max;
+			this.lastTime = time;
+
+			while (this.progress >= 1) {
+				this.scene.fixedUpdate();
+				this.updates++;
+				this.progress--;
+			}
+
+			this.scene.update(this.progress, delta);
+			// correct wheel position so they don't sink into lines
+			// this.scene.lateUpdate();
+		} else {
+			if (delta >= this.max) {
+				this.scene.nativeUpdate(delta);
+				this.lastTime = time;
+			}
+
+			// this.scene.update(delta);
 		}
 
-		this.scene.nativeUpdate(delta);
 		this.scene.render(this.ctx);
-		this.lastTime = time;
 	}
 
 	createRecorder() {
@@ -334,21 +332,21 @@ export default class extends EventEmitter {
 
 			case 'backspace': {
 				if (event.shiftKey) {
-					this.emit('restoreCheckpoint');
+					this.scene.restoreCheckpoint();
 					break;
 				}
 
-				this.emit('removeCheckpoint');
+				this.scene.removeCheckpoint();
 				break;
 			}
 
 			case 'enter': {
 				if (event.shiftKey) {
-					this.emit('restoreCheckpoint');
+					this.scene.restoreCheckpoint();
 					break;
 				}
 
-				this.emit('checkpoint');
+				this.scene.returnToCheckpoint();
 				break;
 			}
 
@@ -380,8 +378,8 @@ export default class extends EventEmitter {
 				break;
 			case 'p':
 			case ' ':
-				(this.scene.paused = !this.scene.paused) || (this.scene.frozen = false);
-				this.emit('stateChange', this.scene.paused);
+				this.ups !== 25 ? this.scene.discreteEvents.add((this.scene.paused ? 'UN' : '') + 'PAUSE') : (this.scene.paused = !this.scene.paused || (this.scene.frozen = false),
+				this.emit('stateChange', this.scene.paused));
 				break;
 		}
 

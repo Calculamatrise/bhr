@@ -75,7 +75,8 @@ export default class MTB extends Bike {
 
 	draw(ctx) {
 		ctx.save();
-		this.parent.ghost && (ctx.globalAlpha /= 2);
+		this.parent.ghost && (ctx.globalAlpha /= 2,
+		this.parent.scene.cameraFocus && this.parent.scene.cameraFocus !== this.hitbox && (ctx.globalAlpha *= Math.min(1, Math.max(0.5, this.hitbox.displayPosition.distanceTo(this.parent.scene.cameraFocus.displayPosition) / (this.hitbox.size / 2) ** 2))));
 		ctx.lineWidth = 3.5 * this.parent.scene.zoom;
 		this.rearWheel.draw(ctx);
 		this.frontWheel.draw(ctx);
@@ -132,49 +133,11 @@ export default class MTB extends Bike {
 		ctx.lineWidth = 3 * this.parent.scene.zoom;
 		ctx.stroke();
 		if (!this.parent.dead) {
-			/* testing */
-			// ctx.globalAlpha = .5;
-
 			var c = rearWheel.sum(e.scale(0.3)).sum(h.scale(0.25))
 			  , k = rearWheel.sum(e.scale(0.4)).sum(h.scale(0.05))
-			//   , d = k.sum(i)
 			  , l = k.difference(i)
-			//   , b = rearWheel.sum(e.scale(0.67)).sum(h.scale(0.8))
 			  , i = c.sum(e.scale(-0.05)).sum(h.scale(0.42))
-			//   , m = d.difference(i)
-			//   , n = i.sum(m.scale(0.5)).sum(new Vector(m.y, -m.x).scale(this.dir * this.parent.scene.zoom ** 2).scale(200 / m.lengthSquared()))
-			//   , m = l.difference(i)
-			//   , k = i.sum(m.scale(0.5)).sum(new Vector(m.y, -m.x).scale(this.dir * this.parent.scene.zoom ** 2).scale(200 / m.lengthSquared()));
-			// ctx.beginPath()
-			// ctx.lineWidth = 6 * this.parent.scene.zoom
-			// ctx.moveTo(l.x, l.y)
-			// ctx.lineTo(k.x, k.y)
-			// ctx.lineTo(i.x, i.y)
-			// ctx.save()
-			// ctx.strokeStyle = this.parent.scene.parent.settings.theme != 'light' ? '#fbfbfb80' : 'rgba(0,0,0,0.5)';
-			// ctx.stroke()
-			// ctx.restore();
 
-			// ctx.beginPath()
-			// // foot to hip
-			// ctx.moveTo(d.x, d.y)
-			// ctx.lineTo(n.x, n.y)
-			// ctx.lineTo(i.x, i.y)
-			// ctx.stroke();
-
-			// k = c.sum(e.scale(0.1)).sum(h.scale(0.93));
-			// d = c.sum(e.scale(0.2)).sum(h.scale(1.09));
-			// ctx.beginPath()
-			// // hip to sternum
-			// ctx.moveTo(i.x, i.y)
-			// ctx.lineTo(k.x, k.y)
-			// ctx.lineWidth = 8 * this.parent.scene.zoom
-			// ctx.stroke();
-
-			// ctx.beginPath()
-			// ctx.arc(d.x, d.y, 5 * this.parent.scene.zoom, 0, 2 * Math.PI)
-			// ctx.lineWidth = 2 * this.parent.scene.zoom
-			// ctx.stroke();
 			ctx.beginPath();
 			switch (this.parent.cosmetics.head) {
 				case 'cap':
@@ -200,14 +163,6 @@ export default class MTB extends Bike {
 
 			ctx.lineWidth = this.parent.scene.zoom * 2
 			ctx.stroke();
-			// e = k.difference(b);
-			// e = b.sum(e.scale(0.3)).sum(new Vector(e.y, -e.x).scale(80 / e.lengthSquared() * this.dir * this.parent.scene.zoom ** 2));
-			// ctx.beginPath()
-			// ctx.moveTo(k.x, k.y)
-			// ctx.lineTo(e.x, e.y)
-			// ctx.lineTo(b.x, b.y)
-			// ctx.lineWidth = 5 * this.parent.scene.zoom
-			// ctx.stroke();
 		}
 
 		ctx.restore();

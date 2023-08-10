@@ -58,7 +58,8 @@ export default class {
 		const sternum = head.difference(hand.difference(hip).scale(0.08)).difference(head.difference(hip).scale(0.2));
 
 		// ctx.save();
-		ctx.globalAlpha = this.parent.ghost ? .5 : 1;
+		this.parent.ghost && (ctx.globalAlpha /= 2,
+		this.parent.scene.cameraFocus && this.parent.scene.cameraFocus !== this.parent.vehicle.hitbox && (ctx.globalAlpha *= Math.min(1, Math.max(0.5, this.parent.vehicle.hitbox.displayPosition.distanceTo(this.parent.scene.cameraFocus.displayPosition) / (this.parent.vehicle.hitbox.size / 2) ** 2))));
 		ctx.lineWidth = 6 * this.parent.scene.zoom;
 
 		ctx.beginPath()
@@ -95,6 +96,8 @@ export default class {
 		// this.head.size * (this.parent.scene.zoom / 2.8)
 		ctx.arc(head.x, head.y, 5 * this.parent.scene.zoom, 0, 2 * Math.PI),
 		ctx.stroke()
+
+		ctx.globalAlpha = 1;
 		// ctx.restore();
 	}
 

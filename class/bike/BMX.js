@@ -76,15 +76,14 @@ export default class BMX extends Bike {
 
 	draw(ctx) {
 		ctx.save();
-		this.parent.ghost && (ctx.globalAlpha /= 2);
+		this.parent.ghost && (ctx.globalAlpha /= 2,
+		this.parent.scene.cameraFocus && this.parent.scene.cameraFocus !== this.hitbox && (ctx.globalAlpha *= Math.min(1, Math.max(0.5, this.hitbox.displayPosition.distanceTo(this.parent.scene.cameraFocus.displayPosition) / (this.hitbox.size / 2) ** 2))));
 		ctx.lineWidth = 3.5 * this.parent.scene.zoom;
 		this.rearWheel.draw(ctx);
 		this.frontWheel.draw(ctx);
 
 		let rearWheel = this.rearWheel.displayPosition.toPixel();
 		let frontWheel = this.frontWheel.displayPosition.toPixel();
-		// let rearWheel = this.rearWheel.position.toPixel();
-		// let frontWheel = this.frontWheel.position.toPixel();
 		let l = frontWheel.difference(rearWheel);
 		let i = new Vector(frontWheel.y - rearWheel.y, rearWheel.x - frontWheel.x).scale(this.dir);
 		let a = rearWheel.sum(l.scale(0.3)).sum(i.scale(0.25));
@@ -132,52 +131,6 @@ export default class BMX extends Bike {
 
 		if (!this.parent.dead) {
 			i = this.hitbox.displayPosition.toPixel().difference(rearWheel).difference(l.scale(0.5));
-			// let hip = a.difference(l.scale(0.1)).sum(i.scale(0.3));
-			// T = foot.difference(hip);
-			// let knee = hip.sum(T.scale(.5)).sum(new Vector(T.y, -T.x).scale(200 * this.dir * this.parent.scene.zoom ** 2 / T.lengthSquared()));
-
-			// // testing ragdoll
-			// ctx.globalAlpha = .5;
-
-			// ctx.beginPath()
-			// ctx.moveTo(shadowFoot.x, shadowFoot.y)
-			// ctx.lineTo(knee.x, knee.y)
-			// ctx.lineTo(hip.x, hip.y)
-			// ctx.lineWidth = this.parent.scene.zoom * 6,
-			// ctx.save()
-			// ctx.strokeStyle = this.parent.scene.parent.settings.theme !== 'light' ? '#fbfbfb80' : 'rgba(0,0,0,0.5)';
-			// ctx.stroke()
-			// ctx.restore();
-
-			// ctx.beginPath()
-			// ctx.moveTo(foot.x, foot.y)
-			// ctx.lineTo(knee.x, knee.y)
-			// ctx.lineTo(hip.x, hip.y)
-			// ctx.stroke();
-
-			// // hip
-			// let neck = a.sum(l.scale(0.05)).sum(i.scale(0.88));
-			// ctx.beginPath()
-			// ctx.moveTo(hip.x, hip.y)
-			// ctx.lineTo(neck.x, neck.y)
-			// ctx.lineWidth = this.parent.scene.zoom * 8
-			// ctx.stroke();
-
-			// // arm
-			// ctx.beginPath()
-			// ctx.moveTo(neck.x, neck.y)
-			// let elbow = new Vector(neck.y - hand.y, hand.x - neck.x).scale(this.dir).scale(130 * this.parent.scene.zoom ** 2 / neck.distanceToSquared(hand)).sum(neck.difference(hand).scale(.4)).sum(hand);
-			// ctx.lineTo(...Object.values(new Vector(neck.y - hand.y, hand.x - neck.x).scale(130 * this.dir * this.parent.scene.zoom ** 2 / neck.distanceToSquared(hand)).sum(neck.difference(hand).scale(.4)).sum(hand)))
-			// ctx.lineTo(hand.x, hand.y)
-			// ctx.lineWidth = this.parent.scene.zoom * 5;
-			// ctx.stroke()
-
-			// let head = a.sum(l.scale(0.15)).sum(i.scale(1.05));
-			// ctx.beginPath()
-			// ctx.arc(head.x, head.y, this.parent.scene.zoom * 5, 0, 2 * Math.PI)
-			// ctx.lineWidth = this.parent.scene.zoom * 2
-			// ctx.stroke();
-
 			ctx.beginPath();
 			switch (this.parent.cosmetics.head) {
 				case 'cap':
