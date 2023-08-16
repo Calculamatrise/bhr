@@ -10,5 +10,6 @@ export default class Checkpoint extends Collectable {
 		}
 
 		part.parent.parent.pendingConsumables |= 1;
+		// part.parent.parent.discreteEvents.add('checkpointReached');
 	}
 }

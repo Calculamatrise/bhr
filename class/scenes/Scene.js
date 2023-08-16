@@ -40,7 +40,7 @@ export default class {
 	sprogress = 100;
 	toolHandler = new ToolHandler(this);
 	// transformMode = false;
-	zoomFactor = .6 * window.devicePixelRatio;
+	zoomFactor = 1 * window.devicePixelRatio;
 	canvasPool = []
 	constructor(parent) {
 		this.parent = parent;
@@ -117,7 +117,8 @@ export default class {
 	set zoom(value) {
 		this.zoomFactor = Math.min(window.devicePixelRatio * 4, Math.max(window.devicePixelRatio / 5, Math.round(value * 10) / 10));
 		this.parent.ctx.lineWidth = Math.max(2 * this.zoom, 0.5);
-		this.grid.resize();
+		// this.parent.ctx.setTransform(this.zoom, 0, 0, this.zoom, 0, 0);
+		// this.grid.resize();
 	}
 
 	init(options = {}) {
@@ -137,10 +138,9 @@ export default class {
 		this.players.push(new Player(this, { vehicle: options.vehicle }));
 		this.processing = false;
 		this.progress = this.sprogress = 100;
-		this.cameraFocus = this.firstPlayer.vehicle.hitbox;
-		this.camera.set(this.cameraFocus.position);
 		this.editMode = options.write ?? this.editMode;
 		this.toolHandler.setTool(this.editMode ? 'line' : 'camera');
+		this.reset();
 	}
 
 	zoomIn() {
@@ -329,8 +329,7 @@ export default class {
 
 	draw(ctx) {
 		ctx.clearRect(0, 0, ctx.canvas.width, ctx.canvas.height);
-		// ctx.clearRect(0, 0, ctx.canvas.width / this.zoom, ctx.canvas.height / this.zoom);
-		let min = new Vector().toCanvas(ctx.canvas).oppositeScale(this.grid.scale).map(Math.floor);
+		let min = new Vector().toCanvas(ctx.canvas).oppositeScale(this.grid.scale);
 		let max = new Vector(ctx.canvas.width, ctx.canvas.height).toCanvas(ctx.canvas).oppositeScale(this.grid.scale).map(Math.floor);
 		let sectors = this.grid.range(min, max);
 		for (const sector of sectors.filter(sector => sector.physics.length + sector.scenery.length > 0)) {

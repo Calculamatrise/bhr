@@ -63,14 +63,14 @@ export default class {
 		ctx.lineWidth = 6 * this.parent.scene.zoom;
 
 		ctx.beginPath()
-		ctx.moveTo(sternum.x, sternum.y)
-		ctx.lineTo(shadowElbow.x, shadowElbow.y)
-		ctx.lineTo(shadowHand.x, shadowHand.y)
+		this.parent.dead && (ctx.moveTo(sternum.x, sternum.y),
+		ctx.lineTo(shadowElbow.x, shadowElbow.y),
+		ctx.lineTo(shadowHand.x, shadowHand.y))
 		ctx.moveTo(hip.x, hip.y)
 		ctx.lineTo(shadowKnee.x, shadowKnee.y)
 		ctx.lineTo(shadowFoot.x, shadowFoot.y)
 		ctx.save();
-		ctx.strokeStyle = this.parent.scene.parent.settings.theme != 'light' ? '#fbfbfb80' : 'rgba(0,0,0,0.5)';
+		ctx.strokeStyle = /^dark$/i.test(this.parent.scene.parent.settings.theme) ? '#fbfbfb80' : /^midnight$/i.test(this.parent.scene.parent.settings.theme) ? '#cccccc80' : 'rgba(0,0,0,0.5)';
 		ctx.stroke();
 		ctx.restore();
 

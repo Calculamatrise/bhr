@@ -6,10 +6,9 @@
 	<meta name="viewport" content="width=device-width, initial-scale=1.0">
 	<title>Black Hat Rider - Calculamatrise</title>
 	<link rel="stylesheet" href="styles/default.css">
-	<link rel="stylesheet" href="styles/dark.css" id="theme">
+	<link rel="stylesheet" href="styles/dark.css" id="game-theme">
 </head>
 <body>
-	<!-- Add tabs for multiple editor capabilities -->
 	<bhr-game-container>
 		<canvas id="view"></canvas>
 		<bhr-game-toolbar>
@@ -96,7 +95,7 @@
 				<input type="radio" name="bhr-game-overlay-nav" id="track" style="display: none;" checked>
 				<div style="display: grid;grid-gap: .125rem;grid-template-columns: repeat(auto-fit, minmax(25vmin, 1fr));">
 					<!-- Toggle move/edit mode button -->
-					<label><input type="checkbox" onchange="game.scene.transformMode = event.target.checked;">Transform Mode</label>
+					<label>Transform Mode<input type="checkbox" onchange="game.scene.transformMode = event.target.checked"></label>
 					<button onclick="confirm('Do you really want to start a new track?') && game.reset()" style="background-color: hsl(0deg 40% 40% / calc(50% + 10% * var(--brightness-multiplier)));">Clear</button>
 					<button onclick="trackdialog.showModal()">Load</button>
 					<button onclick="game.openFile({ multiple: event.ctrlKey })">Open File...</button>
@@ -240,7 +239,7 @@
 					</form>
 				</dialog>
 			</section>
-			<section style="display: none;gap: 2px;">
+			<section style="display: none;">
 				<input type="radio" name="bhr-game-overlay-nav" id="ghost" style="display: none;">
 				<!-- Display races (game.scene.races/game.scene.players/game.scene.ghosts) -->
 				<div style="display: grid;grid-gap: .125rem;grid-template-columns: repeat(auto-fit, minmax(25vmin, 1fr));">
@@ -295,23 +294,28 @@
 					</form>
 				</dialog>
 			</section>
-			<section style="display: none;grid-gap: 1rem;margin: revert;margin-bottom: auto;">
+			<section style="display: none;gap: 1rem;">
 				<input type="radio" name="bhr-game-overlay-nav" id="settings" style="display: none;">
 				<!-- Add section for Discord RPC -->
-				<section title="Editor" style="width: -webkit-fill-available;">
-					<label>Auto save&emsp;<input type="checkbox" id="auto-save" onchange="game.settings.autoSave = event.target.checked;"></label>
+				<section title="Editor">
+					<label>Auto save<input type="checkbox" id="auto-save" onchange="game.settings.autoSave = event.target.checked;"></label>
+					<!-- Hide if auto save is not checked -->
+					<label>Interval<input type="number" id="auto-save-interval" min="5" value="5" max="60" style="box-sizing: content-box;max-width: 2rem;" onchange="game.settings.autoSave = event.target.checked;"></label>
 				</section>
-				<section title="Game" style="width: -webkit-fill-available;">
-					<label>Auto pause&emsp;<input type="checkbox" id="auto-pause" onchange="game.settings.autoPause = event.target.checked;"></label>
+				<section title="Game">
+					<label>Auto pause<input type="checkbox" id="auto-pause" onchange="game.settings.autoPause = event.target.checked"></label>
 				</section>
-				<section title="Appearance" style="display: grid;grid-gap: .125rem;width: -webkit-fill-available;">
-					<label class="disabled"><input type="radio" name="bhr-theme" id="system" style="display: none;" onchange="game.settings.theme = event.target.id;" disabled>System</label>
-					<label><input type="radio" name="bhr-theme" id="dark" style="display: none;" onchange="game.settings.theme = event.target.id;">Dark</label>
-					<label><input type="radio" name="bhr-theme" id="light" style="display: none;" onchange="game.settings.theme = event.target.id;">Light</label>
-					<label><input type="radio" name="bhr-theme" id="midnight" style="display: none;" onchange="game.settings.theme = event.target.id;">Midnight</label>
+				<section title="Appearance">
+					<label class="disabled">System<input type="radio" name="bhr-theme" id="system" onchange="game.settings.theme = event.target.id" checked disabled></label>
+					<label>Dark<input type="radio" name="bhr-theme" id="dark" onchange="game.settings.theme = event.target.id"></label>
+					<label>Light<input type="radio" name="bhr-theme" id="light" onchange="game.settings.theme = event.target.id"></label>
+					<label>Midnight<input type="radio" name="bhr-theme" id="midnight" onchange="game.settings.theme = event.target.id"></label>
+				</section>
+				<section title="Miscellaneous">
+					<label>Discord Rich Presence<input type="checkbox" id="auto-pause" onchange="game.settings.autoPause = event.target.checked" checked></label>
 				</section>
 			</section>
-			<button style="max-width: 25vmin;" onclick="window.close()">Exit to desktop ⍈</button>
+			<button id="exit" style="margin: 1rem;max-width: 25vmin;" onclick="window.close()">Exit to desktop</button>
 		</div>
 		<div class="toast-container" id="toasts"></div>
 	</bhr-game-container>

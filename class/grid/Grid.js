@@ -125,8 +125,8 @@ export default class {
 
 	range(min, max) {
 		let sectors = [];
-		for (let x = min.x; x <= max.x; x++) {
-			for (let y = min.y; y <= max.y; y++) {
+		for (let x = Math.floor(min.x); x <= max.x; x++) {
+			for (let y = Math.floor(min.y); y <= max.y; y++) {
 				sectors.push(this.sector(x, y));
 			}
 		}

@@ -218,7 +218,7 @@ bhr-game-container .replay-progress::-webkit-progress-bar {
 .bhr-game-overlay:has(input[type="radio"]#recorder-toggle:checked) nav>label[for="recorder-toggle"],
 .bhr-game-overlay:has(input[type="radio"]#settings:checked) nav>label[for="settings"] {
 	/* background-color: hsl(0deg 0% 40% / 40%); */
-	background-color: hsl(0deg 0% 40% / calc(50% - 10% * var(--brightness-multiplier)));
+	background-color: hsl(0deg 0% calc(30% - 15% * var(--brightness-multiplier)) / 50%);
 	opacity: 1;
 }
 
@@ -227,8 +227,10 @@ bhr-game-container .replay-progress::-webkit-progress-bar {
 	display: none;
 	flex-direction: column;
 	gap: .125rem;
+	overflow: auto;
 	padding: 1rem;
 	/* margin: auto; */
+	margin: 1rem;
 	margin-bottom: auto;
 	max-width: 80%;
 	min-height: 50%;
@@ -264,16 +266,18 @@ bhr-game-container .replay-progress::-webkit-progress-bar {
 .bhr-game-overlay label:has(> input) {
 	-webkit-user-select: none;
 	align-items: center;
-	/* background-color: hsl(0deg 0% 40% / 60%); */
-	background-color: hsl(0deg 0% 40% / calc(50% + 10% * var(--brightness-multiplier)));
 	border-radius: .25rem;
 	box-sizing: border-box;
 	display: flex;
 	font-size: smaller;
-	justify-content: center;
-	padding: 0.5rem 1rem;
+	/* justify-content: center; */
+	justify-content: space-between;
 	user-select: none;
 	width: -webkit-fill-available;
+}
+
+.bhr-game-overlay label > input:nth-child(1) {
+	margin-left: 1rem;
 }
 
 .bhr-game-overlay button,
@@ -286,9 +290,10 @@ bhr-game-container .replay-progress::-webkit-progress-bar {
 	user-select: none;
 }
 
-.bhr-game-overlay button {
+.bhr-game-overlay button,
+.bhr-game-overlay label:has(> input) {
 	/* background-color: hsl(0deg 0% 40% / 60%); */
-	background-color: hsl(0deg 0% 40% / calc(50% + 10% * var(--brightness-multiplier)));
+	background-color: hsl(0deg 0% calc(40% - 20% * var(--brightness-multiplier)) / 50%);
 	padding: 0.5rem 1rem;
 }
 
@@ -322,11 +327,17 @@ textarea {
 	background-color: hsl(0deg 0% 50% / calc(50% - 30% * var(--brightness-multiplier)));
 	border: none;
 	border-radius: 5px;
-	color: white;
+	color: var(--text-color);
 	max-width: -webkit-fill-available;
 	outline: none;
 	padding: 5px;
 	resize: none;
+}
+
+.bhr-game-overlay>section:has(> #settings)>section {
+	display: grid;
+	grid-gap: 0.125rem;
+	width: -webkit-fill-available;
 }
 
 bhr-game-toolbar>section {
@@ -531,11 +542,11 @@ bhr-game-toolbar .toolbar-item>* {
 }
 
 .scenery {
-	color: #aaa !important;
+	color: hsl(0, 0%, 50%) !important;
 }
 
 .scenery:not(.brush)::before {
-	background-color: #aaa !important;
+	background-color: hsl(0, 0%, 50%) !important;
 }
 
 .toolbar-item::before,

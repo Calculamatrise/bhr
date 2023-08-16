@@ -3,10 +3,19 @@ import EventEmitter from "./EventEmitter.js";
 import Scene from "./scenes/Scene.js";
 import Mouse from "./handler/Mouse.js";
 import Vector from "./Vector.js";
+import TrackStorage from "./TrackStorage.js";
+
+const DEFAULTS = {
+	autoPause: false,
+	autoSave: false,
+	autoSaveInterval: 5,
+	theme: window.matchMedia('(prefers-color-scheme: dark)').matches ? 'dark' : 'light'
+}
+
+const defaultsFilter = (key, value) => (typeof value == 'object' || DEFAULTS.hasOwnProperty(key)) ? value : void 0;
 
 export default class extends EventEmitter {
 	#openFile = null;
-	#privateWritable = null;
 	accentColor = '#000000'; // for themes
 	lastFrame = null;
 	lastTime = performance.now();
@@ -14,29 +23,24 @@ export default class extends EventEmitter {
 	ups = 25; // 50;
 	mouse = new Mouse();
 	scene = new Scene(this);
-	settings = new RecursiveProxy(Object.assign({
-		autoPause: false,
-		autoSave: false,
-		theme: window.matchMedia('(prefers-color-scheme: dark)').matches ? 'dark' : 'light'
-	}, JSON.parse(localStorage.getItem('bhr-settings'))), {
+	settings = new RecursiveProxy(Object.assign(DEFAULTS, JSON.parse(localStorage.getItem('bhr-settings'), defaultsFilter)), {
 		set: (...args) => {
 			Reflect.set(...args);
-			localStorage.setItem('bhr-settings', JSON.stringify(this.settings));
+			localStorage.setItem('bhr-settings', JSON.stringify(this.settings, defaultsFilter));
 			this.emit('settingsChange', this.settings);
 			return true;
 		},
 		deleteProperty() {
 			Reflect.deleteProperty(...arguments);
-			localStorage.setItem('bhr-settings', JSON.stringify(this));
+			localStorage.setItem('bhr-settings', JSON.stringify(this, defaultsFilter));
 			return true;
 		}
 	});
-	storage = null;
+	trackStorage = new TrackStorage();
 	constructor(canvas) {
 		super();
 
 		this.setCanvas(canvas);
-		// this.mouse.setTarget(canvas);
 		this.mouse.on('down', this.press.bind(this));
 		this.mouse.on('move', this.stroke.bind(this));
 		this.mouse.on('up', this.clip.bind(this));
@@ -45,7 +49,7 @@ export default class extends EventEmitter {
 		document.addEventListener('fullscreenchange', () => navigator.keyboard.lock(['Escape']));
 		document.addEventListener('keydown', this.keydown.bind(this));
 		document.addEventListener('keyup', this.keyup.bind(this));
-		// document.addEventListener('paste', this.paste.bind(this));
+		// document.addEventListener('paste', this.paste.bind(this)); // open load-track dialog with pasted code in it
 		document.addEventListener('pointerlockchange', () => {
 			if (!document.pointerLockElement) {
 				const checkbox = this.container.querySelector('.bhr-game-overlay > input');
@@ -54,31 +58,40 @@ export default class extends EventEmitter {
 		});
 
 		this.on('settingsChange', settings => {
-			'theme' in window && theme.setAttribute('href', 'styles/' + settings.theme + '.css');
-			this.ctx.fillStyle = '#'.padEnd(7, this.settings.theme == 'dark' ? 'fb' : '0');
-			this.ctx.strokeStyle = this.ctx.fillStyle;
-			this.scene.grid.sectors.forEach(sector => sector.resize());
+			let element;
 			for (const setting in settings) {
-				if (typeof settings[setting] != 'boolean' || setting == 'theme') continue;
-				const id = setting.replace(/([A-Z])/g, '-$1').toLowerCase();
-				const element = document.getElementById(id);
-				element && (element.checked = settings[setting]);
+				const value = settings[setting];
+				switch (setting) {
+					case 'theme':
+						let stylesheet = document.querySelector('#game-theme'), href;
+						if (stylesheet && (href = stylesheet.href.replace(/[^/]*(\.css)$/, `${value}$1`)) && href !== stylesheet.href) {
+							stylesheet.setAttribute('href', href);
+							this.ctx.fillStyle = '#'.padEnd(7, value == 'dark' ? 'fb' : value == 'midnight' ? 'c' : '0');
+							this.ctx.strokeStyle = this.ctx.fillStyle;
+							this.scene.grid.sectors.forEach(sector => sector.resize());
+						}
+
+						(element = document.getElementById(value)) && (element.checked = true);
+						break;
+					default: {
+						if (typeof value != 'boolean') continue;
+						(element = document.getElementById(setting.replace(/([A-Z])/g, '-$1').toLowerCase())) && (element.checked = value);
+					}
+				}
 			}
 		});
 		this.emit('settingsChange', this.settings);
-		this.on('storageReady', async () => {
+		this.trackStorage.on('open', async () => {
 			if (!this.settings.autoSave) return;
-			const tracks = await this.storage.getDirectoryHandle('tracks', { create: true });
-			for await (const [fileName, fileHandle] of tracks.entries()) {
-				if (fileName.endsWith('.crswap')) continue;
-				console.log(fileName, fileHandle);
+			await this.trackStorage.open('savedState', { cache: true });
+			if (this.settings.autoSaveInterval > 0) {
+				const date = new Intl.DateTimeFormat(navigator.language, { dateStyle: 'short', timeStyle: 'medium' }).format().replace(/[/\\?%*:|"<>]/g, '-').replace(/,+\s*/, '_').replace(/\s+.*$/, '');
+				this.trackStorage.open(date, { overwrite: false });
+				setInterval(() => {
+					this.trackStorage.write(date, this.scene.toString(), { saveAndReplace: true });
+				}, this.settings.autoSaveInterval * 1e3);
 			}
 
-			// Save as date, if yes is clicked on toast, open that file and createWritable.
-			// new Intl.DateTimeFormat(navigator.language, { dateStyle: 'short', timeStyle: 'medium' }).format().replace(/[/\\?%*:|"<>]/g, '-').replace(/,+\s*/, '_').replace(/\s+.*$/, '')
-			const fileHandle = await tracks.getFileHandle('savedState', { create: true });
-			// const fileData = await fileHandle.getFile();
-			this.#privateWritable = await fileHandle.createWritable({ keepExistingData: false });
 			// Only show toast if the game wasn't closed properly!
 			// if ('toasts' in window) {
 			// 	const toast = Object.assign(document.createElement('div'), {
@@ -103,16 +116,8 @@ export default class extends EventEmitter {
 			// }
 		});
 
-		navigator.storage.getDirectory().then(root => {
-			this.storage = root;
-			this.emit('storageReady');
-		}).catch(err => {
-			console.warn('Storage:', err);
-		});
-
-		navigation.onnavigate = this.close.bind(this);
-
-		window.addEventListener('online', event => {
+		navigation.addEventListener('navigate', this._onnavigate = this.close.bind(this));
+		window.addEventListener('online', this._ononline = event => {
 			const TEMP_KEY = 'bhr-temp';
 			let data = JSON.parse(localStorage.getItem(TEMP_KEY));
 			if (data && data.hasOwnProperty('savedGhosts')) {
@@ -127,16 +132,24 @@ export default class extends EventEmitter {
 				localStorage.setItem(TEMP_KEY, JSON.stringify(data));
 			}
 		});
-		window.addEventListener('load', () => window.dispatchEvent(new Event('online')));
+
+		window.addEventListener('load', this._onload = () => window.dispatchEvent(new Event('online')));
 		// new ResizeObserver(this.setCanvasSize.bind(this)).observe(this.canvas);
-		window.addEventListener('resize', this.setCanvasSize.bind(this));
-		// window.onbeforeunload = this.close.bind(this);
-		// window.onunload = this.close.bind(this);
-		window.addEventListener('beforeunload', this.close.bind(this));
-		window.addEventListener('beforeunload', function(event) {
+		window.addEventListener('resize', this._onresize = this.setCanvasSize.bind(this));
+		window.addEventListener('beforeunload', this._onbeforeunload = async event => {
 			event.preventDefault();
 			event.returnValue = false;
+
+			if (this.trackStorage.writables.has('savedState')) {
+				const writable = this.trackStorage.writables.get('savedState');
+				// const writer = await writable.getWriter();
+				// console.log(writable)
+				await writable.write(this.scene.toString());
+				await writable.close();
+			}
 		});
+
+		window.addEventListener('unload', this._onunload = this.close.bind(this));
 	}
 
 	get max() {
@@ -223,19 +236,20 @@ export default class extends EventEmitter {
 		// this.ctx.font = '20px Arial';
 		// this.ctx.textAlign = 'center';
 		this.ctx.textBaseline = 'middle';
-		// this.ctx.lineWidth = 2;
-		// this.ctx.setTransform(this.scene.zoom, this.scene.camera.x, 0, this.scene.zoom, this.scene.camera.y, 0);
+		// if shrinking sectors via drawImage:
+		this.ctx.imageSmoothingEnabled = !1,
+		this.ctx.mozImageSmoothingEnabled = !1,
+		this.ctx.oImageSmoothingEnabled = !1,
+		this.ctx.webkitImageSmoothingEnabled = !1;
 		// this.ctx.scale(-1, 1); // for 'left-hand' mode
 	}
 
 	async showRecentFiles() {
-		if ('loadrecenttracks' in window && this.storage !== null) {
+		if ('loadrecenttracks' in window && this.trackStorage.readyState === 1) {
 			loadrecenttracks.showModal();
 			if ('recenttracks' in window) {
-				const tracks = await this.storage.getDirectoryHandle('tracks', { create: true });
 				const results = [];
-				for await (const [fileName, fileHandle] of tracks.entries()) {
-					if (fileName.endsWith('.crswap')) continue;
+				for (const [fileName, fileHandle] of this.trackStorage.cache) {
 					const fileData = await fileHandle.getFile();
 					const wrapper = document.createElement('div');
 					wrapper.style = 'display: flex;gap: 0.25rem;width: -webkit-fill-available;';
@@ -247,14 +261,14 @@ export default class extends EventEmitter {
 					button.style = 'width: -webkit-fill-available;';
 					const remove = wrapper.appendChild(document.createElement('button'));
 					remove.addEventListener('click', async event => {
-						// tracks.removeEntry(fileName);
+						this.trackStorage.cache.delete(fileHandle.name);
+						this.trackStorage.writables.delete(fileHandle.name);
 						fileHandle.remove();
 						wrapper.remove();
 					});
 					remove.innerText = '🗑'; // 🗙
 					remove.style = 'background-color: hsl(0 40% 40% / calc(50% + 10% * var(--brightness-multiplier)));';
 					results.push(wrapper);
-					console.log(fileName, fileHandle);
 				}
 
 				recenttracks.replaceChildren(...results);
@@ -634,19 +648,17 @@ export default class extends EventEmitter {
 		this.init({ default: true, write: true });
 	}
 
-	async close(event) {
-		await this.#privateWritable.write(this.scene.toString());
-		// if (event.returnValue) return; // check if page is really closing before cancelling animation frame and whatnot
-		await this.#privateWritable.close();
-		if (event instanceof BeforeUnloadEvent) {
-			window.onresize = null;
-			window.removeEventListener('resize', this.constructor.adjust);
-		} else if (event instanceof NavigateEvent) {
-			cancelAnimationFrame(this.lastFrame);
-			this.mouse.close();
-			// this.scene.close();
-			navigation.onnavigate = null;
-		}
+	close(event) {
+		cancelAnimationFrame(this.lastFrame);
+		this.mouse.close();
+		// this.scene.close();
+		this.scene.firstPlayer?.gamepad?.close();
+		navigation.removeEventListener('navigate', this._onnavigate);
+		window.removeEventListener('beforeunload', this._onbeforeunload);
+		window.removeEventListener('load', this._onload);
+		window.removeEventListener('online', this._ononline);
+		window.removeEventListener('resize', this._onresize);
+		window.removeEventListener('unload', this._onunload);
 	}
 
 	static serveToast(toast, timeout) {

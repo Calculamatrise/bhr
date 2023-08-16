@@ -54,13 +54,12 @@ export default class extends EventEmitter {
 	move(event) {
 		event.preventDefault();
 		if (this.locked) {
-			this.position.add(new Vector(event.movementX * window.devicePixelRatio, event.movementY * window.devicePixelRatio));
 			this.rawPosition.add(new Vector(event.movementX * window.devicePixelRatio, event.movementY * window.devicePixelRatio));
 		} else {
 			this.rawPosition.set(new Vector(event.offsetX * window.devicePixelRatio, event.offsetY * window.devicePixelRatio));
-			this.position.set(this.rawPosition.toCanvas(this.target));
 		}
 
+		this.position.set(this.rawPosition.toCanvas(this.target));
 		this.emit('move', event);
 	}
 

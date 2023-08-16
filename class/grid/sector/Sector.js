@@ -30,6 +30,10 @@ export default class {
 		// });
 	}
 
+	get resized() {
+		return (this.canvas.width + this.canvas.height) / 2 !== this.parent.scale * this.parent.scene.zoom;
+	}
+
 	add(item) {
 		if (arguments.length > 1) {
 			for (const item of arguments)
@@ -52,8 +56,6 @@ export default class {
 		return this;
 	}
 
-	// don't necessarily have to redraw every single line.
-	// when a line is added, it can be drawn normally on top of the canvas.
 	cache(offsetX = this.row * this.parent.scale, offsetY = this.column * this.parent.scale) {
 		this.ctx.clearRect(0, 0, this.canvas.width, this.canvas.height);
 		if (this.scenery.length > 0) {
@@ -71,17 +73,14 @@ export default class {
 		}
 
 		this.rendered = true;
-		// this.parent.scene.parent.emit('sceneCached');
 	}
 
 	render(ctx) {
 		let offsetX = this.row * this.parent.scale;
 		let offsetY = this.column * this.parent.scale;
-		if (!this.rendered) {
-			this.cache(offsetX, offsetY);
-		}
-
-		ctx.drawImage(/*this.image || */this.canvas, Math.floor(ctx.canvas.width / 2 - this.parent.scene.camera.x * this.parent.scene.zoom + offsetX * this.parent.scene.zoom), Math.floor(ctx.canvas.height / 2 - this.parent.scene.camera.y * this.parent.scene.zoom + offsetY * this.parent.scene.zoom));
+		this.resized && this.resize();
+		this.rendered || this.cache(offsetX, offsetY);
+		ctx.drawImage(/*this.image || */this.canvas, Math.floor(ctx.canvas.width / 2 + (offsetX - this.parent.scene.camera.x) * this.parent.scene.zoom), Math.floor(ctx.canvas.height / 2 + (offsetY - this.parent.scene.camera.y) * this.parent.scene.zoom), this.parent.scale * this.parent.scene.zoom, this.parent.scale * this.parent.scene.zoom);
 	}
 
 	resize() {
@@ -91,6 +90,7 @@ export default class {
 		this.ctx.lineJoin = 'round';
 		this.ctx.lineWidth = Math.max(2 * this.parent.scene.zoom, 0.5);
 		this.ctx.strokeStyle = '#'.padEnd(7, /^dark$/i.test(this.parent.scene.parent.settings.theme) ? 'fb' : /^midnight$/i.test(this.parent.scene.parent.settings.theme) ? 'c' : '0');
+		// this.ctx.transform(this.parent.scene.zoom, 0, 0, this.parent.scene.zoom, 0, 0);
 		this.rendered = false;
 	}
 

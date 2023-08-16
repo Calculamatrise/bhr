@@ -1,4 +1,4 @@
-import Triangle from "./Triangle.js";
+import Triangle from "./Directional.js";
 
 export default class Gravity extends Triangle {
 	type = 'G';

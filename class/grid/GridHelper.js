@@ -60,7 +60,7 @@ addEventListener('message', ({ data }) => {
 			ctx.lineCap = 'round';
 			ctx.lineJoin = 'round';
 			ctx.strokeWidth = data.lineWidth;
-				ctx.strokeStyle = data.strokeStyle;
+			ctx.strokeStyle = data.strokeStyle;
 			row.set(data.column, ctx);
 			// console.log(data)
 			break;
