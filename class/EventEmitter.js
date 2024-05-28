@@ -1,11 +1,10 @@
 export default class {
 	/** @private */
 	#events = new Map();
-	#single = new Set();
+	#temp = new WeakSet();
 
 	/**
-	 * 
-	 * @private
+	 * Emit an event to trigger listeners
 	 * @param {String} event 
 	 * @param  {...any} [args] 
 	 */
@@ -17,15 +16,14 @@ export default class {
 
 		for (const listener of listeners) {
 			listener.apply(this, args);
-			if (this.#single.has(listener)) {
+			if (this.#temp.delete(listener)) {
 				listeners.delete(listener);
 			}
 		}
 	}
 
 	/**
-	 * 
-	 * @private
+	 * Emits several events
 	 * @param {Array<String>} events 
 	 * @param {...any} [args] 
 	 */
@@ -39,15 +37,21 @@ export default class {
 
 	/**
 	 * 
-	 * @param {String} event 
-	 * @param {Function} listener 
-	 * @returns {Number}
+	 * @param {string} event 
+	 * @param {function} listener 
+	 * @param {object} [options] 
+	 * @param {boolean} [options.once] 
+	 * @returns {number}
 	 */
-	on(event, listener) {
+	on(event, listener, options = {}) {
 		if (typeof event != 'string') {
 			throw new TypeError("Event must be of type: String");
 		} else if (typeof listener != 'function') {
 			throw new TypeError("Listener must be of type: Function");
+		} else if (typeof options != 'object') {
+			throw new TypeError("Options must be of type: Object")
+		} else if (options.once) {
+			this.#temp.add(listener);
 		}
 
 		if (!this.#events.has(event)) {
@@ -66,9 +70,7 @@ export default class {
 	 * @returns {Function}
 	 */
 	once(event, listener) {
-		const size = this.on(...arguments);
-		this.#single.add(listener);
-		return size;
+		return this.on(event, listener, { once: true });
 	}
 
 	/**

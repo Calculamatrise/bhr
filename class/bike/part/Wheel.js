@@ -7,7 +7,7 @@ export default class extends Mass {
 	draw(ctx) {
 		let position = this.displayPosition.toPixel();
 		ctx.beginPath();
-		ctx.arc(position.x, position.y, this.size * this.parent.parent.scene.zoom - ctx.lineWidth / 2, 0, 2 * Math.PI);
+		ctx.arc(position.x, position.y, this.size * this.parent.parent.scene.camera.zoom - ctx.lineWidth / 2, 0, 2 * Math.PI);
 		ctx.stroke();
 	}
 

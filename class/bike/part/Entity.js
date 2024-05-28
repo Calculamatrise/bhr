@@ -1,41 +1,36 @@
-import Vector from "../../Vector.js";
+import Coordinates from "../../Coordinates.js";
 
 export default class {
-	old = new Vector();
-	position = new Vector();
+	old = new Coordinates();
+	position = new Coordinates();
 	size = 10;
-	velocity = new Vector();
+	velocity = new Coordinates();
 	displayPosition = this.position.add(this.velocity);
 	constructor(parent, options) {
-		this.parent = parent;
+		Object.defineProperty(this, 'parent', { value: parent || null });
 		for (const key in options = Object.assign({}, options)) {
-			const option = options[key];
+			const value = options[key];
 			switch (key) {
-				case 'position':
-				case 'velocity': {
-					typeof option == 'object' && this[key].set(option);
-					break;
-				}
-
-				case 'size': {
-					if (typeof option == 'number' || typeof option == 'string') {
-						this[key] = option;
-					}
-					break;
-				}
+			case 'position':
+			case 'velocity':
+				typeof value == 'object' && this[key].set(value);
+				break;
+			case 'size':
+				typeof value == 'number' || typeof value == 'string' && (this[key] = value);
+				break;
 			}
 		}
 
 		this.displayPosition = this.position.add(this.velocity);
 		this.old.set(this.position);
-		this.position.old = this.position.clone();
+		this.position.old = this.position.clone()
 	}
 
 	fixedUpdate() {
-		this.displayPosition = this.position;
+		this.displayPosition = this.position
 	}
 
 	update(progress) {
-		this.displayPosition = this.position.sum(this.velocity.scale(progress));
+		this.displayPosition = this.position.sum(this.velocity.scale(progress))
 	}
 }

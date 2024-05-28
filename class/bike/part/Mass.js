@@ -10,16 +10,16 @@ export default class extends Entity {
 
 	drive(vector) {
 		this.addFriction(vector);
-		this.touching = true;
+		this.touching = true
 	}
 
 	fixedUpdate() {
+		super.fixedUpdate();
 		this.velocity.add(this.parent.parent.gravity).scaleSelf(.99);
 		this.position.add(this.velocity);
 		this.touching = false;
-		this.tangible && this.parent.parent.scene.collide(this);
+		this.tangible && this.parent.parent.scene.track.collide(this);
 		this.velocity = this.position.difference(this.old);
-		this.old.set(this.position);
-		super.fixedUpdate();
+		this.old.set(this.position)
 	}
 }

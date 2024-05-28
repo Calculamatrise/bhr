@@ -1,15 +1,16 @@
-<!-- <!DOCTYPE html> -->
+<!DOCTYPE html>
 <html lang="en">
 <head>
 	<meta charset="UTF-8">
 	<meta http-equiv="X-UA-Compatible" content="IE=edge">
 	<meta name="viewport" content="width=device-width, initial-scale=1.0">
+	<meta name="description" content="Ride your bikes on lines drawn by other players!">
 	<title>Black Hat Rider - Calculamatrise</title>
 	<link rel="stylesheet" href="styles/default.css">
 	<link rel="stylesheet" href="styles/dark.css" id="game-theme">
 </head>
 <body>
-	<bhr-game-container>
+	<bhr-game-container class="viewport">
 		<canvas id="view"></canvas>
 		<bhr-game-toolbar>
 			<!-- <section class="bottom island right">
@@ -37,7 +38,7 @@
 				<label class="toolbar-item powerups" title="Powerups"><input type="radio" name="tool" style="display: none;" onchange="powerups.querySelector('input[name=powerup]:checked').dispatchEvent(new Event('change'))">🗲</label>
 				<label class="toolbar-item grid" title="Grid - G"><input type="checkbox" style="display: none;" onchange="game.scene.grid.size = 11 - game.scene.grid.size;"></label>
 				<label class="toolbar-item eraser" title="Eraser - E"><input type="radio" name="tool" style="display: none;" onchange="game.scene.toolHandler.setTool('eraser')"></label>
-				<button class="toolbar-item wheel" title="Change Vehicle - Ctrl + B" onclick="game.scene.switchBike()">
+				<button class="toolbar-item wheel" title="Change Vehicle - Ctrl + B" onclick="game.scene.firstPlayer.switchBike()">
 					<svg xmlns="http://www.w3.org/2000/svg" viewbox="0 0 25 25" style="stroke: #777;">
 						<circle cx="12.5" cy="12.5" r="10"style="fill: none;stroke: var(--text-color);stroke-width: 2.5;" />
 						<line x1="12.5" y1="12.5" x2="20.5" y2="12.5"/>
@@ -96,7 +97,7 @@
 				<div style="display: grid;grid-gap: .125rem;grid-template-columns: repeat(auto-fit, minmax(25vmin, 1fr));">
 					<!-- Toggle move/edit mode button -->
 					<label>Transform Mode<input type="checkbox" onchange="game.scene.transformMode = event.target.checked"></label>
-					<button onclick="confirm('Do you really want to start a new track?') && game.reset()" style="background-color: hsl(0deg 40% 40% / calc(50% + 10% * var(--brightness-multiplier)));">Clear</button>
+					<button onclick="confirm('Do you really want to start a new track?') && game.reset()" style="background-color: hsl(0deg 40% 40% / calc(50% + 10% * var(--l-multiplier)));">Clear</button>
 					<button onclick="trackdialog.showModal()">Load</button>
 					<button onclick="game.openFile({ multiple: event.ctrlKey })">Open File...</button>
 					<!-- Open folder option allowing users to work on multiple tracks at once w/ different layers.
@@ -107,111 +108,111 @@
 					<button id="upload">Upload</button>
 					<script>
 						upload.addEventListener('click', function () {
-                            const code = game.scene.toString();
-                            if (code.length < 1e3) {
-                                return alert("Sorry, but your track must be bigger or more detailed.");
-                            } else if (game.scene.targets < 1) {
-                                return alert("Sorry, but your track must have at least 1 target!");
-                            }
+							const code = game.scene.toString();
+							if (code.length < 1e3) {
+								return alert("Sorry, but your track must be bigger or more detailed.");
+							} else if (game.scene.targets < 1) {
+								return alert("Sorry, but your track must have at least 1 target!");
+							}
 
-                            // add 'collaborators' input
-                            game.scene.paused = true;
-                            game.scene.toolHandler.setTool('camera');
-                            game.scene.pictureMode = {width: 250, height: 150};
-                            game.scene.zoom = 0.6 * window.devicePixelRatio;
-                            game.scene.grid.sectors.forEach(sector => sector.rendered = false);
-                            document.getElementById('track_menu')?.style.setAttribute('display', 'none');
-                            var container = document.createElement('div');
-                            container.setAttribute('id', 'track_menu');
-                            container.style.setProperty('display', 'flex');
-                            container.style.setProperty('flex-direction', 'column');
-                            var select = Object.assign(document.createElement('select'), {
-                                id: 'visibility'
-                            });
-                            select.style.setProperty('width', '-webkit-fill-available');
-                            select.append(...[
-                                Object.assign(document.createElement('option'), {
-                                    disabled: true,
-                                    innerText: 'Visibility'
-                                }),
-                                Object.assign(document.createElement('option'), {
-                                    innerText: 'Public',
-                                    value: 'public'
-                                }),
-                                Object.assign(document.createElement('option'), {
-                                    innerText: 'Private',
-                                    value: 'private'
-                                })
-                            ]);
+							// add 'collaborators' input
+							game.scene.paused = true;
+							game.scene.toolHandler.setTool('camera');
+							game.scene.pictureMode = {width: 250, height: 150};
+							game.scene.zoom = 0.6 * window.devicePixelRatio;
+							game.scene.grid.sectors.forEach(sector => sector.rendered = false);
+							document.getElementById('track_menu')?.style.setAttribute('display', 'none');
+							var container = document.createElement('div');
+							container.setAttribute('id', 'track_menu');
+							container.style.setProperty('display', 'flex');
+							container.style.setProperty('flex-direction', 'column');
+							var select = Object.assign(document.createElement('select'), {
+								id: 'visibility'
+							});
+							select.style.setProperty('width', '-webkit-fill-available');
+							select.append(...[
+								Object.assign(document.createElement('option'), {
+									disabled: true,
+									innerText: 'Visibility'
+								}),
+								Object.assign(document.createElement('option'), {
+									innerText: 'Public',
+									value: 'public'
+								}),
+								Object.assign(document.createElement('option'), {
+									innerText: 'Private',
+									value: 'private'
+								})
+							]);
 
-                            container.append(...[
-                                Object.assign(document.createElement('input'), {
-                                    id: 'title',
-                                    placeholder: 'Title',
-                                    type: 'text',
-                                    onkeydown: event => event.stopPropagation(),
-                                    onkeypress: event => event.stopPropagation(),
-                                    onkeyup: event => event.stopPropagation()
-                                }),
-                                Object.assign(document.createElement('textarea'), {
-                                    id: 'description',
-                                    placeholder: 'Description',
-                                    rows: 4,
-                                    onkeydown: event => event.stopPropagation(),
-                                    onkeypress: event => event.stopPropagation(),
-                                    onkeyup: event => event.stopPropagation()
-                                }),
-                                select,
-                                Object.assign(document.createElement('button'), {
-                                    innerText: 'Publish',
-                                    onclick() {
-                                        const title = document.querySelector('#track_menu #title');
-                                        if (title.value.length < 4)
-                                            return alert("The track name is too short!");
+							container.append(...[
+								Object.assign(document.createElement('input'), {
+									id: 'title',
+									placeholder: 'Title',
+									type: 'text',
+									onkeydown: event => event.stopPropagation(),
+									onkeypress: event => event.stopPropagation(),
+									onkeyup: event => event.stopPropagation()
+								}),
+								Object.assign(document.createElement('textarea'), {
+									id: 'description',
+									placeholder: 'Description',
+									rows: 4,
+									onkeydown: event => event.stopPropagation(),
+									onkeypress: event => event.stopPropagation(),
+									onkeyup: event => event.stopPropagation()
+								}),
+								select,
+								Object.assign(document.createElement('button'), {
+									innerText: 'Publish',
+									onclick() {
+										const title = document.querySelector('#track_menu #title');
+										if (title.value.length < 4)
+											return alert("The track name is too short!");
 
-                                        const description = document.querySelector('#track_menu #description');
-                                        if (description.value.length < 16)
-                                            return alert("The track description is too short!");
+										const description = document.querySelector('#track_menu #description');
+										if (description.value.length < 16)
+											return alert("The track description is too short!");
 
-                                        const visibility = document.querySelector('#track_menu #visibility');
-                                        const canvas = document.createElement('canvas');
-                                        canvas.width = 250;
-                                        canvas.height = 150;
-                                        const ctx = canvas.getContext('2d');
-                                        ctx.fillStyle = game.canvas.computedStyleMap().get('background-color').toString();
-                                        ctx.fillRect(0, 0, canvas.width, canvas.height);
-                                        ctx.drawImage(game.canvas, game.canvas.width / 2 - canvas.width / 2, game.canvas.height / 2 - canvas.height / 2, canvas.width, canvas.height, 0, 0, canvas.width, canvas.height);
-                                        game.scene.pictureMode = false;
-                                        this.disabled = true;
-                                        fetch('/api/tracks/upload.php', {
-                                            method: 'post',
-                                            body: new URLSearchParams({
-                                                name: title.value,
-                                                code,
-                                                description: description.value,
-                                                display: visibility.value,
-                                                thumbnail: canvas.toDataURL('image/jpeg')
-                                            })
-                                        }).then(r => r.text()).then(r => {
-                                            if (+r === 1) {
-                                                location.href = '/';
-                                            } else {
-                                                this.disabled = false;
-                                                const error = document.createElement('p');
-                                                error.classList.add('error');
-                                                error.innerText = r;
-                                                this.after(error);
-                                                setTimeout(() => {
-                                                    error.remove()
-                                                }, 5e3);
-                                                // document.write("Something went wrong!");
-                                            }
-                                        });
-                                    }
-                                })
-                            ]);
-                            this.replaceWith(container);
-                        });
+										const visibility = document.querySelector('#track_menu #visibility');
+										const canvas = document.createElement('canvas');
+										canvas.width = 250;
+										canvas.height = 150;
+										const ctx = canvas.getContext('2d');
+										ctx.fillStyle = game.canvas.computedStyleMap().get('background-color').toString();
+										ctx.fillRect(0, 0, canvas.width, canvas.height);
+										ctx.drawImage(game.canvas, game.canvas.width / 2 - canvas.width / 2, game.canvas.height / 2 - canvas.height / 2, canvas.width, canvas.height, 0, 0, canvas.width, canvas.height);
+										game.scene.pictureMode = false;
+										this.disabled = true;
+										fetch('/api/tracks/upload.php', {
+											method: 'post',
+											body: new URLSearchParams({
+												name: title.value,
+												code,
+												description: description.value,
+												display: visibility.value,
+												thumbnail: canvas.toDataURL('image/webp')
+											})
+										}).then(r => r.text()).then(r => {
+											if (+r === 1) {
+												location.href = '/';
+											} else {
+												this.disabled = false;
+												const error = document.createElement('p');
+												error.classList.add('error');
+												error.innerText = r;
+												this.after(error);
+												setTimeout(() => {
+													error.remove()
+												}, 5e3);
+												// document.write("Something went wrong!");
+											}
+										});
+									}
+								})
+							]);
+							this.replaceWith(container);
+						});
 					</script>
 				</div>
 				<!-- Display recently opened tracks -->
@@ -243,7 +244,7 @@
 				<input type="radio" name="bhr-game-overlay-nav" id="ghost" style="display: none;">
 				<!-- Display races (game.scene.races/game.scene.players/game.scene.ghosts) -->
 				<div style="display: grid;grid-gap: .125rem;grid-template-columns: repeat(auto-fit, minmax(25vmin, 1fr));">
-					<button onclick="game.scene.ghosts.splice(0);" style="background-color: hsl(0deg 40% 40% / calc(50% + 10% * var(--brightness-multiplier)));">Clear</button>
+					<button onclick="game.scene.ghosts.splice(0);" style="background-color: hsl(0deg 40% 40% / calc(50% + 10% * var(--l-multiplier)));">Clear</button>
 					<button onclick="gcode.nextElementSibling.lastElementChild.style.setProperty('display', 'none');gcode.nextElementSibling.lastElementChild.previousElementSibling.style.removeProperty('display');ghostdialog.showModal();">Load</button>
 					<button onclick="
 						Object.assign(document.createElement('input'), {
@@ -298,21 +299,24 @@
 				<input type="radio" name="bhr-game-overlay-nav" id="settings" style="display: none;">
 				<!-- Add section for Discord RPC -->
 				<section title="Editor">
-					<label>Auto save<input type="checkbox" id="auto-save" onchange="game.settings.autoSave = event.target.checked;"></label>
+					<label>Auto save<input type="checkbox" id="game-settings.auto-save" onchange="game.settings.autoSave = event.target.checked;"></label>
 					<!-- Hide if auto save is not checked -->
-					<label>Interval<input type="number" id="auto-save-interval" min="5" value="5" max="60" style="box-sizing: content-box;max-width: 2rem;" onchange="game.settings.autoSave = event.target.checked;"></label>
+					<label>Interval<input type="number" id="game-settings.auto-save-interval" min="5" value="5" max="60" style="box-sizing: content-box;max-width: 2rem;" onchange="game.settings.autoSaveInterval = event.target.value;"></label>
+					<label>Continue where you left off<input type="checkbox" id="game-settings.restore-previous-session" onchange="game.settings.restorePreviousSession = event.target.checked;"></label>
 				</section>
 				<section title="Game">
-					<label>Auto pause<input type="checkbox" id="auto-pause" onchange="game.settings.autoPause = event.target.checked"></label>
+					<label>Auto pause<input type="checkbox" id="game-settings.auto-pause" onchange="game.settings.autoPause = event.target.checked"></label>
+					<label>Linear Interpolation<input type="checkbox" id="game-settings.interpolation" onchange="game.settings.interpolation = event.target.checked"></label>
 				</section>
 				<section title="Appearance">
-					<label class="disabled">System<input type="radio" name="bhr-theme" id="system" onchange="game.settings.theme = event.target.id" checked disabled></label>
-					<label>Dark<input type="radio" name="bhr-theme" id="dark" onchange="game.settings.theme = event.target.id"></label>
-					<label>Light<input type="radio" name="bhr-theme" id="light" onchange="game.settings.theme = event.target.id"></label>
-					<label>Midnight<input type="radio" name="bhr-theme" id="midnight" onchange="game.settings.theme = event.target.id"></label>
+					<label>System<input type="radio" name="bhr-theme" id="game-settings.system" onchange="game.settings.theme = event.target.id" checked></label>
+					<label>Dark<input type="radio" name="bhr-theme" id="game-settings.dark" onchange="game.settings.theme = event.target.id"></label>
+					<label>Light<input type="radio" name="bhr-theme" id="game-settings.light" onchange="game.settings.theme = event.target.id"></label>
+					<label>Midnight<input type="radio" name="bhr-theme" id="game-settings.midnight" onchange="game.settings.theme = event.target.id"></label>
+					<label>Brightness<input type="range" id="game-settings.brightness" min="1" value="100" max="100" onchange="game.settings.brightness = event.target.value"></label>
 				</section>
 				<section title="Miscellaneous">
-					<label>Discord Rich Presence<input type="checkbox" id="auto-pause" onchange="game.settings.autoPause = event.target.checked" checked></label>
+					<label>Discord Rich Presence<input type="checkbox" id="discord-rich-presence" onchange="/* electron api post message*/ event.target.checked" checked></label>
 				</section>
 			</section>
 			<button id="exit" style="margin: 1rem;max-width: 25vmin;" onclick="window.close()">Exit to desktop</button>
@@ -321,13 +325,17 @@
 	</bhr-game-container>
 	<script type="module" src="bootstrap.js"></script>
 	<script type="module">
-		// const demo = await fetch('demo.txt').then(r => r.text());
-		// game.once('load', async function() {
-		// 	const demoGhost = await fetch('demoghost.txt').then(r => r.text());
-		// 	this.scene.watchGhost(demoGhost);
-		// });
-		// game.init({ code: demo, write: true });
-		game.init({ default: true, write: true });
+		if (window.game.debug) {
+			const demo = await fetch('test/demo.txt').then(r => r.text());
+			game.once('load', async function() {
+				const demoGhost = await fetch('test/demoghost.txt').then(r => r.text());
+				this.scene.watchGhost(demoGhost);
+			});
+			game.init({ code: demo, write: true });
+			// game.init({ default: true, write: true });
+		} else {
+			game.init({ default: true, write: true });
+		}
 	</script>
 </body>
 </html>

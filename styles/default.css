@@ -34,6 +34,7 @@ body {
 }
 
 canvas#view {
+	aspect-ratio: 16 / 9;
 	background-color: var(--background-color);
 	height: 100vh;
 	min-height: 240px;
@@ -157,7 +158,7 @@ bhr-game-container .replay-progress::-webkit-progress-bar {
 
 .toast {
 	backdrop-filter: blur(4px) brightness(.5);
-	background-color: hsl(0deg 0% 50% / calc(40% - 20% * var(--brightness-multiplier)));
+	background-color: hsl(0deg 0% 50% / calc(40% - 20% * var(--l-multiplier)));
 	border-radius: 4px;
 	box-sizing: border-box;
 	color: var(--text-color);
@@ -169,7 +170,7 @@ bhr-game-container .replay-progress::-webkit-progress-bar {
 
 .bhr-game-overlay {
 	align-items: center;
-	backdrop-filter: blur(.75rem) brightness(calc(.75 - .1 * var(--brightness-multiplier)));
+	backdrop-filter: blur(.75rem) brightness(calc(.4 - .25 * var(--l-multiplier)));
 	display: flex;
 	flex-direction: column;
 	inset: 0;
@@ -183,7 +184,7 @@ bhr-game-container .replay-progress::-webkit-progress-bar {
 	display: grid;
 	font-family: fantasy;
 	font-size: clamp(8px, 2cqw, 1rem);
-	grid-gap: .25rem;
+	grid-gap: .25em;
 	grid-template-columns: repeat(auto-fit, minmax(80px, 1fr));
 	justify-content: center;
 	margin-left: auto;
@@ -197,7 +198,7 @@ bhr-game-container .replay-progress::-webkit-progress-bar {
 	/* background-color: hsl(0deg 0% 50% / 8%); */
 	/* border: none; */
 	/* border: 1px solid hsl(0deg 0% 50% / 8%); */
-	border: 1px solid hsl(0deg 0% 50% / calc(50% - 40% * var(--brightness-multiplier)));
+	border: 1px solid hsl(0deg 0% 50% / calc(50% - 40% * var(--l-multiplier)));
 	border-radius: .25rem;
 	box-sizing: border-box;
 	opacity: .8;
@@ -209,7 +210,7 @@ bhr-game-container .replay-progress::-webkit-progress-bar {
 
 .bhr-game-overlay nav>label:hover {
 	/* background-color: hsl(0deg 0% 50% / 20%); */
-	background-color: hsl(0deg 0% 50% / calc(50% - 30% * var(--brightness-multiplier)));
+	background-color: hsl(0deg 0% 50% / calc(50% - 30% * var(--l-multiplier)));
 	/* cursor: pointer; */
 }
 
@@ -218,7 +219,7 @@ bhr-game-container .replay-progress::-webkit-progress-bar {
 .bhr-game-overlay:has(input[type="radio"]#recorder-toggle:checked) nav>label[for="recorder-toggle"],
 .bhr-game-overlay:has(input[type="radio"]#settings:checked) nav>label[for="settings"] {
 	/* background-color: hsl(0deg 0% 40% / 40%); */
-	background-color: hsl(0deg 0% calc(30% - 15% * var(--brightness-multiplier)) / 50%);
+	background-color: hsl(0deg 0% calc(30% - 15% * var(--l-multiplier)) / 50%);
 	opacity: 1;
 }
 
@@ -293,7 +294,7 @@ bhr-game-container .replay-progress::-webkit-progress-bar {
 .bhr-game-overlay button,
 .bhr-game-overlay label:has(> input) {
 	/* background-color: hsl(0deg 0% 40% / 60%); */
-	background-color: hsl(0deg 0% calc(40% - 20% * var(--brightness-multiplier)) / 50%);
+	background-color: hsl(0deg 0% calc(25% - 10% * var(--l-multiplier)) / 60%);
 	padding: 0.5rem 1rem;
 }
 
@@ -303,11 +304,11 @@ bhr-game-container .replay-progress::-webkit-progress-bar {
 }
 
 .bhr-game-overlay button:hover {
-	filter: brightness(calc(1 + .2 * var(--brightness-multiplier)));
+	filter: brightness(calc(1 + .2 * var(--l-multiplier)));
 }
 
 .toast button:hover {
-	backdrop-filter: brightness(calc(1 + .2 * var(--brightness-multiplier)));
+	backdrop-filter: brightness(calc(1 + .2 * var(--l-multiplier)));
 }
 
 .disabled,
@@ -324,7 +325,7 @@ bhr-game-container .replay-progress::-webkit-progress-bar {
 
 textarea {
 	/* background-color: hsl(0deg 0% 50% / 20%); */
-	background-color: hsl(0deg 0% 50% / calc(50% - 30% * var(--brightness-multiplier)));
+	background-color: hsl(0deg 0% 50% / calc(50% - 30% * var(--l-multiplier)));
 	border: none;
 	border-radius: 5px;
 	color: var(--text-color);
@@ -341,7 +342,7 @@ textarea {
 }
 
 bhr-game-toolbar>section {
-	backdrop-filter: blur(2px) brightness(.8);
+	backdrop-filter: blur(2px) brightness(.5);
 	border: 1px solid var(--accent-color);
 	border-radius: 4px;
 	overflow: hidden;
@@ -447,12 +448,12 @@ bhr-game-toolbar .editor-tools .toolbar-item::before {
 bhr-game-toolbar button:hover,
 bhr-game-toolbar .toolbar-item:hover,
 bhr-game-toolbar .toolbar-item:has(> input:checked):not(.playpause):hover {
-	background-color: hsla(0, 0%, calc(50% - 40% * var(--brightness-multiplier)), 0.8);
+	background-color: hsla(0, 0%, calc(50% - 40% * var(--l-multiplier)), 0.8);
 	transition: all 40ms;
 }
 
 bhr-game-toolbar .toolbar-item:has(> input:checked):not(.playpause) {
-	background-color: hsla(0, 0%, calc(50% - 40% * var(--brightness-multiplier)), 0.7);
+	background-color: hsla(0, 0%, calc(50% - 40% * var(--l-multiplier)), 0.7);
 }
 
 bhr-game-toolbar .toolbar-item::before {

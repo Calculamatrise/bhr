@@ -1,5 +1,5 @@
 import Bike from "./Bike.js";
-import Vector from "../Vector.js";
+import Coordinates from "../Coordinates.js";
 
 export default class BMX extends Bike {
 	constructor(parent) {
@@ -9,13 +9,13 @@ export default class BMX extends Bike {
 		this.frontWheel.size = 11.7;
 		this.rearWheel.size = 11.7;
 
-		this.hitbox.position.set(new Vector(0, -1));
+		this.hitbox.position.set(new Coordinates(0, -1));
 		this.hitbox.displayPosition = this.hitbox.position;
 		this.hitbox.old = this.hitbox.position.clone();
-		this.rearWheel.position = new Vector(-21, 38);
+		this.rearWheel.position = new Coordinates(-21, 38);
 		this.rearWheel.displayPosition = this.rearWheel.position;
 		this.rearWheel.old = this.rearWheel.position.clone();
-		this.frontWheel.position = new Vector(21, 38);
+		this.frontWheel.position = new Coordinates(21, 38);
 		this.frontWheel.displayPosition = this.frontWheel.position;
 		this.frontWheel.old = this.frontWheel.position.clone();
 
@@ -41,8 +41,8 @@ export default class BMX extends Bike {
 		const rider = {};
 
 		let t = this.frontWheel.displayPosition.difference(this.rearWheel.displayPosition);
-		let e = new Vector(t.y, -t.x).scale(this.dir);
-		let s = new Vector(Math.cos(this.pedalSpeed), Math.sin(this.pedalSpeed)).scale(6);
+		let e = new Coordinates(t.y, -t.x).scale(this.dir);
+		let s = new Coordinates(Math.cos(this.pedalSpeed), Math.sin(this.pedalSpeed)).scale(6);
 
 		let r = this.hitbox.displayPosition.difference(this.rearWheel.displayPosition).difference(t.scale(0.5));
 		let a = this.rearWheel.displayPosition.sum(t.scale(0.3)).sum(e.scale(0.25));
@@ -54,7 +54,7 @@ export default class BMX extends Bike {
 		rider.shadowHand = rider.hand.clone();
 
 		let i = rider.sternum.difference(rider.hand);
-		i = new Vector(i.y, -i.x).scale(this.dir);
+		i = new Coordinates(i.y, -i.x).scale(this.dir);
 
 		rider.elbow = i.scale(130 / i.lengthSquared()).sum(rider.sternum.difference(rider.hand).scale(.4)).sum(rider.hand);
 		rider.shadowElbow = rider.elbow.clone();
@@ -62,36 +62,30 @@ export default class BMX extends Bike {
 		rider.foot = this.rearWheel.displayPosition.sum(t.scale(0.4)).sum(e.scale(0.05)).sum(s);
 
 		i = rider.hip.difference(rider.foot);
-		i = new Vector(-i.y, i.x).scale(this.dir);
+		i = new Coordinates(-i.y, i.x).scale(this.dir);
 
 		rider.knee = rider.hip.sum(rider.foot).scale(0.5).sum(i.scale(200 / i.lengthSquared()));
 		rider.shadowFoot = this.rearWheel.displayPosition.sum(t.scale(0.4)).sum(e.scale(0.05)).difference(s);
 
 		i = rider.hip.difference(rider.shadowFoot);
-		i = new Vector(-i.y, i.x).scale(this.dir);
+		i = new Coordinates(-i.y, i.x).scale(this.dir);
 
 		rider.shadowKnee = rider.hip.sum(rider.shadowFoot).scale(0.5).sum(i.scale(200 / i.lengthSquared()));
 		return rider;
 	}
 
 	draw(ctx) {
-		ctx.save();
-		this.parent.ghost && (ctx.globalAlpha /= 2,
-		this.parent.scene.cameraFocus && this.parent.scene.cameraFocus !== this.hitbox && (ctx.globalAlpha *= Math.min(1, Math.max(0.5, this.hitbox.displayPosition.distanceTo(this.parent.scene.cameraFocus.displayPosition) / (this.hitbox.size / 2) ** 2))));
-		ctx.lineWidth = 3.5 * this.parent.scene.zoom;
-		this.rearWheel.draw(ctx);
-		this.frontWheel.draw(ctx);
-
+		super.draw(ctx);
 		let rearWheel = this.rearWheel.displayPosition.toPixel();
 		let frontWheel = this.frontWheel.displayPosition.toPixel();
 		let l = frontWheel.difference(rearWheel);
-		let i = new Vector(frontWheel.y - rearWheel.y, rearWheel.x - frontWheel.x).scale(this.dir);
+		let i = new Coordinates(frontWheel.y - rearWheel.y, rearWheel.x - frontWheel.x).scale(this.dir);
 		let a = rearWheel.sum(l.scale(0.3)).sum(i.scale(0.25));
 		let n = rearWheel.sum(l.scale(0.84)).sum(i.scale(0.42));
 		let c = rearWheel.sum(l.scale(0.84)).sum(i.scale(0.37));
 		let w = rearWheel.sum(l.scale(0.4)).sum(i.scale(0.05));
 
-		ctx.lineWidth = this.parent.scene.zoom * 3;
+		ctx.lineWidth = this.parent.scene.camera.zoom * 3;
 		ctx.beginPath()
 		ctx.moveTo(rearWheel.x, rearWheel.y)
 		ctx.lineTo(a.x, a.y)
@@ -100,7 +94,7 @@ export default class BMX extends Bike {
 		ctx.lineTo(w.x, w.y)
 		ctx.lineTo(rearWheel.x, rearWheel.y);
 
-		c = new Vector(Math.cos(this.pedalSpeed), Math.sin(this.pedalSpeed)).scale(this.parent.scene.zoom * 6);
+		c = new Coordinates(Math.cos(this.pedalSpeed), Math.sin(this.pedalSpeed)).scale(this.parent.scene.camera.zoom * 6);
 		let foot = w.sum(c);
 		let shadowFoot = w.difference(c);
 
@@ -133,28 +127,26 @@ export default class BMX extends Bike {
 			i = this.hitbox.displayPosition.toPixel().difference(rearWheel).difference(l.scale(0.5));
 			ctx.beginPath();
 			switch (this.parent.cosmetics.head) {
-				case 'cap':
-					ctx.moveTo(...Object.values(a.sum(l.scale(0.4)).sum(i.scale(1.1))))
-					ctx.lineTo(...Object.values(a.sum(l.scale(0.05)).sum(i.scale(1.05))))
-					break;
-
-				case 'hat':
-					let head = a.sum(l.scale(0.35)).sum(i.scale(1.15));
-					let h = a.difference(l.scale(0.05)).sum(i.scale(1.1));
-					ctx.moveTo(head.x, head.y),
-					ctx.lineTo(...Object.values(a.sum(l.scale(0.25)).sum(i.scale(1.13)))),
-					ctx.lineTo(...Object.values(head.difference(l.scale(0.1)).sum(i.scale(0.2)))),
-					ctx.lineTo(...Object.values(h.sum(l.scale(0.02)).sum(i.scale(0.2)))),
-					ctx.lineTo(...Object.values(a.sum(l.scale(0.05)).sum(i.scale(1.11)))),
-					ctx.lineTo(h.x, h.y),
-					ctx.fill();
-					break;
+			case 'cap':
+				ctx.moveTo(...Object.values(a.sum(l.scale(0.4)).sum(i.scale(1.1))))
+				ctx.lineTo(...Object.values(a.sum(l.scale(0.05)).sum(i.scale(1.05))))
+				break;
+			case 'hat':
+				let head = a.sum(l.scale(0.35)).sum(i.scale(1.15));
+				let h = a.difference(l.scale(0.05)).sum(i.scale(1.1));
+				ctx.moveTo(head.x, head.y),
+				ctx.lineTo(...Object.values(a.sum(l.scale(0.25)).sum(i.scale(1.13)))),
+				ctx.lineTo(...Object.values(head.difference(l.scale(0.1)).sum(i.scale(0.2)))),
+				ctx.lineTo(...Object.values(h.sum(l.scale(0.02)).sum(i.scale(0.2)))),
+				ctx.lineTo(...Object.values(a.sum(l.scale(0.05)).sum(i.scale(1.11)))),
+				ctx.lineTo(h.x, h.y),
+				ctx.fill()
 			}
 
-			ctx.lineWidth = this.parent.scene.zoom * 2
+			ctx.lineWidth = this.parent.scene.camera.zoom * 2
 			ctx.stroke();
 		}
 
-		ctx.restore();
+		ctx.restore()
 	}
 }

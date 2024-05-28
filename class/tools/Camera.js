@@ -1,18 +1,18 @@
-import Vector from "../Vector.js";
 import Tool from "./Tool.js";
+import Coordinates from "../Coordinates.js";
 
 export default class extends Tool {
-	trackOffset = new Vector();
+	trackOffset = new Coordinates();
 	press(event) {
-		this.trackOffset.set(new Vector());
+		this.trackOffset.set(new Coordinates());
 	}
 
 	scroll(event) {
-		this.scene['zoom' + (event.wheelDelta > 0 ? 'In' : 'Out')]();
+		this.scene.camera['zoom' + (event.wheelDelta > 0 ? 'In' : 'Out')]();
 	}
 
 	stroke(event) {
-		let offset = new Vector(event.movementX * window.devicePixelRatio / this.scene.zoom, event.movementY * window.devicePixelRatio / this.scene.zoom);
+		let offset = new Coordinates(event.movementX * window.devicePixelRatio / this.scene.camera.zoom, event.movementY * window.devicePixelRatio / this.scene.camera.zoom);
 		if (this.scene.transformMode) {
 			this.trackOffset.add(offset);
 		}

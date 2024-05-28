@@ -4,7 +4,7 @@ export default class Explosion {
 	duration = 80; // duration in milliseconds
 	size = 24 + 16 * Math.random();
 	constructor(parent, part) {
-		this.parent = parent;
+		Object.defineProperty(this, 'parent', { value: parent || null });
 		this.position = part.position.clone();
 		this.shards = [
 			new Shard(this, this.position),
@@ -12,8 +12,7 @@ export default class Explosion {
 			new Shard(this, this.position),
 			new Shard(this, this.position),
 			new Shard(this, this.position)
-		]
-
+		];
 		this.sizeDiminution = this.size / (this.duration / (this.parent.scene.parent.ups / 2));
 	}
 
@@ -22,9 +21,9 @@ export default class Explosion {
 			// this.size -= this.sizeDiminution;
 			ctx.beginPath()
 			let position = this.position.toPixel();
-			ctx.moveTo(position.x + this.size / 2 * Math.cos(Math.random() * 2 * Math.PI) * this.parent.scene.zoom, position.y + this.size / 2 * Math.sin(Math.random() * 2 * Math.PI) * this.parent.scene.zoom);
+			ctx.moveTo(position.x + this.size / 2 * Math.cos(Math.random() * 2 * Math.PI) * this.parent.scene.camera.zoom, position.y + this.size / 2 * Math.sin(Math.random() * 2 * Math.PI) * this.parent.scene.camera.zoom);
 			for (let a = 1; a < 16; a++) {
-				let d = (this.size + 30 * Math.random()) / 2 * this.parent.scene.zoom;
+				let d = (this.size + 30 * Math.random()) / 2 * this.parent.scene.camera.zoom;
 				ctx.lineTo(position.x + d * Math.cos(Math.random() * 2 * Math.PI + 2 * Math.PI * a / 16), position.y + d * Math.sin(Math.random() * 2 * Math.PI + 2 * Math.PI * a / 16));
 			}
 

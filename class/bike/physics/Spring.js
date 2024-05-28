@@ -1,4 +1,4 @@
-import Vector from "../../Vector.js";
+import Coordinates from "../../Coordinates.js";
 
 export default class Spring {
 	dampConstant = .5;
@@ -24,7 +24,7 @@ export default class Spring {
 
 	rotate(a) {
 		let b = this.b.position.difference(this.a.position);
-		b = new Vector(-b.y / this.leff, b.x / this.leff);
+		b = new Coordinates(-b.y / this.leff, b.x / this.leff);
 		this.a.position.add(b.scale(a));
 		this.b.position.add(b.scale(-a));
 	}
