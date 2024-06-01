@@ -4,7 +4,7 @@ export default class extends BasePlayer {
 	pendingConsumables = 0;
 	constructor(parent, config = {}) {
 		super(parent, config);
-		this.gamepad.init();
+		this.gamepad._listen();
 		this.gamepad.on('down', this.updateRecords.bind(this));
 		this.gamepad.on('up', this.updateRecords.bind(this));
 		Object.defineProperty(parent, 'firstPlayer', { value: this });

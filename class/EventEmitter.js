@@ -2,6 +2,11 @@ export default class {
 	/** @private */
 	#events = new Map();
 	#temp = new WeakSet();
+	constructor() {
+		Object.defineProperties(this, {
+			addListener: { value: this.on, writable: true }
+		})
+	}
 
 	/**
 	 * Emit an event to trigger listeners
@@ -91,6 +96,14 @@ export default class {
 		return this.listeners(event).size;
 	}
 
+	off(event = null, listener = null) {
+		if (typeof listener == 'function') {
+			return this.removeListener(event);
+		}
+
+		return this.removeAllListeners(event)
+	}
+
 	/**
 	 * 
 	 * @param {String} event 
@@ -104,7 +117,9 @@ export default class {
 
 		const listeners = this.#events.get(event);
 		if (listeners !== void 0) {
-			listeners.delete(listener);
+			if (listeners.delete(listener)) {
+				this.#temp.delete(listener)
+			}
 		}
 
 		return true;
@@ -116,10 +131,10 @@ export default class {
 	 * @returns {Boolean}
 	 */
 	removeAllListeners(event) {
-		if (typeof event != 'string') {
-			throw new TypeError("Event must be of type: String");
+		if (typeof event == 'string') {
+			return this.#events.delete(event);
 		}
 
-		return this.#events.delete(event);
+		return this.#events.clear();
 	}
 }

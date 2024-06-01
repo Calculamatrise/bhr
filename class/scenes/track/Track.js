@@ -41,6 +41,15 @@ export default class extends Worker {
 		// 		break;
 		// 	}
 		// });
+		this.addEventListener('message', ({ data }) => {
+			switch(data.code) {
+			case 1:
+				// emit event
+				// exportProgress?
+				this.scene.parent.emit('export', data.data.code);
+				break;
+			}
+		});
 		this.clear()
 	}
 
@@ -256,6 +265,19 @@ export default class extends Worker {
 		}
 	}
 
+	compile() {
+		this.postMessage({
+			code: 1,
+			data: {
+				physicsLines: this.physicsLines.map(obj => obj.toJSON()),
+				sceneryLines: this.sceneryLines.map(obj => obj.toJSON()),
+				powerups: Object.values(this.powerupTypes).flatMap(type => type.map(obj => obj.toJSON())),
+				vehicle: this.scene.firstPlayer.vehicle.name
+			}
+		});
+		this.scene.parent.emit('compiling');
+	}
+
 	rotate() { }
 	scale() { }
 	transform(scaleX, translateX, rotateX, scaleY, translateY, rotateY) {
@@ -287,19 +309,36 @@ export default class extends Worker {
 	}
 
 	close() {
-		this.backgroundHelper.terminate()
+		this.terminate()
 	}
 
 	toString() {
-		let physics = []
-		  , scenery = []
-		  , powerups = [];
-		for (const sector of this.scene.grid.sectors) {
-			physics.push(...sector.physics.filter(line => (line = this.scene.grid.coords(line.a)) && line.x == sector.row && line.y == sector.column));
-			scenery.push(...sector.scenery.filter(line => (line = this.scene.grid.coords(line.a)) && line.x == sector.row && line.y == sector.column));
-			powerups.push(...sector.powerups)
+		if (this.physicsLines.length > 5e3 || this.sceneryLines.length > 5e3) {
+			this.compile();
+			return 'Track too large! Loading...';
+		}
+		let physics = ''
+		  , scenery = ''
+		  , powerups = '';
+		for (const line of this.physicsLines)
+			line.recorded || (physics.length > 0 && (physics += ','),
+			physics += line.toString());
+		for (const line of this.physicsLines)
+			delete line.recorded;
+		for (const line of this.sceneryLines)
+			line.recorded || (scenery.length > 0 && (scenery += ','),
+			scenery += line.toString());
+		for (const line of this.sceneryLines)
+			delete line.recorded;
+		for (const powerupType in this.powerupTypes) {
+			for (const powerup of this.powerupTypes[powerupType]) {
+				powerups.length > 0 && (powerups += ',');
+				powerups += powerup.toString();
+			}
 		}
 
-		return Array(physics.join(','), scenery.join(','), powerups.join(','), this.firstPlayer.vehicle.name).join('#')
+		let code = physics + '#' + scenery + '#' + powerups + '#' + this.scene.firstPlayer.vehicle.name;
+		this.scene.parent.emit('export', code);
+		return code
 	}
 }

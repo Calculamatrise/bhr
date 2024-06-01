@@ -14,96 +14,100 @@ export default class {
 	}
 
 	get length() {
-		return Math.sqrt(this.lengthSquared());
-	}
-
-	toCanvas(canvas) {
-		return this.constructor.from(Math.round((this.x - canvas.width / 2) / window.game.scene.camera.zoom + window.game.scene.camera.x), Math.round((this.y - canvas.height / 2) / window.game.scene.camera.zoom + window.game.scene.camera.y));
-	}
-
-	toPixel() {
-		return this.constructor.from((this.x - window.game.scene.camera.x) * window.game.scene.camera.zoom + window.game.canvas.width / 2, (this.y - window.game.scene.camera.y) * window.game.scene.camera.zoom + window.game.canvas.height / 2);
-	}
-
-	set(vector) {
-		this.x = vector.x;
-		this.y = vector.y;
-		return this;
+		return Math.sqrt(this.lengthSquared())
 	}
 
 	add(vector) {
 		this.x += vector.x;
 		this.y += vector.y;
-		return this;
+		return this
 	}
 
-	subtract(vector) {
-		this.x -= vector.x;
-		this.y -= vector.y;
-		return this;
-	}
-
-	scaleSelf(factor) {
-		this.x *= factor;
-		this.y *= factor;
-		return this;
-	}
-
-	sum(vector) {
-		return new this.constructor(this.x + vector.x, this.y + vector.y);
+	clone() {
+		return new this.constructor(this.x, this.y)
 	}
 
 	difference(vector) { // delta
-		return new this.constructor(this.x - vector.x, this.y - vector.y);
-	}
-
-	scale(factor) {
-		return new this.constructor(this.x * factor, this.y * factor);
-	}
-
-	oppositeScale(factor) {
-		return new this.constructor(this.x / factor, this.y / factor);
-	}
-
-	dot(vector) {
-		return this.x * vector.x + this.y * vector.y;
-	}
-
-	lengthSquared() {
-		return this.x ** 2 + this.y ** 2;
+		return new this.constructor(this.x - vector.x, this.y - vector.y)
 	}
 
 	distanceTo(vector) {
-		return Math.sqrt((this.x - vector.x) ** 2 + (this.y - vector.y) ** 2);
+		return Math.sqrt((this.x - vector.x) ** 2 + (this.y - vector.y) ** 2)
 	}
 
 	distanceToSquared(vector) {
-		return (this.x - vector.x) ** 2 + (this.y - vector.y) ** 2;
+		return (this.x - vector.x) ** 2 + (this.y - vector.y) ** 2
+	}
+
+	dot(vector) {
+		return this.x * vector.x + this.y * vector.y
+	}
+
+	equ(vector) {
+		return this.x === vector.x && this.y === vector.y
 	}
 
 	floor() {
 		this.x = Math.floor(this.x);
 		this.y = Math.floor(this.y);
-		return this;
+		return this
+	}
+
+	scale(factor) {
+		return new this.constructor(this.x * factor, this.y * factor)
+	}
+
+	scaleSelf(factor) {
+		this.x *= factor;
+		this.y *= factor;
+		return this
+	}
+
+	set(vector) {
+		this.x = vector.x;
+		this.y = vector.y;
+		return this
+	}
+
+	subtract(vector) {
+		this.x -= vector.x;
+		this.y -= vector.y;
+		return this
+	}
+
+	sum(vector) {
+		return new this.constructor(this.x + vector.x, this.y + vector.y)
+	}
+
+	oppositeScale(factor) {
+		return new this.constructor(this.x / factor, this.y / factor)
+	}
+
+	lengthSquared() {
+		return this.x ** 2 + this.y ** 2
 	}
 
 	map(callback = value => value) {
-		return this.constructor.from(callback(this.x), callback(this.y));
+		return this.constructor.from(callback(this.x), callback(this.y))
 	}
 
-	clone() {
-		return new this.constructor(this.x, this.y);
+	toCanvas(canvas) {
+		return this.constructor.from(Math.round((this.x - canvas.width / 2) / window.game.scene.camera.zoom + window.game.scene.camera.x), Math.round((this.y - canvas.height / 2) / window.game.scene.camera.zoom + window.game.scene.camera.y))
 	}
 
 	toJSON() {
-		return { x: this.x, y: this.y };
+		return { x: this.x, y: this.y }
+	}
+
+	toPixel() {
+		return this.constructor.from((this.x - window.game.scene.camera.x) * window.game.scene.camera.zoom + window.game.canvas.width / 2, (this.y - window.game.scene.camera.y) * window.game.scene.camera.zoom + window.game.canvas.height / 2)
 	}
 
 	toString() {
-		return this.x.toString(32) + ' ' + this.y.toString(32);
+		return this.x.toString(32) + ' ' + this.y.toString(32)
 	}
 
 	static from() {
-		return new this(...arguments);
+		return new this(...arguments)
 	}
 }

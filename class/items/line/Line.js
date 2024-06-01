@@ -4,7 +4,9 @@ export default class {
 	sectors = new Set();
 	constructor(t, e, i, s, n) {
 		Object.defineProperty(this, 'scene', { value: n || null });
-		Object.defineProperty(this, 'id', { value: crypto.randomUUID() }); // create an ID to reference when deleting line?
+		// use id as reference for lines in worker and in sectors -- move Track class to worker
+		Object.defineProperty(this, 'id', { value: crypto.randomUUID() });
+		Object.defineProperty(this, 'sectors', { enumerable: false });
 		this.a = t instanceof Coordinates ? t : new Coordinates(t, e);
 		this.b = e instanceof Coordinates ? e : new Coordinates(i, s);
 	}
@@ -35,6 +37,14 @@ export default class {
 		return vector.difference(c).length <= this.scene.toolHandler.currentTool.size
 	}
 
+	findConnectedLine() {
+		let connectedLine = this.scene.track[this.type + 'Lines'].filter(line => line !== this).find(line => line.a.equ(this.b) || line.b.equ(this.b));
+		if (!connectedLine) return '';
+		let nextPoint = connectedLine.a.equ(this.b) ? connectedLine.b : connectedLine.a;
+		connectedLine.recorded = true;
+		return ' ' + nextPoint.toString()
+	}
+
 	move(vector) {
 		this.scene.grid.removeItem(this);
 		this.a.add(vector);
@@ -55,10 +65,10 @@ export default class {
 	}
 
 	toJSON() {
-		return { a: this.a, b: this.b, id: this.id, type: this.type }
+		return { a: this.a.toJSON(), b: this.b.toJSON(), id: this.id, type: this.type }
 	}
 
 	toString() {
-		return this.a.toString() + ' ' + this.b.toString()
+		return this.a.toString() + ' ' + this.b.toString() + this.findConnectedLine()
 	}
 }

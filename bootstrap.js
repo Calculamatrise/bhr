@@ -8,6 +8,10 @@ window.game.on('cameraFocus', function(player) {
 	progress.setAttribute('value', player.parent.parent.playbackTicks));
 });
 
+window.game.on('compiling', function() {
+	'code' in window && (code.disabled = true);
+});
+
 window.game.on('currentToolChange', function(currentTool) {
 	let selected = window.game.scene.toolHandler.selected;
 	let powerups = document.querySelector('#powerups');
@@ -20,6 +24,12 @@ window.game.on('currentToolChange', function(currentTool) {
 
 	let toolUIButton = document.querySelector(`.toolbar-item${currentTool.scenery ? '.scenery' : ''}.${selected} > input[type=radio]`);
 	toolUIButton !== null && (toolUIButton.checked = true);
+});
+
+window.game.on('export', function(trackCode) {
+	'code' in window && (code.disabled = false,
+	code.value = trackCode);
+	trackdialog.showModal();
 });
 
 window.game.on('gridStateChange', function(enabled) {
@@ -100,16 +110,16 @@ window.game.on('trackComplete', async function(payload) {
 	}
 });
 
-// Make sure paste does not function when the select tool is selected.
-document.addEventListener('paste', function({ clipboardData }) {
-	const text = clipboardData.getData('text');
-	if (!/^\w*#\w*#\w*(#\w+)?$/.test(text)) return;
-	if ('trackdialog' in window) {
-		if (trackdialog.open) return;
+'code' in window && code.addEventListener('paste', function(event) {
+	const text = event.clipboardData.getData('text');
+	if (!/^([\w\s,-]*#){2}[\w\s,-]*(#\w*)?$/.test(text)) return;
+	if (text.length > 5e4) {
+		event.preventDefault();
+		confirm("Would you like to load the track you pasted? (" + Math.floor(text.length / 1e3) + "k)") && window.game.init({ code: text, write: true });
+		'trackdialog' in window && trackdialog.close();
 		const overlayCheckbox = document.querySelector('.bhr-game-overlay > input');
-		overlayCheckbox !== null && (overlayCheckbox.checked = true);
-		code && (code.value = text);
-		trackdialog.showModal()
+		overlayCheckbox !== null && (overlayCheckbox.checked = false);
+		return;
 	}
 });
 
@@ -129,4 +139,4 @@ document.addEventListener('keyup', function(event) {
 // 		overlayCheckbox !== null && (overlayCheckbox.checked = !overlayCheckbox.checked,
 // 		window.game.scene.paused = overlayCheckbox.checked)
 // 	}
-// });
+// }, { passive: true });

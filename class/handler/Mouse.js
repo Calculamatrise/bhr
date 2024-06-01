@@ -12,20 +12,40 @@ export default class extends EventEmitter {
 		return document.pointerLockElement === this.target;
 	}
 
+	_listen() {
+		Object.defineProperties(this, {
+			_onclick: { value: this.click.bind(this), writable: true },
+			_onpointerdown: { value: this.pointerdown.bind(this), writable: true },
+			_onpointermove: { value: this.move.bind(this), writable: true },
+			_onpointerup: { value: this.up.bind(this), writable: true },
+			_oncontextmenu: { value: this.menu.bind(this), writable: true },
+			_onwheel: { value: this.wheel.bind(this), writable: true }
+		});
+		this.target.addEventListener('click', this._onclick, { passive: true });
+		this.target.addEventListener('pointerdown', this._onpointerdown, { passive: true });
+		this.target.addEventListener('pointermove', this._onpointermove, { passive: true });
+		this.target.addEventListener('pointerup', this._onpointerup, { passive: true });
+		this.target.addEventListener('contextmenu', this._oncontextmenu);
+		this.target.addEventListener('wheel', this._onwheel);
+		// document.addEventListener('pointerlockchange', this.lockChangeAlert.bind(this), false /* { passive: true } */);
+	}
+
+	_unlisten() {
+		this.target.removeEventListener('click', this._onclick);
+		this.target.removeEventListener('pointerdown', this._onpointerdown);
+		this.target.removeEventListener('pointermove', this._onpointermove);
+		this.target.removeEventListener('pointerup', this._onpointerup);
+		this.target.removeEventListener('contextmenu', this._oncontextmenu);
+		this.target.removeEventListener('wheel', this._onwheel);
+	}
+
 	setTarget(target) {
 		this.target !== null && this.close();
-		this.target = target;
-		this.target.addEventListener('click', this.click = this.click.bind(this));
-		this.target.addEventListener('pointerdown', this.pointerdown = this.pointerdown.bind(this));
-		this.target.addEventListener('pointermove', this.move = this.move.bind(this));
-		this.target.addEventListener('pointerup', this.up = this.up.bind(this));
-		this.target.addEventListener('contextmenu', this.menu = this.menu.bind(this));
-		this.target.addEventListener('wheel', this.wheel = this.wheel.bind(this), { passive: true });
-		// document.addEventListener('pointerlockchange', this.lockChangeAlert.bind(this), false);
+		Object.defineProperty(this, 'target', { value: target, enumerable: false });
+		this._listen()
 	}
 
 	async click(event) {
-		event.preventDefault();
 		if (event.ctrlKey && event.shiftKey) {
 			await this.lock();
 		}
@@ -38,7 +58,6 @@ export default class extends EventEmitter {
 	}
 
 	pointerdown(event) {
-		event.preventDefault();
 		this.down = true;
 		this.old.set(this.position);
 		if (!this.locked) {
@@ -51,7 +70,6 @@ export default class extends EventEmitter {
 	}
 
 	move(event) {
-		event.preventDefault();
 		if (this.locked) {
 			this.rawPosition.add(new Coordinates(event.movementX * window.devicePixelRatio, event.movementY * window.devicePixelRatio));
 		} else {
@@ -63,7 +81,6 @@ export default class extends EventEmitter {
 	}
 
 	up(event) {
-		event.preventDefault();
 		this.down = false;
 		if (!this.locked) {
 			this.rawPosition.set(new Coordinates(event.offsetX * window.devicePixelRatio, event.offsetY * window.devicePixelRatio));
@@ -84,12 +101,7 @@ export default class extends EventEmitter {
 	}
 
 	close() {
-		this.target.removeEventListener('click', this.click);
-		this.target.removeEventListener('pointerdown', this.pointerdown);
-		this.target.removeEventListener('pointermove', this.move);
-		this.target.removeEventListener('pointerup', this.up);
-		this.target.removeEventListener('contextmenu', this.menu);
-		this.target.removeEventListener('mousewheel', this.wheel);
-		this.target = null;
+		this._unlisten();
+		this.target = null
 	}
 }

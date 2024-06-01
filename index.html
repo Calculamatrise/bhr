@@ -102,13 +102,13 @@
 					<button onclick="game.openFile({ multiple: event.ctrlKey })">Open File...</button>
 					<!-- Open folder option allowing users to work on multiple tracks at once w/ different layers.
 						This could help with "stop motion" tracks -->
-					<button onclick="code.value = game.scene.toString();trackdialog.showModal();">Save</button>
+					<button onclick="code.value = game.scene.track.toString();trackdialog.showModal();">Save</button>
 					<button onclick="game.saveAs()">Save As...</button>
 					<button onclick="game.showRecentFiles()">Show Recent Files</button>
 					<button id="upload">Upload</button>
 					<script>
 						upload.addEventListener('click', function () {
-							const code = game.scene.toString();
+							const code = game.scene.track.toString();
 							if (code.length < 1e3) {
 								return alert("Sorry, but your track must be bigger or more detailed.");
 							} else if (game.scene.targets < 1) {
@@ -302,7 +302,7 @@
 					<label>Auto save<input type="checkbox" id="game-settings.auto-save" onchange="game.settings.autoSave = event.target.checked;"></label>
 					<!-- Hide if auto save is not checked -->
 					<label>Interval<input type="number" id="game-settings.auto-save-interval" min="5" value="5" max="60" style="box-sizing: content-box;max-width: 2rem;" onchange="game.settings.autoSaveInterval = event.target.value;"></label>
-					<label>Continue where you left off<input type="checkbox" id="game-settings.restore-previous-session" onchange="game.settings.restorePreviousSession = event.target.checked;"></label>
+					<label class="disabled">Continue where you left off<input type="checkbox" id="game-settings.restore-previous-session" onchange="game.settings.restorePreviousSession = event.target.checked;" disabled></label>
 				</section>
 				<section title="Game">
 					<label>Auto pause<input type="checkbox" id="game-settings.auto-pause" onchange="game.settings.autoPause = event.target.checked"></label>
@@ -336,6 +336,7 @@
 		} else {
 			game.init({ default: true, write: true });
 		}
+		// game.init({ code: '-18 1i 18 1i 1i 18##', write: true })
 	</script>
 </body>
 </html>

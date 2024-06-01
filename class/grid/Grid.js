@@ -38,7 +38,7 @@ export default class extends Worker {
 				this.updateSector(data);
 				return;
 			}
-		});
+		}, { passive: true });
 		this.postMessage({
 			code: 1,
 			config: {

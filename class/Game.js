@@ -21,7 +21,7 @@ export default class extends EventEmitter {
 	#matchMediaChangeListener = null;
 	#openFile = null;
 	accentColor = '#000000'; // for themes
-	debug = false;
+	debug = true;
 	lastFrame = null;
 	lastTime = performance.now();
 	progress = 0;
@@ -51,9 +51,6 @@ export default class extends EventEmitter {
 		this.mouse.on('up', this.clip.bind(this));
 		this.mouse.on('wheel', this.scroll.bind(this));
 
-		document.addEventListener('fullscreenchange', () => navigator.keyboard.lock(['Escape']));
-		document.addEventListener('keydown', this.keydown.bind(this));
-		document.addEventListener('keyup', this.keyup.bind(this));
 		this.on('settingsChange', settings => {
 			for (const setting in settings) {
 				let value = settings[setting];
@@ -75,7 +72,7 @@ export default class extends EventEmitter {
 						this.#matchMediaChangeListener ||= preferredMedia.addEventListener('change', ({ matches }) => {
 							this.emit('settingsChange', this.settings);
 							this.emit('themePreferenceChange', matches ? 'dark' : 'light');
-						});
+						}, { passive: true });
 					} else if (null !== this.#matchMediaChangeListener) {
 						preferredMedia.removeEventListener('change', this.#matchMediaChangeListener);
 					}
@@ -95,7 +92,7 @@ export default class extends EventEmitter {
 				const date = new Intl.DateTimeFormat(navigator.language, { dateStyle: 'short', timeStyle: 'medium' }).format().replace(/[/\\?%*:|"<>]/g, '-').replace(/,+\s*/, '_').replace(/\s+.*$/, '');
 				this.trackStorage.open(date, { overwrite: false });
 				setInterval(() => {
-					this.trackStorage.write(date, this.scene.toString(), { saveAndReplace: true });
+					this.trackStorage.write(date, this.scene.track.toString(), { saveAndReplace: true });
 				}, this.settings.autoSaveInterval * 1e3);
 			}
 
@@ -122,46 +119,80 @@ export default class extends EventEmitter {
 			// 	this.constructor.serveToast(toast);
 			// }
 		});
-
-		window.navigation.addEventListener('navigate', this._onnavigate = this.close.bind(this));
-		window.addEventListener('online', this._ononline = event => {
-			const TEMP_KEY = 'bhr-temp';
-			let data = JSON.parse(localStorage.getItem(TEMP_KEY));
-			if (data && data.hasOwnProperty('savedGhosts')) {
-				if (data.savedGhosts.length > 0) {
-					for (const record of data.savedGhosts) {
-						this.emit('trackComplete', record);
-					}
-
-					delete data.savedGhosts;
-				}
-
-				localStorage.setItem(TEMP_KEY, JSON.stringify(data));
-			}
-
-			this.emit('settingsChange', this.settings);
-		});
-
-		window.addEventListener('load', this._onload = () => window.dispatchEvent(new Event('online')));
-		// new ResizeObserver(this.setCanvasSize.bind(this)).observe(this.canvas);
-		window.addEventListener('resize', this._onresize = this.setCanvasSize.bind(this));
-		window.addEventListener('beforeunload', this._onbeforeunload = async event => {
-			event.preventDefault();
-			event.returnValue = false;
-			if (this.trackStorage.writables.has('savedState')) {
-				const writable = this.trackStorage.writables.get('savedState');
-				// const writer = await writable.getWriter();
-				// console.log(writable)
-				await writable.write(this.scene.toString());
-				await writable.close();
-			}
-		});
-		window.addEventListener('unload', this._onunload = this.close.bind(this));
+		this._listen();
 		Object.defineProperty(this, 'debug', { enumerable: false })
 	}
 
 	get max() {
 		return 1000 / this.ups;
+	}
+
+	_listen() {
+		Object.defineProperties(this, {
+			_onfullscreenchange: { value: () => navigator.keyboard[(null === document.fullscreenElement ? 'un' : '') + 'lock'](['Escape']), writable: true },
+			_onkeydown: { value: this.keydown.bind(this), writable: true },
+			_onkeyup: { value: this.keyup.bind(this), writable: true },
+			_onpaste: { value: event => {
+				const text = event.clipboardData.getData('text');
+				if (!/^([\w\s,-]*#){2}[\w\s,-]*(#\w*)?$/.test(text)) return;
+				event.preventDefault();
+				console.log(text)
+			}, writable: true }
+		});
+		document.addEventListener('fullscreenchange', this._onfullscreenchange, { passive: true });
+		document.addEventListener('keydown', this._onkeydown);
+		document.addEventListener('keyup', this._onkeyup);
+		document.addEventListener('paste', this._onpaste);
+		Object.defineProperties(this, {
+			_closebound: { value: this.close.bind(this), writable: true },
+			_onbeforeunload: { value: (async event => {
+				event.preventDefault();
+				event.returnValue = false;
+				if (this.trackStorage.writables.has('savedState')) {
+					const writable = this.trackStorage.writables.get('savedState');
+					// const writer = await writable.getWriter();
+					// console.log(writable)
+					await writable.write(this.scene.track.toString());
+					await writable.close();
+				}
+			}).bind(this), writable: true },
+			_ononline: { value: (() => {
+				const TEMP_KEY = 'bhr-temp';
+				let data = JSON.parse(localStorage.getItem(TEMP_KEY));
+				if (data && data.hasOwnProperty('savedGhosts')) {
+					if (data.savedGhosts.length > 0) {
+						for (const record of data.savedGhosts) {
+							this.emit('trackComplete', record);
+						}
+	
+						delete data.savedGhosts;
+					}
+	
+					localStorage.setItem(TEMP_KEY, JSON.stringify(data));
+				}
+	
+				this.emit('settingsChange', this.settings);
+			}).bind(this), writable: true },
+			_onresize: { value: this.setCanvasSize.bind(this), writable: true }
+		});
+		window.navigation && navigation.addEventListener('navigate', this._closebound, { passive: true });
+		window.addEventListener('beforeunload', this._onbeforeunload);
+		window.addEventListener('load', () => window.dispatchEvent(new Event('online')), { once: true, passive: true });
+		window.addEventListener('online', this._ononline, { passive: true });
+		// new ResizeObserver(this.setCanvasSize.bind(this)).observe(this.canvas);
+		window.addEventListener('resize', this._onresize, { passive: true });
+		window.addEventListener('unload', this._closebound, { once: true, passive: true });
+	}
+
+	_unlisten() {
+		document.removeEventListener('fullscreenchange', this._onfullscreenchange);
+		document.removeEventListener('keydown', this._onkeydown);
+		document.removeEventListener('keyup', this._onkeyup);
+		document.removeEventListener('paste', this._onpaste);
+		window.navigation && navigation.removeEventListener('navigate', this._closebound);
+		window.removeEventListener('beforeunload', this._onbeforeunload);
+		window.removeEventListener('online', this._ononline);
+		window.removeEventListener('resize', this._onresize);
 	}
 
 	init(options = {}) {
@@ -214,10 +245,10 @@ export default class extends EventEmitter {
 			const objectURL = URL.createObjectURL(data);
 			typeof lastArgument == 'function' && lastArgument(objectURL);
 			this.emit('recorderStop', objectURL);
-		});
+		}, { passive: true });
 		this.mediaRecorder.addEventListener('start', event => {
 			this.emit('recorderStart', event);
-		})
+		}, { passive: true })
 		return this.mediaRecorder;
 	}
 
@@ -263,18 +294,18 @@ export default class extends EventEmitter {
 					const wrapper = document.createElement('div');
 					wrapper.style = 'display: flex;gap: 0.25rem;width: -webkit-fill-available;';
 					const button = wrapper.appendChild(document.createElement('button'));
-					button.addEventListener('click', async event => {
+					button.addEventListener('click', async () => {
 						this.init({ code: await fileData.text() });
-					});
+					}, { passive: true });
 					button.innerText = fileName;
 					button.style = 'width: -webkit-fill-available;';
 					const remove = wrapper.appendChild(document.createElement('button'));
-					remove.addEventListener('click', async event => {
+					remove.addEventListener('click', () => {
 						this.trackStorage.cache.delete(fileHandle.name);
 						this.trackStorage.writables.delete(fileHandle.name);
 						fileHandle.remove();
 						wrapper.remove();
-					});
+					}, { passive: true });
 					remove.innerText = '🗑'; // 🗙
 					remove.style = 'background-color: hsl(0 40% 40% / calc(50% + 10% * var(--brightness-multiplier)));';
 					results.push(wrapper);
@@ -405,22 +436,22 @@ export default class extends EventEmitter {
 				this.scene.toolHandler.currentTool.deleteSelected();
 				break;
 			case 'v':
-				if (!event.ctrlKey) break;
-				const queryOpts = { name: 'clipboard-read', allowWithoutGesture: false };
-				const permissionStatus = await navigator.permissions.query(queryOpts).then(permissionStatus => {
-					permissionStatus.onchange = ({ target }) => {
-						target.state == 'granted' && navigator.clipboard.readText().then(console.log);
-					};
+				// if (!event.ctrlKey) break;
+				// const queryOpts = { name: 'clipboard-read', allowWithoutGesture: false };
+				// const permissionStatus = await navigator.permissions.query(queryOpts).then(permissionStatus => {
+				// 	permissionStatus.onchange = ({ target }) => {
+				// 		target.state == 'granted' && navigator.clipboard.readText().then(console.log);
+				// 	};
 
-					return permissionStatus.state;
-				});
+				// 	return permissionStatus.state;
+				// });
 
-				if (permissionStatus == 'deined') {
-					alert('NotAllowedError: Read permission denied.');
-					break;
-				}
+				// if (permissionStatus == 'deined') {
+				// 	alert('NotAllowedError: Read permission denied.');
+				// 	break;
+				// }
 
-				navigator.clipboard.readText().then(console.log).catch(alert);
+				// navigator.clipboard.readText().then(console.log).catch(alert);
 				break;
 			// store arrays of hotkeys in each tool, then compare
 			// let tools = Object.fromEntries(this.scene.toolHandler.cache.entries());
@@ -506,6 +537,7 @@ export default class extends EventEmitter {
 		if (!event.ctrlKey && this.scene.toolHandler.selected !== 'camera') {
 			this.scene.toolHandler.scroll(event);
 		} else {
+			event.preventDefault();
 			this.scene.toolHandler.cache.get('camera').scroll(event);
 		}
 
@@ -572,7 +604,7 @@ export default class extends EventEmitter {
 	save() {
 		if (this.#openFile) {
 			this.#openFile.createWritable().then(writable => {
-				writable.write(this.scene.toString()).then(() => {
+				writable.write(this.scene.track.toString()).then(() => {
 					if ('toasts' in window) {
 						this.constructor.serveToast(Object.assign(document.createElement('div'), {
 							className: 'toast',
@@ -600,7 +632,7 @@ export default class extends EventEmitter {
 		// 	}).catch(() => null);
 		// 	if (fileHandle !== null && verifyPermission(fileHandle, true)) {
 		// 		const writable = await fileHandle.createWritable();
-		// 		await writable.write(this.scene.toString());
+		// 		await writable.write(this.scene.track.toString());
 		// 		await writable.close();
 		// 		return true;
 		// 	}
@@ -608,7 +640,7 @@ export default class extends EventEmitter {
 
 		const link = document.createElement('a');
 		link.setAttribute('download', 'bhr_track-' + new Intl.DateTimeFormat('en-CA', { dateStyle: 'short', timeStyle: 'medium' }).format().replace(/[/\\?%*:|"<>]/g, '-').replace(/,+\s*/, '_').replace(/\s+.*$/, ''));
-		link.setAttribute('href', URL.createObjectURL(new Blob([this.scene.toString()], { type: 'text/plain' })));
+		link.setAttribute('href', URL.createObjectURL(new Blob([this.scene.track.toString()], { type: 'text/plain' })));
 		link.click();
 		return true;
 	}
@@ -622,12 +654,7 @@ export default class extends EventEmitter {
 		this.mouse.close();
 		// this.scene.close();
 		this.scene.firstPlayer?.gamepad?.close();
-		navigation.removeEventListener('navigate', this._onnavigate);
-		window.removeEventListener('beforeunload', this._onbeforeunload);
-		window.removeEventListener('load', this._onload);
-		window.removeEventListener('online', this._ononline);
-		window.removeEventListener('resize', this._onresize);
-		window.removeEventListener('unload', this._onunload);
+		this._unlisten();
 	}
 
 	static DEFAULTS = DEFAULTS;

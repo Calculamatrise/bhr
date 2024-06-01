@@ -53,7 +53,7 @@ addEventListener('message', async ({ data }) => {
 	case 2: // update?
 		break;
 	}
-});
+}, { passive: true });
 
 function parseLines(lines, scenery) {
 	let combined = [];

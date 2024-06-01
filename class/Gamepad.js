@@ -3,10 +3,21 @@ import EventEmitter from "./EventEmitter.js";
 export default class extends EventEmitter {
 	downKeys = new Set();
 	// keymap?
-	init() {
-		window.addEventListener('blur', this.blur = this.blur.bind(this));
-		window.addEventListener('keydown', this.down = this.down.bind(this));
-		window.addEventListener('keyup', this.up = this.up.bind(this))
+	_listen() {
+		Object.defineProperties(this, {
+			_onblur: { value: this.blur.bind(this), writable: true },
+			_onkeydown: { value: this.down.bind(this), writable: true },
+			_onkeyup: { value: this.up.bind(this), writable: true }
+		});
+		window.addEventListener('blur', this._onblur, { passive: true });
+		window.addEventListener('keydown', this._onkeydown);
+		window.addEventListener('keyup', this._onkeyup)
+	}
+
+	_unlisten() {
+		window.removeEventListener('blur', this._onblur);
+		window.removeEventListener('keydown', this._onkeydown);
+		window.removeEventListener('keyup', this._onkeyup)
 	}
 
 	blur() { this.downKeys.clear() }
@@ -31,9 +42,10 @@ export default class extends EventEmitter {
 	}
 
 	close() {
-		window.removeEventListener('blur', this.blur);
-		window.removeEventListener('keydown', this.down);
-		window.removeEventListener('keyup', this.up)
+		this._unlisten();
+		this.onblur = null;
+		this.onkeydown = null;
+		this.onkeyup = null
 	}
 
 	static mask(key) {
