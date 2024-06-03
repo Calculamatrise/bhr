@@ -238,6 +238,10 @@ export default class extends EventEmitter {
 		this.scene.render(this.ctx);
 	}
 
+	toggleFullscreen() {
+		return document.fullscreenElement ? document.exitFullscreen() : this.container.requestFullscreen()
+	}
+
 	createRecorder() {
 		const lastArgument = arguments[arguments.length - 1];
 		this.mediaRecorder = new MediaRecorder(this.canvas.captureStream(50));

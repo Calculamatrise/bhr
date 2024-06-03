@@ -116,6 +116,13 @@ bhr-game-container .replay-progress::-webkit-progress-bar {
 	box-shadow: hsl(0deg 0% 0% / 50%) 0px 0px 4px;
 }
 
+.bhr-dialog#loadrecenttracks #recenttracks:empty::before {
+	content: "No entries saved.";
+	font-size: smaller;
+	opacity: 0.5;
+	pointer-events: none;
+}
+
 .input-container {
 	position: relative;
 }
@@ -296,6 +303,7 @@ bhr-game-container .replay-progress::-webkit-progress-bar {
 	/* background-color: hsl(0deg 0% 40% / 60%); */
 	background-color: hsl(0deg 0% calc(25% - 10% * var(--l-multiplier)) / 60%);
 	padding: 0.5rem 1rem;
+	text-align: left;
 }
 
 .toast button {
@@ -345,15 +353,15 @@ bhr-game-toolbar>section {
 	backdrop-filter: blur(2px) brightness(.5);
 	border: 1px solid var(--accent-color);
 	border-radius: 4px;
-	overflow: hidden;
+	/* overflow: hidden; */
 	position: absolute;
 }
 
 /* experimental animations - add settings to enable/disable */
-bhr-game-toolbar>section:hover {
+/* bhr-game-toolbar>section:hover {
 	scale: 1.05;
 	transition: scale 200ms;
-}
+} */
 
 bhr-game-toolbar .toolbar-item:hover:active::before {
 	scale: 0.8;
@@ -437,6 +445,27 @@ bhr-game-toolbar .toolbar-item {
 	user-select: none;
 }
 
+[tooltip]:hover::after {
+	-webkit-font-smoothing: subpixel-antialiased;
+	background-color: hsl(0 0% 10% / 75%);
+	border: 1px solid var(--border-color);
+	border-radius: .4em;
+	padding: .5em 1em;
+
+	color: var(--text-color);
+	content: attr(tooltip);
+	font-size: smaller;
+	max-width: 15vmin;
+	pointer-events: none;
+	position: absolute;
+	text-overflow: ellipsis;
+	width: max-content;
+}
+
+bhr-game-toolbar .bottom .toolbar-item[tooltip]:hover::after { bottom: calc(100% + .75rem); }
+bhr-game-toolbar .left .toolbar-item[tooltip]:hover::after { left: calc(100% + .75rem); }
+bhr-game-toolbar .right .toolbar-item[tooltip]:hover::after { right: calc(100% + .75rem); }
+bhr-game-toolbar .top .toolbar-item[tooltip]:hover::after { top: calc(100% + .75rem); }
 bhr-game-toolbar .toolbar-item:is(.backtrack, .camera, .fullscreen, .line, .playpause, .rewind)::before {
 	background-color: var(--text-color);
 }
