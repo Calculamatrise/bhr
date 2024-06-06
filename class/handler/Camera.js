@@ -20,7 +20,7 @@ export default class extends Coordinates {
 
 	focus() {
 		this.focusPoint !== null && (this.set(this.focusPoint.position),
-		this.focusPoint.parent && this.focusPoint.parent.parent && this.scene.parent.emit('cameraFocus', this.focusPoint.parent.parent))
+		this.focusPoint.player && this.scene.parent.emit('cameraFocus', this.focusPoint.player))
 	}
 
 	zoomIn() { this.zoom += .2 }

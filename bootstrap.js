@@ -51,9 +51,9 @@ window.game.on('replayQueued', function(player) {
 
 window.game.on('sceneReset', function(scene) {
 	let progress = document.querySelector('.replay-progress');
-	progress && (scene.camera.focusPoint === scene.firstPlayer.vehicle.hitbox ? progress.style.setProperty('display', 'none') : (progress.style.removeProperty('display'),
-	progress.setAttribute('max', scene.camera.focusPoint.parent.parent.runTime ?? 100),
-	progress.setAttribute('value', scene.camera.focusPoint.parent.parent.ticks)));
+	progress && (scene.camera.focusPoint === scene.firstPlayer.hitbox ? progress.style.setProperty('display', 'none') : (progress.style.removeProperty('display'),
+	progress.setAttribute('max', scene.camera.focusPoint.player.runTime ?? 100),
+	progress.setAttribute('value', scene.camera.focusPoint.player.ticks)));
 });
 
 window.game.on('settingsChange', settings => {

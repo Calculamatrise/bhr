@@ -3,11 +3,11 @@ import Item from "./Item.js";
 export default class extends Item {
 	id = self.crypto.randomUUID(); // generate ID based on position and timestamp?
 	get used() { // collected
-		return this.scene.firstPlayer.itemsCollected.has(this.id)
+		return this.scene.firstPlayer.consumablesUsed.has(this.id)
 	}
 
 	activate(part) {
-		part.parent.parent.itemsCollected.add(this.id)
+		part.player.consumablesUsed.add(this.id)
 	}
 
 	draw(ctx, position = this.position.toPixel()) {
@@ -22,7 +22,7 @@ export default class extends Item {
 
 	collide(part) {
 		// part.position.distanceTo(this.position) < part.size + this.size + ctx.lineWidth
-		if (part.position.distanceToSquared(this.position) >= 500 || part.parent.parent.dead || part.parent.parent.itemsCollected.has(this.id)) {
+		if (part.position.distanceToSquared(this.position) >= 500 || part.player.dead || part.player.consumablesUsed.has(this.id)) {
 			return;
 		}
 

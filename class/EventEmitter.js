@@ -1,16 +1,11 @@
-export default class {
+export default class EventEmitter {
 	/** @private */
 	#events = new Map();
 	#temp = new WeakSet();
-	constructor() {
-		Object.defineProperties(this, {
-			addListener: { value: this.on, writable: true }
-		})
-	}
 
 	/**
 	 * Emit an event to trigger listeners
-	 * @param {String} event 
+	 * @param {string} event 
 	 * @param  {...any} [args] 
 	 */
 	emit(event, ...args) {
@@ -29,12 +24,12 @@ export default class {
 
 	/**
 	 * Emits several events
-	 * @param {Array<String>} events 
+	 * @param {Array<string>} events 
 	 * @param {...any} [args] 
 	 */
 	emits(events, ...args) {
 		if (!(events instanceof Array)) {
-			throw new TypeError("Events must be of type: Array<String>");
+			throw new TypeError("Events must be of type: Array<string>");
 		}
 
 		events.forEach(event => this.emit(event, ...args));
@@ -42,6 +37,7 @@ export default class {
 
 	/**
 	 * 
+	 * @alias addListener
 	 * @param {string} event 
 	 * @param {function} listener 
 	 * @param {object} [options] 
@@ -50,7 +46,7 @@ export default class {
 	 */
 	on(event, listener, options = {}) {
 		if (typeof event != 'string') {
-			throw new TypeError("Event must be of type: String");
+			throw new TypeError("Event must be of type: string");
 		} else if (typeof listener != 'function') {
 			throw new TypeError("Listener must be of type: Function");
 		} else if (typeof options != 'object') {
@@ -70,7 +66,7 @@ export default class {
 
 	/**
 	 * 
-	 * @param {String} event 
+	 * @param {string} event 
 	 * @param {Function} listener 
 	 * @returns {Function}
 	 */
@@ -80,7 +76,7 @@ export default class {
 
 	/**
 	 * 
-	 * @param {String} event 
+	 * @param {string} event 
 	 * @returns {Set}
 	 */
 	listeners(event) {
@@ -89,13 +85,19 @@ export default class {
 
 	/**
 	 * 
-	 * @param {String} event 
-	 * @returns {Number}
+	 * @param {string} event 
+	 * @returns {number}
 	 */
 	listenerCount(event) {
 		return this.listeners(event).size;
 	}
 
+	/**
+	 * 
+	 * @param {string} [event] 
+	 * @param {string} [listener] 
+	 * @returns {boolean}
+	 */
 	off(event = null, listener = null) {
 		if (typeof listener == 'function') {
 			return this.removeListener(event);
@@ -106,13 +108,13 @@ export default class {
 
 	/**
 	 * 
-	 * @param {String} event 
+	 * @param {string} event 
 	 * @param {Function} listener 
-	 * @returns {Boolean}
+	 * @returns {boolean}
 	 */
 	removeListener(event, listener) {
 		if (typeof event != 'string') {
-			throw new TypeError("Event must be of type: String");
+			throw new TypeError("Event must be of type: string");
 		}
 
 		const listeners = this.#events.get(event);
@@ -127,8 +129,8 @@ export default class {
 
 	/**
 	 * 
-	 * @param {String} event 
-	 * @returns {Boolean}
+	 * @param {string} event 
+	 * @returns {boolean}
 	 */
 	removeAllListeners(event) {
 		if (typeof event == 'string') {
@@ -138,3 +140,5 @@ export default class {
 		return this.#events.clear();
 	}
 }
+
+Object.defineProperty(EventEmitter.prototype, 'addListener', { value: EventEmitter.prototype.on, writable: true })

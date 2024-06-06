@@ -20,8 +20,8 @@ export default class Teleporter extends Consumable {
 
 	collide(part) {
 		if (this.alt === null) return;
-		if (part.position.distanceToSquared(this.alt) < 500 && !part.parent.parent.dead && !part.parent.parent.itemsCollected.has(this.id)) {
-			part.parent.parent.itemsCollected.add(this.id);
+		if (part.position.distanceToSquared(this.alt) < 500 && !part.player.dead && !part.player.consumablesUsed.has(this.id)) {
+			part.player.consumablesUsed.add(this.id);
 			this.activate(part, true);
 			return
 		}

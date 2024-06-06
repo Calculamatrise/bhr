@@ -5,25 +5,26 @@ export default class {
 	position = new Coordinates();
 	size = 10;
 	velocity = new Coordinates();
-	displayPosition = this.position.add(this.velocity);
+	displayPosition = this.position;
 	constructor(parent, options) {
-		Object.defineProperty(this, 'parent', { value: parent || null });
-		for (const key in options = Object.assign({}, options)) {
-			const value = options[key];
-			switch (key) {
-			case 'position':
-			case 'velocity':
-				typeof value == 'object' && this[key].set(value);
-				break;
-			case 'size':
-				typeof value == 'number' || typeof value == 'string' && (this[key] = value);
-				break;
+		Object.defineProperty(this, 'player', { value: parent || null });
+		if (options instanceof Object) {
+			for (const key in options) {
+				const value = options[key];
+				switch (key) {
+				case 'position':
+				case 'velocity':
+					typeof value == 'object' && this[key].set(value);
+					break;
+				case 'size':
+					typeof value == 'number' || typeof value == 'string' && (this[key] = value)
+				}
 			}
 		}
 
-		this.displayPosition = this.position.add(this.velocity);
+		this.displayPosition = this.position;
 		this.old.set(this.position);
-		this.position.old = this.position.clone()
+		Object.defineProperty(this.position, 'old', { value: this.position.clone(), writable: true })
 	}
 
 	fixedUpdate() {
@@ -32,5 +33,14 @@ export default class {
 
 	update(progress) {
 		this.displayPosition = this.position.sum(this.velocity.scale(progress))
+	}
+
+	clone() {
+		const clone = new this.constructor(this.player);
+		clone.position.set(this.position);
+		clone.old.set(this.old);
+		clone.velocity.set(this.velocity);
+		clone.size = this.size;
+		return clone
 	}
 }

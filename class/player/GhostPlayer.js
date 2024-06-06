@@ -90,7 +90,7 @@ export default class extends BasePlayer {
 						this.playbackTicks = value;
 					}
 
-					this.scene.cameraFocus = this.vehicle.hitbox;
+					this.scene.cameraFocus = this.hitbox;
 					this.scene.camera.set(this.scene.cameraFocus.position);
 					nextTick = value;
 					continue;
@@ -101,7 +101,7 @@ export default class extends BasePlayer {
 
 			this.scene.parent.ups !== 50 ? this.nativeUpdate() : this.fixedUpdate();
 			this.playbackTicks++;
-			this.scene.camera.focusPoint === this.vehicle.hitbox && this.scene.parent.emit('replayProgress', this.playbackTicks);
+			this.scene.camera.focusPoint === this.hitbox && this.scene.parent.emit('replayProgress', this.playbackTicks);
 		}
 
 		return snapshots;

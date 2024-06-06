@@ -8,18 +8,26 @@ export default class extends Entity {
 		this.position.add(vector.scale(-vector.dot(this.velocity) * this.motor));
 	}
 
-	drive(vector) {
+	collide(vector) {
 		this.addFriction(vector);
 		this.touching = true
 	}
 
 	fixedUpdate() {
 		super.fixedUpdate();
-		this.velocity.add(this.parent.parent.gravity).scaleSelf(.99);
+		this.velocity.add(this.player.gravity).scaleSelf(.99);
 		this.position.add(this.velocity);
 		this.touching = false;
-		this.tangible && this.parent.parent.scene.track.collide(this);
+		this.tangible && this.player.scene.track.collide(this);
 		this.velocity = this.position.difference(this.old);
 		this.old.set(this.position)
+	}
+
+	clone() {
+		const clone = super.clone();
+		clone.motor = this.motor;
+		clone.tangible = this.tangible;
+		clone.touching = this.touching;
+		return clone
 	}
 }

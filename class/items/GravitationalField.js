@@ -3,7 +3,7 @@ import Item from "./Item.js";
 export default class GravitationalField extends Item {
 	size = 16;
 	// activate(part) {
-	// 	part.parent.parent.gravity.set(this.dir.scale(.3));
+	// 	part.player.gravity.set(this.dir.scale(.3));
 	// }
 
 	update() {

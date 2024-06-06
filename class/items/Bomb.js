@@ -2,7 +2,7 @@ import Item from "./Item.js";
 
 export default class Bomb extends Item {
 	activate(part) {
-		part.parent.parent.dead || part.parent.parent.createExplosion(part);
+		part.player.dead || part.player.createExplosion(part);
 	}
 
 	static color = '#f00';

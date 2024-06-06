@@ -194,7 +194,8 @@ export default class extends Worker {
 		this.processing || this.scene.parent.emit('load');
 	}
 
-	read(data) {
+	write(data, { overwrite } = {}) {
+		overwrite && this.clear();
 		data ||= '-18 1i 18 1i###BMX';
 		// this.backgroundHelper.postMessage({
 		// 	code: 1,
@@ -218,54 +219,55 @@ export default class extends Worker {
 		this.processChunk(physics.split(/,+/g)));
 		scenery && (this.sceneryProgress = 0,
 		this.processChunk(scenery.split(/,+/g), true))
-		if (!powerups) return;
-		for (let powerup of powerups.split(/,+/g)) {
-			powerup = powerup.split(/\s+/g);
-			let x = parseInt(powerup[1], 32);
-			let y = parseInt(powerup[2], 32);
-			let a = parseInt(powerup[3], 32);
-			switch (powerup[0]) {
-			case 'T':
-				powerup = new Target(this.scene, x, y);
-				this.consumables.push(powerup);
-				break;
-			case 'C':
-				powerup = new Checkpoint(this.scene, x, y);
-				this.consumables.push(powerup);
-				break;
-			case 'B':
-				powerup = new Boost(this.scene, x, y, a + 180);
-				break;
-			case 'G':
-				powerup = new Gravity(this.scene, x, y, a + 180);
-				break;
-			case 'O':
-				powerup = new Bomb(this.scene, x, y);
-				break;
-			case 'S':
-				powerup = new Slowmo(this.scene, x, y);
-				break;
-			case 'A':
-				powerup = new Antigravity(this.scene, x, y);
-				break;
-			case 'W':
-				powerup = new Teleporter(this.scene, x, y);
-				powerup.createAlt(a, parseInt(powerup[4], 32));
-				this.consumables.push(powerup)
-			}
+		if (powerups)
+			for (let powerup of powerups.split(/,+/g)) {
+				powerup = powerup.split(/\s+/g);
+				let x = parseInt(powerup[1], 32);
+				let y = parseInt(powerup[2], 32);
+				let a = parseInt(powerup[3], 32);
+				switch (powerup[0]) {
+				case 'T':
+					powerup = new Target(this.scene, x, y);
+					this.consumables.push(powerup);
+					break;
+				case 'C':
+					powerup = new Checkpoint(this.scene, x, y);
+					this.consumables.push(powerup);
+					break;
+				case 'B':
+					powerup = new Boost(this.scene, x, y, a + 180);
+					break;
+				case 'G':
+					powerup = new Gravity(this.scene, x, y, a + 180);
+					break;
+				case 'O':
+					powerup = new Bomb(this.scene, x, y);
+					break;
+				case 'S':
+					powerup = new Slowmo(this.scene, x, y);
+					break;
+				case 'A':
+					powerup = new Antigravity(this.scene, x, y);
+					break;
+				case 'W':
+					powerup = new Teleporter(this.scene, x, y);
+					powerup.createAlt(a, parseInt(powerup[4], 32));
+					this.consumables.push(powerup)
+				}
 
-			this.addPowerup(powerup);
-			if (powerup instanceof Teleporter) {
-				x = Math.floor(powerup.alt.x / this.scene.grid.scale);
-				y = Math.floor(powerup.alt.y / this.scene.grid.scale);
-				let sector = this.scene.grid.sector(x, y, true);
-				sector.powerups.push(powerup);
-				powerup.sectors.add(sector)
+				this.addPowerup(powerup);
+				if (powerup instanceof Teleporter) {
+					x = Math.floor(powerup.alt.x / this.scene.grid.scale);
+					y = Math.floor(powerup.alt.y / this.scene.grid.scale);
+					let sector = this.scene.grid.sector(x, y, true);
+					sector.powerups.push(powerup);
+					powerup.sectors.add(sector)
+				}
 			}
-		}
+		vehicle && this.scene.firstPlayer && this.scene.firstPlayer.setVehicle(vehicle)
 	}
 
-	compile() {
+	compile() { // read
 		this.postMessage({
 			code: 1,
 			data: {

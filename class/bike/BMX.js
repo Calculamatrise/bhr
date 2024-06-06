@@ -2,39 +2,21 @@ import Bike from "./Bike.js";
 import Coordinates from "../Coordinates.js";
 
 export default class BMX extends Bike {
-	constructor(parent) {
+	rotationFactor = 6;
+	constructor(parent, { clone } = {}) {
 		super(...arguments);
 
-		this.hitbox.size = 14;
 		this.frontWheel.size = 11.7;
 		this.rearWheel.size = 11.7;
 
-		this.hitbox.position.set(new Coordinates(0, -1));
-		this.hitbox.displayPosition = this.hitbox.position;
-		this.hitbox.old = this.hitbox.position.clone();
-		this.rearWheel.position = new Coordinates(-21, 38);
-		this.rearWheel.displayPosition = this.rearWheel.position;
-		this.rearWheel.old = this.rearWheel.position.clone();
-		this.frontWheel.position = new Coordinates(21, 38);
-		this.frontWheel.displayPosition = this.frontWheel.position;
-		this.frontWheel.old = this.frontWheel.position.clone();
-
 		this.rearSpring.lrest = 45;
-		this.rearSpring.leff = 45;
 		this.rearSpring.springConstant = .35;
-		this.rearSpring.dampConstant = .3;
 
 		this.chasse.lrest = 42;
-		this.chasse.leff = 42;
 		this.chasse.springConstant = .35;
-		this.chasse.dampConstant = .3;
 
-		this.frontSpring.lrest = 45;
-		this.frontSpring.leff = 45;
 		this.frontSpring.springConstant = .35;
-		this.frontSpring.dampConstant = .3;
-
-		this.rotationFactor = 6;
+		clone || this.reset();
 	}
 
 	get rider() {
@@ -44,11 +26,11 @@ export default class BMX extends Bike {
 		let e = new Coordinates(t.y, -t.x).scale(this.dir);
 		let s = new Coordinates(Math.cos(this.pedalSpeed), Math.sin(this.pedalSpeed)).scale(6);
 
-		let r = this.hitbox.displayPosition.difference(this.rearWheel.displayPosition).difference(t.scale(0.5));
+		let r = this.parent.hitbox.displayPosition.difference(this.rearWheel.displayPosition).difference(t.scale(0.5));
 		let a = this.rearWheel.displayPosition.sum(t.scale(0.3)).sum(e.scale(0.25));
 
 		rider.head = a.sum(t.scale(0.15)).sum(r.scale(1.05));
-		// rider.head = this.hitbox.displayPosition.difference(t.scale(0.05)).sum(e.scale(0.3));
+		// rider.head = this.parent.hitbox.displayPosition.difference(t.scale(0.05)).sum(e.scale(0.3));
 		rider.sternum /* .head */ = a.sum(t.scale(0.05)).sum(r.scale(0.88));
 		rider.hand = this.rearWheel.displayPosition.sum(t.scale(0.8)).sum(e.scale(0.68));
 		rider.shadowHand = rider.hand.clone();
@@ -124,7 +106,7 @@ export default class BMX extends Bike {
 		ctx.stroke();
 
 		if (!this.parent.dead) {
-			i = this.hitbox.displayPosition.toPixel().difference(rearWheel).difference(l.scale(0.5));
+			i = this.parent.hitbox.displayPosition.toPixel().difference(rearWheel).difference(l.scale(0.5));
 			ctx.beginPath();
 			switch (this.parent.cosmetics.head) {
 			case 'cap':
@@ -148,5 +130,19 @@ export default class BMX extends Bike {
 		}
 
 		ctx.restore()
+	}
+
+	reset() {
+		super.reset();
+		this.parent.hitbox.position.set(new Coordinates(0, -1));
+		this.rearWheel.position = new Coordinates(-21, 38);
+		this.rearWheel.displayPosition = this.rearWheel.position;
+		this.rearWheel.old.set(this.rearWheel.position);
+		this.frontWheel.position = new Coordinates(21, 38);
+		this.frontWheel.displayPosition = this.frontWheel.position;
+		this.frontWheel.old.set(this.frontWheel.position);
+
+		this.rearSpring.leff = 45;
+		this.chasse.leff = 42;
 	}
 }

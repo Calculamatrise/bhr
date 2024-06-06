@@ -1,5 +1,4 @@
 import Coordinates from "../Coordinates.js";
-import Mass from "./part/Mass.js";
 import Wheel from "./part/Wheel.js";
 import Spring from "./physics/Spring.js";
 
@@ -12,14 +11,19 @@ export default class {
 	constructor(parent) {
 		Object.defineProperty(this, 'parent', { value: parent || null });
 		this.name = this.constructor.name;
-		this.hitbox = new Mass(this); // hitbox
-		this.hitbox.drive = this.destroy.bind(this);
-		this.rearWheel = new Wheel(this);
-		this.frontWheel = new Wheel(this);
-		this.rearSpring = new Spring(this.hitbox, this.rearWheel);
+		this.rearWheel = new Wheel(this.parent);
+		this.frontWheel = new Wheel(this.parent);
+		this.rearSpring = new Spring(this.parent.hitbox, this.rearWheel);
 		this.chasse = new Spring(this.rearWheel, this.frontWheel);
-		this.frontSpring = new Spring(this.frontWheel, this.hitbox);
-		this.points.push(this.hitbox, this.frontWheel, this.rearWheel);
+		this.frontSpring = new Spring(this.frontWheel, this.parent.hitbox);
+
+		this.rearSpring.dampConstant = .3;
+		this.chasse.dampConstant = .3;
+
+		this.frontSpring.lrest = 45;
+		this.frontSpring.dampConstant = 0.3;
+
+		this.points.push(this.frontWheel, this.rearWheel);
 		this.joints.push(this.rearSpring, this.chasse, this.frontSpring);
 	}
 
@@ -30,7 +34,7 @@ export default class {
 		let e = new Coordinates(t.y, -t.x).scale(this.dir);
 		let s = new Coordinates(Math.cos(this.pedalSpeed), Math.sin(this.pedalSpeed)).scale(6);
 
-		rider.head = this.rearWheel.displayPosition.sum(t.scale(0.35)).sum(this.hitbox.displayPosition.difference(this.frontWheel.displayPosition.sum(this.rearWheel.displayPosition).scale(0.5)).scale(1.2));
+		rider.head = this.rearWheel.displayPosition.sum(t.scale(0.35)).sum(this.parent.hitbox.displayPosition.difference(this.frontWheel.displayPosition.sum(this.rearWheel.displayPosition).scale(0.5)).scale(1.2));
 		rider.hand = this.rearWheel.displayPosition.sum(t.scale(0.8)).sum(e.scale(0.68));
 		rider.shadowHand = rider.hand.clone();
 
@@ -56,19 +60,21 @@ export default class {
 	}
 
 	destroy() {
-		this.parent.dead = true;
-		this.hitbox.tangible = false;
 		this.rearWheel.speed = 0;
-		this.parent.createRagdoll()
 	}
 
 	draw(ctx) {
 		ctx.save();
 		this.parent.ghost && (ctx.globalAlpha /= 2,
-		this.parent.scene.cameraFocus && this.parent.scene.cameraFocus !== this.hitbox && (ctx.globalAlpha *= Math.min(1, Math.max(0.5, this.hitbox.displayPosition.distanceTo(this.parent.scene.cameraFocus.displayPosition) / (this.hitbox.size / 2) ** 2))));
+		this.parent.scene.cameraFocus && this.parent.scene.cameraFocus !== this.parent.hitbox && (ctx.globalAlpha *= Math.min(1, Math.max(0.5, this.parent.hitbox.displayPosition.distanceTo(this.parent.scene.cameraFocus.displayPosition) / (this.parent.hitbox.size / 2) ** 2))));
 		ctx.lineWidth = 3.5 * this.parent.scene.camera.zoom;
 		this.rearWheel.draw(ctx);
 		this.frontWheel.draw(ctx);
+	}
+
+	setHitbox(hitbox) {
+		this.rearSpring.a = hitbox;
+		this.frontSpring.b = hitbox;
 	}
 
 	swap() {
@@ -92,13 +98,11 @@ export default class {
 
 		if (!this.parent.slow || this.parent.slowParity === 0) {
 			!this.parent.dead && this.updatePhysics();
-			for (let a = this.joints.length - 1; a >= 0; a--) {
+			for (let a = this.joints.length - 1; a >= 0; a--)
 				this.joints[a].fixedUpdate();
-			}
-
-			for (let a = this.points.length - 1; a >= 0; a--) {
-				this.points[a].fixedUpdate()
-			}
+			for (let a = this.points.length - 1; a >= 0; a--)
+				this.points[a].fixedUpdate();
+			this.parent.hitbox.fixedUpdate()
 		}
 	}
 
@@ -111,24 +115,19 @@ export default class {
 
 	nativeUpdate() {
 		!this.parent.dead && this.updatePhysics();
-		for (let a = this.joints.length - 1; a >= 0; a--) {
+		for (let a = this.joints.length - 1; a >= 0; a--)
 			this.joints[a].fixedUpdate();
-		}
-
-		for (let a = this.points.length - 1; a >= 0; a--) {
+		for (let a = this.points.length - 1; a >= 0; a--)
 			this.points[a].fixedUpdate();
-		}
-
+		this.parent.hitbox.fixedUpdate();
 		this.parent.slow && this.rearWheel.touching && this.frontWheel.touching && (this.parent.slow = false);
 		if (!this.parent.slow) {
 			!this.parent.dead && this.updatePhysics();
-			for (let a = this.joints.length - 1; a >= 0; a--) {
+			for (let a = this.joints.length - 1; a >= 0; a--)
 				this.joints[a].fixedUpdate();
-			}
-
-			for (let a = this.points.length - 1; a >= 0; a--) {
-				this.points[a].fixedUpdate()
-			}
+			for (let a = this.points.length - 1; a >= 0; a--)
+				this.points[a].fixedUpdate();
+			this.parent.hitbox.fixedUpdate()
 		}
 	}
 
@@ -147,7 +146,7 @@ export default class {
 		}
 	}
 
-	move(x, y) {
+	translate(x, y) {
 		for (const point of this.points) {
 			point.position.x += x;
 			point.position.y += y;
@@ -156,14 +155,18 @@ export default class {
 		}
 	}
 
+	reset() {
+		let n = new Coordinates(0, 0);
+		this.parent.hitbox.velocity.set(n);
+		this.rearWheel.velocity.set(n);
+		this.frontWheel.velocity.set(n);
+		this.rearWheel.speed = 0;
+		this.frontSpring.leff = 45;
+	}
+
 	clone() {
-		const clone = new this.constructor(this.parent);
+		const clone = new this.constructor(this.parent, { clone: true });
 		clone.dir = this.dir;
-
-		clone.hitbox.position.set(this.hitbox.position);
-		clone.hitbox.old.set(this.hitbox.old);
-		clone.hitbox.velocity.set(this.hitbox.velocity);
-
 		clone.frontWheel.position.set(this.frontWheel.position);
 		clone.frontWheel.old.set(this.frontWheel.old);
 		clone.frontWheel.velocity.set(this.frontWheel.velocity);

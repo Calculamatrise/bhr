@@ -1,7 +1,5 @@
 @keyframes rotate {
-	to {
-		rotate: 360deg;
-	}
+	to { rotate: 360deg; }
 }
 
 ::-webkit-scrollbar {
@@ -19,9 +17,7 @@
     border-radius: 30px;
 }
 
-::-webkit-scrollbar-corner {
-    display: none;
-}
+::-webkit-scrollbar-corner { display: none; }
 
 html {
 	background-color: var(--background-color);
@@ -29,9 +25,7 @@ html {
 	font-family: Arial, Helvetica, sans-serif;
 }
 
-body {
-	margin: 0;
-}
+body { margin: 0; }
 
 canvas#view {
 	aspect-ratio: 16 / 9;
@@ -100,13 +94,8 @@ bhr-game-container .replay-progress:hover {
 	height: 6px;
 }
 
-bhr-game-container .replay-progress::-webkit-progress-value {
-	background: var(--border-color);
-}
-
-bhr-game-container .replay-progress::-webkit-progress-bar {
-	background: var(--background-color);
-}
+bhr-game-container .replay-progress::-webkit-progress-value { background-color: var(--border-color); }
+bhr-game-container .replay-progress::-webkit-progress-bar { background-color: var(--background-color); }
 
 .bhr-dialog {
 	backdrop-filter: blur(1rem) brightness(0.75);
@@ -123,14 +112,9 @@ bhr-game-container .replay-progress::-webkit-progress-bar {
 	pointer-events: none;
 }
 
-.input-container {
-	position: relative;
-}
-
-.input-container:has(> :placeholder-shown)> :last-child {
-	visibility: hidden;
-}
-
+.input-container { position: relative; }
+.input-container:has(> :placeholder-shown)> :last-child { visibility: hidden; }
+.input-container > .char-counter::after { content: "k"; }
 .input-container > .char-counter {
 	-webkit-user-select: none;
 	bottom: 0;
@@ -142,10 +126,6 @@ bhr-game-container .replay-progress::-webkit-progress-bar {
 	pointer-events: none;
 	right: 0;
 	user-select: none;
-}
-
-.input-container > .char-counter::after {
-	content: "k";
 }
 
 .toast-container {
@@ -284,12 +264,8 @@ bhr-game-container .replay-progress::-webkit-progress-bar {
 	width: -webkit-fill-available;
 }
 
-.bhr-game-overlay label > input:nth-child(1) {
-	margin-left: 1rem;
-}
-
-.bhr-game-overlay button,
-.toast button {
+.bhr-game-overlay label > input:nth-child(1) { margin-left: 1rem; }
+.bhr-game-overlay button, .toast button {
 	-webkit-user-select: none;
 	border: none;
 	border-radius: 4px;
@@ -311,25 +287,16 @@ bhr-game-container .replay-progress::-webkit-progress-bar {
 	padding: 0.25rem .5rem;
 }
 
-.bhr-game-overlay button:hover {
-	filter: brightness(calc(1 + .2 * var(--l-multiplier)));
-}
+.bhr-game-overlay button:hover { filter: brightness(calc(1 + .2 * var(--l-multiplier))); }
+.toast button:hover { backdrop-filter: brightness(calc(1 + .2 * var(--l-multiplier))); }
 
-.toast button:hover {
-	backdrop-filter: brightness(calc(1 + .2 * var(--l-multiplier)));
-}
-
-.disabled,
-:disabled,
-:placeholder-shown + * > .hidden-placeholder,
+.disabled, :disabled, :placeholder-shown + * > .hidden-placeholder,
 .input-container:has(> :placeholder-shown) + * > .hidden-placeholder {
 	opacity: 0.5;
 	pointer-events: none;
 }
 
-.timebar:not(:hover)::-webkit-slider-thumb {
-	visibility: hidden;
-}
+.timebar:not(:hover)::-webkit-slider-thumb { visibility: hidden; }
 
 textarea {
 	/* background-color: hsl(0deg 0% 50% / 20%); */
@@ -357,33 +324,38 @@ bhr-game-toolbar>section {
 	position: absolute;
 }
 
+bhr-game-toolbar :is(.left, .right) :first-child {
+	border-top-left-radius: 3px;
+	border-top-right-radius: 3px;
+}
+
+bhr-game-toolbar :is(.left, .right) :last-child {
+	border-bottom-left-radius: 3px;
+	border-bottom-right-radius: 3px;
+}
+
+bhr-game-toolbar :is(.bottom, .top) :first-child {
+	border-bottom-left-radius: 3px;
+	border-top-left-radius: 3px;
+}
+
+bhr-game-toolbar :is(.bottom, .top) :last-child {
+	border-bottom-right-radius: 3px;
+	border-top-right-radius: 3px;
+}
+
 /* experimental animations - add settings to enable/disable */
 /* bhr-game-toolbar>section:hover {
 	scale: 1.05;
 	transition: scale 200ms;
 } */
 
-bhr-game-toolbar .toolbar-item:hover:active::before {
-	scale: 0.8;
-}
+bhr-game-toolbar .toolbar-item:hover:active::before { scale: 0.8; }
 /* experimental animations end */
-
-bhr-game-toolbar .bottom {
-	bottom: 0;
-}
-
-bhr-game-toolbar .left {
-	left: 0;
-}
-
-bhr-game-toolbar .right {
-	right: 0;
-}
-
-bhr-game-toolbar .top {
-	top: 0;
-}
-
+bhr-game-toolbar .bottom { bottom: 0; }
+bhr-game-toolbar .left { left: 0; }
+bhr-game-toolbar .right { right: 0; }
+bhr-game-toolbar .top { top: 0; }
 bhr-game-toolbar .center {
 	display: flex;
 	left: 0;
@@ -413,6 +385,35 @@ bhr-game-toolbar .island.scale:hover {
 	transition: scale 90ms ease-out;
 }
 
+/* hidden islands -- appear on hover */
+bhr-game-toolbar .island.hidden { transition: translate 90ms ease-out; }
+bhr-game-toolbar .island.hidden::before, bhr-game-toolbar .island.hidden::after {
+	content: '';
+	height: 100%;
+	pointer-events: stroke;
+	position: absolute;
+	width: 100%;
+}
+
+bhr-game-toolbar .island.hidden.bottom::after, bhr-game-toolbar .island.hidden.top::before { bottom: 100%; }
+bhr-game-toolbar .island.hidden.left::after, bhr-game-toolbar .island.hidden.right::before {
+	left: 100%;
+	top: 0;
+}
+
+bhr-game-toolbar .island.hidden.left::before, bhr-game-toolbar .island.hidden.right::after {
+	right: 100%;
+	top: 0;
+}
+
+bhr-game-toolbar .island.hidden.bottom::before, bhr-game-toolbar .island.hidden.top::after { top: 100%; }
+bhr-game-toolbar .island.hidden.bottom { translate: 0 95%; }
+bhr-game-toolbar .island.hidden.left { translate: -95% 0; }
+bhr-game-toolbar .island.hidden.right { translate: 95% 0; }
+bhr-game-toolbar .island.hidden.top { translate: 0 -95%; }
+bhr-game-toolbar .island.hidden:is(.bottom, .left, .right, .top):hover { translate: 0; }
+/* hidden islands -- end */
+
 bhr-game-toolbar button {
 	background-color: transparent;
 	border: none;
@@ -432,17 +433,20 @@ bhr-game-toolbar .toolbar-item {
 	color: var(--text-color);
 	display: flex;
 	font-size: .75rem;
-	height: 1rem;
+	height: 2rem;
 	justify-content: center;
-	line-height: 1rem;
+	line-height: 1em;
 	margin: 0;
 	max-height: 2vh;
+	min-height: 1em;
+	min-width: 0;
 	outline: none;
-	padding: 0.5rem;
+	padding: 0.5em;
 	pointer-events: all;
 	position: relative;
 	text-align: center;
 	user-select: none;
+	width: auto;
 }
 
 [tooltip]:hover::after {
@@ -450,11 +454,11 @@ bhr-game-toolbar .toolbar-item {
 	background-color: hsl(0 0% 10% / 75%);
 	border: 1px solid var(--border-color);
 	border-radius: .4em;
-	padding: .5em 1em;
+	padding: .4em .9em;
 
 	color: var(--text-color);
 	content: attr(tooltip);
-	font-size: smaller;
+	font-size: clamp(6px, 1.25vmin, 12px);
 	max-width: 15vmin;
 	pointer-events: none;
 	position: absolute;
@@ -462,18 +466,15 @@ bhr-game-toolbar .toolbar-item {
 	width: max-content;
 }
 
-bhr-game-toolbar .bottom .toolbar-item[tooltip]:hover::after { bottom: calc(100% + .75rem); }
-bhr-game-toolbar .left .toolbar-item[tooltip]:hover::after { left: calc(100% + .75rem); }
-bhr-game-toolbar .right .toolbar-item[tooltip]:hover::after { right: calc(100% + .75rem); }
-bhr-game-toolbar .top .toolbar-item[tooltip]:hover::after { top: calc(100% + .75rem); }
+bhr-game-toolbar .bottom .toolbar-item[tooltip]:hover::after { bottom: calc(100% + .75em); }
+bhr-game-toolbar .left .toolbar-item[tooltip]:hover::after { left: calc(100% + .75em); }
+bhr-game-toolbar .right .toolbar-item[tooltip]:hover::after { right: calc(100% + .75em); }
+bhr-game-toolbar .top .toolbar-item[tooltip]:hover::after { top: calc(100% + .75em); }
 bhr-game-toolbar .toolbar-item:is(.backtrack, .camera, .fullscreen, .line, .playpause, .rewind)::before {
 	background-color: var(--text-color);
 }
 
-bhr-game-toolbar .editor-tools .toolbar-item::before {
-	background-color: transparent;
-}
-
+bhr-game-toolbar .editor-tools .toolbar-item::before { background-color: transparent; }
 bhr-game-toolbar button:hover,
 bhr-game-toolbar .toolbar-item:hover,
 bhr-game-toolbar .toolbar-item:has(> input:checked):not(.playpause):hover {
@@ -481,24 +482,15 @@ bhr-game-toolbar .toolbar-item:has(> input:checked):not(.playpause):hover {
 	transition: all 40ms;
 }
 
-bhr-game-toolbar .toolbar-item:has(> input:checked):not(.playpause) {
-	background-color: hsla(0, 0%, calc(50% - 40% * var(--l-multiplier)), 0.7);
-}
-
-bhr-game-toolbar .toolbar-item::before {
-	transition: all 200ms;
-}
-
+bhr-game-toolbar .toolbar-item:has(> input:checked):not(.playpause) { background-color: hsla(0, 0%, calc(50% - 40% * var(--l-multiplier)), 0.7); }
+bhr-game-toolbar .toolbar-item::before { transition: all 200ms; }
 bhr-game-toolbar .toolbar-item>* {
 	display: block;
 	pointer-events: none;
 	transition: all 200ms;
 }
 
-.toolbar-item.disabled {
-	opacity: .4;
-}
-
+.toolbar-item.disabled { opacity: .4; }
 .toolbar-item.disabled:hover {
 	cursor: not-allowed;
 	pointer-events: none;
@@ -531,6 +523,7 @@ bhr-game-toolbar .toolbar-item>* {
 	);
 }
 
+:is(.backtrack, .rewind).reverse::before { scale: -1; }
 .backtrack::before {
 	clip-path: polygon(
 		15% 10%,
@@ -543,6 +536,7 @@ bhr-game-toolbar .toolbar-item>* {
 		15% 90%
 	);
 }
+
 
 .rewind::before {
 	clip-path: polygon(
@@ -567,21 +561,11 @@ bhr-game-toolbar .toolbar-item>* {
 	);
 }
 
-.wheel:active>svg {
-	animation: rotate 1s ease;
-}
+.wheel:active>svg { animation: rotate 1s ease; }
 
-.scenery {
-	color: hsl(0, 0%, 50%) !important;
-}
-
-.scenery:not(.brush)::before {
-	background-color: hsl(0, 0%, 50%) !important;
-}
-
-.toolbar-item::before,
-.powerup.triangle::after,
-.grid::after {
+.scenery { color: hsl(0, 0%, 50%) !important; }
+.scenery:not(.brush)::before { background-color: hsl(0, 0%, 50%) !important; }
+.toolbar-item::before, .powerup.triangle::after {
 	content: "";
 	inset: .5rem;
 	position: absolute;
@@ -589,15 +573,17 @@ bhr-game-toolbar .toolbar-item>* {
 
 .line::before {
 	border-radius: 4px;
-	clip-path: polygon(90% 0,
-			0 90%,
-			10% 100%,
-			100% 10%);
+	clip-path: polygon(
+		90% 0,
+		0 90%,
+		10% 100%,
+		100% 10%
+	);
 }
 
 .eraser::before {
 	clip-path: circle(45%);
-	background-color: #ffb6c1;
+	background-color: hsl(351, 100%, 86%);
 }
 
 .camera::before {
@@ -631,75 +617,78 @@ bhr-game-toolbar .toolbar-item>* {
 .grid::before {
 	background-color: hsl(0, 0%, 50%);
 	border-radius: 20%;
-	clip-path: polygon(55% 45%,
-			55% 5%,
-			45% 5%,
-			45% 45%,
-			55% 45%,
-			95% 45%,
-			95% 55%,
-			55% 55%,
-			55% 95%,
-			45% 95%,
-			45% 55%,
-			5% 55%,
-			5% 45%);
-}
+	clip-path: polygon(95% 20%,
+		80% 20%,
+		80% 5%,
+		70% 5%,
+		/* top right grid hole */
+		70% 45%,
+		55% 45%,
+		55% 30%,
+		70% 30%,
+		/* grid hole end */
+		70% 20%,
+		55% 20%,
+		55% 5%,
+		45% 5%,
+		45% 20%,
+		30% 20%,
+		30% 5%,
+		20% 5%,
+		20% 20%,
 
-.grid::after {
-	background-color: hsl(0, 0%, 50%);
-	border-radius: 20%;
-	clip-path: polygon(30% 80%,
-			30% 5%,
-			20% 5%,
-
-			20% 20%,
-			5% 20%,
-			5% 30%,
-			20% 30%,
-
-			/* MIDDLE HORIZONTAL
-        20% 45%,
-        0 45%,
-        0 55%,
-        20% 55%,
-        END MIDDLE HORIZONTAL */
-
-			20% 70%,
-			5% 70%,
-			5% 80%,
-			20% 80%,
-
-			20% 95%,
-			30% 95%,
-			30% 80%,
-
-			70% 80%,
-			70% 95%,
-			80% 95%,
-			80% 80%,
-
-			95% 80%,
-			95% 70%,
-			80% 70%,
-
-			80% 30%,
-			95% 30%,
-			95% 20%,
-			80% 20%,
-
-			80% 5%,
-			70% 5%,
-
-			70% 70%,
-			30% 70%,
-
-			30% 20%,
-			70% 20%,
-			70% 30%,
-			30% 30%,
-
-			30% 70%);
+		5% 20%,
+		5% 30%,
+		20% 30%,
+		/* top left grid hole */
+		45% 30%,
+		45% 45%,
+		30% 45%,
+		30% 20%,
+		20% 20%,
+		/* hole end */
+		20% 45%,
+		5% 45%,
+		5% 55%,
+		20% 55%,
+		20% 70%,
+		5% 70%,
+		5% 80%,
+		20% 80%,
+		
+		20% 95%,
+		30% 95%,
+		/* bottom left hole */
+		30% 55%,
+		45% 55%,
+		45% 70%,
+		30% 70%,
+		/* hole end */
+		30% 80%,
+		45% 80%,
+		45% 95%,
+		55% 95%,
+		55% 80%,
+		70% 80%,
+		70% 95%,
+		80% 95%,
+		80% 80%,
+		
+		95% 80%,
+		95% 70%,
+		/* bottom right */
+		55% 70%,
+		55% 55%,
+		70% 55%,
+		70% 70%,
+		/* end */
+		80% 70%,
+		80% 55%,
+		95% 55%,
+		95% 45%,
+		80% 45%,
+		80% 30%,
+		95% 30%);
 }
 
 .powerup:not(.triangle)::before {
@@ -711,14 +700,8 @@ bhr-game-toolbar .toolbar-item>* {
 	text-shadow: -1px -1px 0 var(--text-shadow-color), 1px -1px 0 var(--text-shadow-color), -1px 1px 0 var(--text-shadow-color), 1px 1px 0 var(--text-shadow-color);
 }
 
-.powerup.target::before {
-	background-color: #ff0;
-}
-
-.powerup.checkpoint::before {
-	background-color: #00f;
-}
-
+.powerup.target::before { background-color: #ff0; }
+.powerup.checkpoint::before { background-color: #00f; }
 .powerup.triangle::before {
 	background-color: var(--text-color);
 	clip-path: polygon(15% 25%,
@@ -734,29 +717,12 @@ bhr-game-toolbar .toolbar-item>* {
 			25% 35%);
 }
 
-.powerup.triangle.boost::after {
-	background-color: #ff0;
-}
-
-.powerup.triangle.gravity::after {
-	background-color: #0f0;
-}
-
-.powerup.bomb::before {
-	background-color: #f00;
-}
-
-.powerup.slowmo::before {
-	background-color: #eee;
-}
-
-.powerup.antigravity::before {
-	background-color: #0ff;
-}
-
-.powerup.teleport::before {
-	background-color: #f0f;
-}
+.powerup.triangle.boost::after { background-color: #ff0; }
+.powerup.triangle.gravity::after { background-color: #0f0; }
+.powerup.bomb::before { background-color: #f00; }
+.powerup.slowmo::before { background-color: #eee; }
+.powerup.antigravity::before { background-color: #0ff; }
+.powerup.teleport::before {	background-color: #f0f; }
 
 .fullscreen::before {
 	/* content: "⛶"; */
@@ -846,10 +812,7 @@ bhr-game-toolbar .toolbar-item>* {
 			0 60%);
 }
 
-:is(button, input[type="button"], .button).loading {
-	font-size: 0;
-}
-
+:is(button, input[type="button"], .button).loading { font-size: 0; }
 .loading {
 	-webkit-user-select: none;
 	color: transparent;
@@ -857,10 +820,7 @@ bhr-game-toolbar .toolbar-item>* {
 	user-select: none;
 }
 
-.loading * {
-	visibility: hidden;
-}
-
+.loading * { visibility: hidden; }
 .loading::after {
 	animation: rotate 800ms cubic-bezier(.5, .5, .5, .5) infinite;
 	background-color: transparent;
@@ -895,10 +855,7 @@ window-frame label {
 	-webkit-app-region: no-drag;
 }
 
-window-frame label:hover {
-	color: #808080ad;
-}
-
+window-frame label:hover { color: hsla(0 0% 50% / 67%); }
 window-frame div[data-position="left"]>* {
 	max-height: 1.25rem;
 	padding: 0.25rem;
@@ -925,10 +882,7 @@ window-frame button:hover {
 	color: var(--text-color);
 }
 
-window-frame button:hover:active {
-	background-color: hsl(0 0% 50% / 30%);
-}
-
+window-frame button:hover:active { background-color: hsl(0 0% 50% / 30%); }
 window-frame button#maximize[title="Restore"]::before {
 	content: "▢";
 	position: absolute;
@@ -936,10 +890,5 @@ window-frame button#maximize[title="Restore"]::before {
 	left: 14px;
 }
 
-window-frame button#close:hover {
-	background-color: hsl(0 100% 50% / 85%);
-}
-
-window-frame button#close:hover:active {
-	background-color: hsl(0 100% 50% / 55%);
-}
+window-frame button#close:hover { background-color: hsl(0 100% 50% / 85%); }
+window-frame button#close:hover:active { background-color: hsl(0 100% 50% / 55%); }

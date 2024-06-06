@@ -69,7 +69,7 @@ export default class extends BasePlayer {
 
 	updateRecords(keys) {
 		if (!keys || keys.size === 0 || this.dead || this.scene.processing || this.scene.ghostInFocus) return;
-		this.scene.cameraFocus = this.vehicle.hitbox;
+		this.scene.camera.focusPoint = this.hitbox;
 		this.scene.parent.settings.autoPause && (this.scene.frozen = false);
 		typeof keys == 'string' && (keys = new Set([keys]));
 		let t = this.scene.currentTime;

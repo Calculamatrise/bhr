@@ -2,39 +2,23 @@ import Bike from "./Bike.js";
 import Coordinates from "../Coordinates.js";
 
 export default class MTB extends Bike {
-	constructor(parent) {
+	rotationFactor = 8;
+	constructor(parent, { clone } = {}) {
 		super(...arguments);
 
-		this.hitbox.size = 14;
 		this.frontWheel.size = 14;
 		this.rearWheel.size = 14;
 
-		this.hitbox.position = new Coordinates(2, -3);
-		this.hitbox.displayPosition = this.hitbox.position;
-		this.hitbox.old = this.hitbox.position.clone();
-		this.frontWheel.position = new Coordinates(23, 35);
-		this.frontWheel.displayPosition = this.frontWheel.position;
-		this.frontWheel.old = this.frontWheel.position.clone();
-		this.rearWheel.position = new Coordinates(-23, 35);
-		this.rearWheel.displayPosition = this.rearWheel.position;
-		this.rearWheel.old = this.rearWheel.position.clone();
-
 		this.rearSpring.lrest = 47;
 		this.rearSpring.leff = 47;
-		this.rearSpring.springConstant = 0.2;
-		this.rearSpring.dampConstant = 0.3;
+		this.rearSpring.springConstant = .2;
 
 		this.chasse.lrest = 45;
 		this.chasse.leff = 45;
-		this.chasse.springConstant = 0.2;
-		this.chasse.dampConstant = 0.3;
+		this.chasse.springConstant = .2;
 
-		this.frontSpring.lrest = 45;
-		this.frontSpring.leff = 45;
-		this.frontSpring.springConstant = 0.2;
-		this.frontSpring.dampConstant = 0.3;
-
-		this.rotationFactor = 8;
+		this.frontSpring.springConstant = .2;
+		clone || this.reset();
 	}
 
 	get rider() {
@@ -43,11 +27,11 @@ export default class MTB extends Bike {
 		let t = this.frontWheel.displayPosition.difference(this.rearWheel.displayPosition);
 		let s = new Coordinates(Math.cos(this.pedalSpeed), Math.sin(this.pedalSpeed)).scale(6);
 
-		let r = this.hitbox.displayPosition.difference(this.rearWheel.displayPosition).difference(t.scale(0.5));
+		let r = this.parent.hitbox.displayPosition.difference(this.rearWheel.displayPosition).difference(t.scale(0.5));
 		let b = this.rearWheel.displayPosition.sum(t.scale(0.3)).sum(r.scale(0.25));
 
 		rider.head = b.sum(t.scale(0.2)).sum(r.scale(1.09));
-		// rider.head = this.hitbox.displayPosition.difference(t.scale(0.05)).sum(e.scale(0.3));
+		// rider.head = this.parent.hitbox.displayPosition.difference(t.scale(0.05)).sum(e.scale(0.3));
 		rider.sternum /* .head */ = b.sum(t.scale(0.1)).sum(r.scale(0.93));
 		rider.hand = this.rearWheel.displayPosition.sum(t.scale(0.67)).sum(r.scale(0.8));
 		// rider.hand = this.rearWheel.displayPosition.sum(t.scale(0.8)).sum(r.scale(0.68));
@@ -85,7 +69,7 @@ export default class MTB extends Bike {
 		ctx.fill()
 		ctx.restore()
 
-		var d = this.hitbox.displayPosition.toPixel();
+		var d = this.parent.hitbox.displayPosition.toPixel();
 		var e = frontWheel.difference(rearWheel);
 		var f = new Coordinates(frontWheel.y - rearWheel.y, rearWheel.x - frontWheel.x).scale(this.dir);
 		var h = d.difference(rearWheel.sum(e.scale(0.5)));
@@ -159,5 +143,16 @@ export default class MTB extends Bike {
 		}
 
 		ctx.restore();
+	}
+
+	reset() {
+		super.reset();
+		this.parent.hitbox.position = new Coordinates(2, -3);
+		this.frontWheel.position = new Coordinates(23, 35);
+		this.frontWheel.displayPosition = this.frontWheel.position;
+		this.frontWheel.old.set(this.frontWheel.position);
+		this.rearWheel.position = new Coordinates(-23, 35);
+		this.rearWheel.displayPosition = this.rearWheel.position;
+		this.rearWheel.old.set(this.rearWheel.position);
 	}
 }

@@ -130,7 +130,7 @@ export default class {
 			physics[line].collide(part);
 		}
 
-		if (!part.parent.dead) {
+		if (!part.player.dead) {
 			let powerups = this.powerups.filter(powerup => !powerup.used);
 			for (let powerup = powerups.length - 1; powerup >= 0; powerup--) {
 				powerups[powerup].collide(part);

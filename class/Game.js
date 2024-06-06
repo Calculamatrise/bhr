@@ -108,7 +108,7 @@ export default class extends EventEmitter {
 			// 			toast.remove();
 			// 			fileData.text().then(code => {
 			// 				this.init();
-			// 				this.scene.track.read(code);
+			// 				this.scene.track.write(code);
 			// 			});
 			// 			// fileHandle.createWritable()
 			// 		}
@@ -200,8 +200,8 @@ export default class extends EventEmitter {
 		options = Object.assign({}, arguments[0]);
 		this.#openFile = null;
 		this.scene.init(options);
-		options.default && this.scene.track.read('-18 1i 18 1i###BMX');
-		options.code && this.scene.track.read(options.code);
+		options.default && this.scene.track.write('-18 1i 18 1i###BMX');
+		options.code && this.scene.track.write(options.code);
 		this.lastFrame = requestAnimationFrame(this.render.bind(this));
 	}
 
@@ -336,7 +336,7 @@ export default class extends EventEmitter {
 			this.mouse.position.y = Math.round(this.mouse.position.y / this.scene.grid.size) * this.scene.grid.size;
 		}
 
-		this.scene.toolHandler.press(event);
+		this.scene.toolHandler._handleEvent(event);
 	}
 
 	stroke(event) {
@@ -352,7 +352,7 @@ export default class extends EventEmitter {
 			this.mouse.position.y = Math.round(this.mouse.position.y / this.scene.grid.size) * this.scene.grid.size;
 		}
 
-		this.scene.toolHandler.stroke(event);
+		this.scene.toolHandler._handleEvent(event);
 	}
 
 	clip(event) {
@@ -363,14 +363,14 @@ export default class extends EventEmitter {
 			this.mouse.position.y = Math.round(this.mouse.position.y / this.scene.grid.size) * this.scene.grid.size;
 		}
 
-		event.shiftKey || this.scene.toolHandler.clip(event);
+		event.shiftKey || this.scene.toolHandler._handleEvent(event);
 	}
 
 	async keydown(event) {
 		// event.preventDefault();
 		switch (event.key.toLowerCase()) {
 		case 'arrowleft': {
-			const focusedPlayerGhost = this.scene.ghosts.find(playerGhost => playerGhost.vehicle.hitbox == this.scene.camera.focusPoint);
+			const focusedPlayerGhost = this.scene.ghosts.find(playerGhost => playerGhost.hitbox == this.scene.camera.focusPoint);
 			if (focusedPlayerGhost) {
 				this.scene.paused = true;
 				focusedPlayerGhost.playbackTicks = Math.max(0, focusedPlayerGhost.playbackTicks - 5);
@@ -379,7 +379,7 @@ export default class extends EventEmitter {
 			break;
 		}
 		case 'arrowright': {
-			const focusedPlayerGhost = this.scene.ghosts.find(playerGhost => playerGhost.vehicle.hitbox == this.scene.camera.focusPoint);
+			const focusedPlayerGhost = this.scene.ghosts.find(playerGhost => playerGhost.hitbox == this.scene.camera.focusPoint);
 			if (focusedPlayerGhost) {
 				this.scene.paused = true;
 				focusedPlayerGhost.playbackIterator.next(focusedPlayerGhost.playbackTicks + 5);
@@ -402,7 +402,8 @@ export default class extends EventEmitter {
 			this.scene.returnToCheckpoint();
 			break;
 		case 'tab':
-			let playersToFocus = Array(...this.scene.players, ...this.scene.ghosts).map(({ vehicle }) => vehicle.hitbox);
+			event.preventDefault();
+			let playersToFocus = Array(...this.scene.players, ...this.scene.ghosts).map(({ hitbox }) => hitbox);
 			let index = playersToFocus.indexOf(this.scene.camera.focusPoint) + 1;
 			if (playersToFocus.length <= index) {
 				index = 0;
@@ -422,7 +423,7 @@ export default class extends EventEmitter {
 			break;
 		case 'p':
 		case ' ':
-			this.ups !== 25 ? this.scene.discreteEvents.add((this.scene.paused ? 'UN' : '') + 'PAUSE') : (this.scene.paused = !this.scene.paused || (this.scene.frozen = false),
+			this.ups > 25 ? this.scene.discreteEvents.add((this.scene.paused ? 'UN' : '') + 'PAUSE') : (this.scene.paused = !this.scene.paused || (this.scene.frozen = false),
 			this.emit('stateChange', this.scene.paused))
 		}
 
@@ -539,7 +540,7 @@ export default class extends EventEmitter {
 	paste(event) {}
 	scroll(event) {
 		if (!event.ctrlKey && this.scene.toolHandler.selected !== 'camera') {
-			this.scene.toolHandler.scroll(event);
+			this.scene.toolHandler._handleEvent(event);
 		} else {
 			event.preventDefault();
 			this.scene.toolHandler.cache.get('camera').scroll(event);
@@ -555,7 +556,7 @@ export default class extends EventEmitter {
 		}
 
 		this.init({ write: true });
-		this.scene.track.read(code);
+		this.scene.track.write(code);
 	}
 
 	async openFile(options = {}) {
@@ -574,7 +575,7 @@ export default class extends EventEmitter {
 				this.init({ write: true });
 				for (const fileHandle of fileHandles) {
 					const fileData = await fileHandle.getFile();
-					this.scene.track.read(await fileData.text());
+					this.scene.track.write(await fileData.text());
 					// auto-save opened file:
 					if (fileHandles.length < 2) {
 						this.#openFile = fileHandle;
@@ -596,7 +597,7 @@ export default class extends EventEmitter {
 		picker.addEventListener('change', async () => {
 			this.init({ write: true });
 			for (const file of this.files) {
-				this.scene.track.read(await file.text());
+				this.scene.track.write(await file.text());
 				if (!options.multiple) {
 					break;
 				}

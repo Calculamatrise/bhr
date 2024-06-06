@@ -2,37 +2,39 @@ import Spring from "../physics/Spring.js";
 import Mass from "./Mass.js";
 
 export default class {
-	points = [
-		this.head = new Mass(this),
-		this.hip = new Mass(this),
-		this.elbow = new Mass(this),
-		this.shadowElbow = new Mass(this),
-		this.hand = new Mass(this),
-		this.shadowHand = new Mass(this),
-		this.knee = new Mass(this),
-		this.shadowKnee = new Mass(this),
-		this.foot = new Mass(this),
-		this.shadowFoot = new Mass(this)
-	];
-	joints = [
-		new Spring(this.head, this.hip),
-		new Spring(this.head, this.elbow),
-		new Spring(this.elbow, this.hand),
-		new Spring(this.head, this.shadowElbow),
-		new Spring(this.shadowElbow, this.shadowHand),
-		new Spring(this.hip, this.knee),
-		new Spring(this.knee, this.foot),
-		new Spring(this.hip, this.shadowKnee),
-		new Spring(this.shadowKnee, this.shadowFoot)
-	];
+	points = [];
+	joints = [];
 	constructor(parent, stickman) {
 		Object.defineProperty(this, 'parent', { value: parent || null });
+		this.points.push(
+			this.head = new Mass(this.parent),
+			this.hip = new Mass(this.parent),
+			this.elbow = new Mass(this.parent),
+			this.shadowElbow = new Mass(this.parent),
+			this.hand = new Mass(this.parent),
+			this.shadowHand = new Mass(this.parent),
+			this.knee = new Mass(this.parent),
+			this.shadowKnee = new Mass(this.parent),
+			this.foot = new Mass(this.parent),
+			this.shadowFoot = new Mass(this.parent)
+		);
 		for (const point of this.points) {
 			point.size = 3;
 			point.friction = 0.05;
 		}
 
 		this.head.size = this.hip.size = 8;
+		this.joints.push(
+			new Spring(this.head, this.hip),
+			new Spring(this.head, this.elbow),
+			new Spring(this.elbow, this.hand),
+			new Spring(this.head, this.shadowElbow),
+			new Spring(this.shadowElbow, this.shadowHand),
+			new Spring(this.hip, this.knee),
+			new Spring(this.knee, this.foot),
+			new Spring(this.hip, this.shadowKnee),
+			new Spring(this.shadowKnee, this.shadowFoot)
+		);
 		for (const joint of this.joints) {
 			joint.springConstant = 0.4;
 			joint.dampConstant = 0.7;
@@ -57,7 +59,7 @@ export default class {
 
 		// ctx.save();
 		this.parent.ghost && (ctx.globalAlpha /= 2,
-		this.parent.scene.camera.focusPoint && this.parent.scene.camera.focusPoint !== this.parent.vehicle.hitbox && (ctx.globalAlpha *= Math.min(1, Math.max(0.5, this.parent.vehicle.hitbox.displayPosition.distanceTo(this.parent.scene.camera.focusPoint.displayPosition) / (this.parent.vehicle.hitbox.size / 2) ** 2))));
+		this.parent.scene.camera.focusPoint && this.parent.scene.camera.focusPoint !== this.parent.hitbox && (ctx.globalAlpha *= Math.min(1, Math.max(0.5, this.parent.hitbox.displayPosition.distanceTo(this.parent.scene.camera.focusPoint.displayPosition) / (this.parent.hitbox.size / 2) ** 2))));
 		ctx.lineWidth = 6 * this.parent.scene.camera.zoom;
 
 		ctx.beginPath()

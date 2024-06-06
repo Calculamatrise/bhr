@@ -19,14 +19,14 @@ export default class extends Line {
 			vectorToPart = posDistance.difference(this.vector.scale(relativePosOnLine));
 			if ((vectorToPart.length < part.size || passedThrough < 0) && vectorToPart.length !== 0) {
 				part.position.add(vectorToPart.scale((part.size * passedThrough - vectorToPart.length) / vectorToPart.length));
-				part.drive(new Coordinates(-vectorToPart.y / vectorToPart.length, vectorToPart.x / vectorToPart.length));
+				part.collide(new Coordinates(-vectorToPart.y / vectorToPart.length, vectorToPart.x / vectorToPart.length));
 			}
 		} else if (relativePosOnLine * this.length >= -part.size && relativePosOnLine * this.length <= this.length + part.size) {
 			let edge = relativePosOnLine > 0 ? this.b : this.a;
 			vectorToPart = part.position.difference(edge);
 			if (vectorToPart.length < part.size && vectorToPart.length !== 0) {
 				part.position.add(vectorToPart.scale((part.size - vectorToPart.length) / vectorToPart.length));
-				part.drive(new Coordinates(-vectorToPart.y / vectorToPart.length, vectorToPart.x / vectorToPart.length));
+				part.collide(new Coordinates(-vectorToPart.y / vectorToPart.length, vectorToPart.x / vectorToPart.length));
 			}
 		}
 	}

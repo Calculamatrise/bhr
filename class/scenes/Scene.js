@@ -4,6 +4,7 @@ import Grid from "../grid/Grid.js";
 import CameraHandler from "../handler/Camera.js";
 import ToolHandler from "../handler/Tool.js";
 import Track from "./track/Track.js";
+import Coordinates from "../Coordinates.js";
 
 // implement Track class w/ draw/move/scale/flip methods etc..
 export default class {
@@ -43,7 +44,7 @@ export default class {
 	}
 
 	get ghostInFocus() {
-		return this.ghosts.find(({ vehicle }) => vehicle.hitbox == this.camera.focusPoint)
+		return this.ghosts.find(({ hitbox }) => hitbox == this.camera.focusPoint)
 	}
 
 	init(options = {}) {
@@ -64,11 +65,24 @@ export default class {
 		this.reset()
 	}
 
+	calculateRemainingDistance(player) {
+		const targets = this.track.powerupTypes['T'];
+		const nearestTargets = targets.sort((a, b) => a.position.distanceTo(player.hitbox.position) - b.position.distanceTo(player.hitbox.position));
+		const consumedTargets = nearestTargets.filter(item => player.consumablesUsed.has(item.id));
+		const lastConsumedTargetId = player.consumablesUsed.size > 0 && player.consumablesUsed.values().toArray().filter(itemId => targets.find(({ id }) => id === itemId)).at(-1);
+		const lastConsumedTarget = lastConsumedTargetId && consumedTargets.find(({ id }) => id === lastConsumedTargetId) || { position: new Coordinates(0, 0) };
+		const unusedTargets = nearestTargets.filter(item => !consumedTargets.includes(item));
+		const nearestTarget = unusedTargets.length > 0 && unusedTargets[0];
+		const goal = nearestTarget && lastConsumedTarget.position.distanceTo(nearestTarget.position);
+		const progress = nearestTarget && player.hitbox.position.distanceTo(nearestTarget.position);
+		return progress / goal
+	}
+
 	checkpoint() {
 		this.paused = false;
 		this.parent.emit('stateChange', this.paused);
 		this.parent.settings.autoPause && (this.frozen = true);
-		this.camera.focusPoint = this.firstPlayer.vehicle.hitbox;
+		this.camera.focusPoint = this.firstPlayer.hitbox;
 		this.camera.set(this.camera.focusPoint.position)
 	}
 
@@ -124,7 +138,7 @@ export default class {
 		}
 
 		this.reset();
-		this.camera.focusPoint = player.vehicle.hitbox;
+		this.camera.focusPoint = player.hitbox;
 		this.camera.set(this.camera.focusPoint.position);
 		this.frozen = false;
 		this.paused = false;
@@ -242,7 +256,7 @@ export default class {
 				i = "Loading, please wait... " + Math.floor((this.track.physicsProgress + this.track.sceneryProgress) / 2);
 			} else if (this.paused) {
 				i += " - Game paused";
-			} else if (this.firstPlayer && this.firstPlayer.dead && this.camera.focusPoint == this.firstPlayer.vehicle.hitbox) {
+			} else if (this.firstPlayer && this.firstPlayer.dead && this.camera.focusPoint == this.firstPlayer.hitbox) {
 				i = "Press ENTER to restart";
 				if (this.firstPlayer.snapshots.length > 1) {
 					i += " or BACKSPACE to cancel Checkpoint"
@@ -254,28 +268,46 @@ export default class {
 				}
 			}
 
-			i = this.firstPlayer.targetsCollected + ` / ${this.track.targets}  -  ` + i
 			let text = ctx.measureText(i)
 			const goalRadius = (text.fontBoundingBoxAscent + text.fontBoundingBoxDescent) / 2;
-			const goalStrokeWidth = 1;
 			const left = 12;
 			const rectPadding = 5;
 			ctx.beginPath()
-			ctx.roundRect(left - goalRadius / 2 - rectPadding, 12 - goalRadius / 2 - rectPadding, text.width + goalRadius + goalStrokeWidth / 2 + 10 + rectPadding * 2, goalRadius + rectPadding * 2, 40);
+			ctx.roundRect(left - goalRadius / 2, 12 - goalRadius / 2 - rectPadding, text.width + rectPadding * 2, goalRadius + rectPadding * 2, 40);
 			ctx.save()
 			ctx.fillStyle = 'hsl(0deg 0% 50% / 50%)'
 			ctx.fill()
 			ctx.restore()
-			ctx.fillText(i, left + goalRadius * 2, 12)
+			ctx.fillText(i, left + rectPadding / 2, 12)
 			ctx.save()
-			// drawImage for powerups
-			ctx.beginPath()
-			ctx.fillStyle = '#ff0'
-			ctx.lineWidth = goalStrokeWidth
-			ctx.arc(left, 12, goalRadius / 1.5, 0, 2 * Math.PI)
-			ctx.fill()
-			ctx.stroke()
-			ctx.restore()
+
+			// add target progress bar
+			const progressHeight = 4;
+			const progressWidth = Math.max(150, ctx.canvas.width / 10);
+			ctx.beginPath();
+			ctx.roundRect(ctx.canvas.width / 2 - progressWidth / 2, 12 - rectPadding, progressWidth, progressHeight + rectPadding * 2, 40);
+			ctx.save();
+			ctx.fillStyle = 'hsl(0deg 0% 50% / 50%)';
+			ctx.fill();
+			const playerInFocus = this.camera.focusPoint === this.firstPlayer.hitbox ? this.firstPlayer : this.ghostInFocus;
+			if (playerInFocus) {
+				const maxWidth = progressWidth - 4;
+				const valueWidth = maxWidth * (this.firstPlayer.targetsCollected / this.track.targets);
+				const targets = this.track.powerupTypes['T'];
+				const quadrantWidth = maxWidth / targets.length;
+				const calculatedDistanceRemaining = targets.length > 0 && playerInFocus && this.calculateRemainingDistance(playerInFocus);
+				const predictedAdditionalValueWidth = calculatedDistanceRemaining && Math.max(0, Math.min(quadrantWidth, quadrantWidth - calculatedDistanceRemaining * quadrantWidth));
+				ctx.beginPath();
+				ctx.roundRect(ctx.canvas.width / 2 - progressWidth / 2 + rectPadding / 2, 14 - rectPadding, valueWidth + predictedAdditionalValueWidth, progressHeight - 4 + rectPadding * 2, 40);
+				ctx.fillStyle = 'hsl(40deg 50% 50% / 50%)';
+				ctx.fill();
+			}
+
+			ctx.restore();
+			const targetProgress = this.firstPlayer.targetsCollected + ' / ' + this.track.targets;
+			const targetProgressText = ctx.measureText(targetProgress);
+			ctx.fillText(this.firstPlayer.targetsCollected + ' / ' + this.track.targets, ctx.canvas.width / 2 - targetProgressText.width / 2, 14);
+
 			if (this.ghosts.length > 0) {
 				ctx.save();
 				ctx.textAlign = 'right';
@@ -309,7 +341,7 @@ export default class {
 			playerGhost.reset();
 		}
 
-		this.camera.focusPoint = this.firstPlayer.vehicle.hitbox;
+		this.camera.focusPoint = this.firstPlayer.hitbox;
 		this.camera.set(this.camera.focusPoint.position);
 		this.paused = false;
 		this.parent.settings.autoPause && (this.frozen = true);

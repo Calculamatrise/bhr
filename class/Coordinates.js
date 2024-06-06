@@ -32,7 +32,7 @@ export default class {
 	}
 
 	distanceTo(vector) {
-		return Math.sqrt((this.x - vector.x) ** 2 + (this.y - vector.y) ** 2)
+		return Math.sqrt(this.distanceToSquared(vector))
 	}
 
 	distanceToSquared(vector) {

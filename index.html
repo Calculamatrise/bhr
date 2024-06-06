@@ -20,8 +20,8 @@
 				<button class="toolbar-item rewind" tooltip="[Backspace] Cancel Checkpoint" onclick="game.scene.removeCheckpoint()"></button>
 				<button class="toolbar-item backtrack" tooltip="[Enter] Checkpoint" onclick="game.scene.returnToCheckpoint()"></button>
 				<label class="toolbar-item playpause" tooltip="[Space] Pause/Play"><input type="checkbox" style="display: none;" onchange="game.scene.paused = !this.checked" checked></label><!-- ▶ -->
-				<button class="toolbar-item backtrack" tooltip="[Shift + Enter] Checkpoint" style="rotate: 180deg;" onclick="game.scene.returnToCheckpoint()"></button>
-				<button class="toolbar-item rewind" tooltip="[Shift + Backspace] Restore Checkpoint" style="rotate: 180deg;" onclick="game.scene.restoreCheckpoint()"></button>
+				<button class="toolbar-item backtrack reverse" tooltip="[Shift + Enter] Checkpoint" onclick="game.scene.returnToCheckpoint()"></button>
+				<button class="toolbar-item rewind reverse" tooltip="[Shift + Backspace] Restore Checkpoint" onclick="game.scene.restoreCheckpoint()"></button>
 			</section>
 			<section class="center island top" id="recorder" style="display: none;/*visibility: hidden;*/">
 				<!-- Display recording time -->
@@ -30,29 +30,18 @@
 				<button class="toolbar-item" tooltip="Stop recording - Backspace" onclick="game.scene.removeCheckpoint()">◾</button>◼ /◾ -->
 			</section>
 			<!-- Islands should grow when hovered -->
-			<section class="island left middle">
+			<section class="island left middle hidden">
 				<label class="toolbar-item brush" tooltip="[A] Brush"><input type="radio" name="tool" style="display: none;" onchange="game.scene.toolHandler.setTool('brush', false)">●</label>
 				<label class="toolbar-item scenery brush" tooltip="[S] Scenery Brush"><input type="radio" name="tool" style="display: none;" onchange="game.scene.toolHandler.setTool('brush', true)">●</label>
 				<label class="toolbar-item line" tooltip="[Q] Line"><input type="radio" name="tool" style="display: none;" onchange="game.scene.toolHandler.setTool('line', false)" checked></label>
 				<label class="toolbar-item scenery line" tooltip="[W] Scenery Line"><input type="radio" name="tool" style="display: none;" onchange="game.scene.toolHandler.setTool('line', true)"></label>
 				<label class="toolbar-item powerups" tooltip="Powerups"><input type="radio" name="tool" style="display: none;" onchange="powerups.querySelector('input[name=powerup]:checked').dispatchEvent(new Event('change'))">🗲</label>
-				<label class="toolbar-item grid" title="[G] Grid"><input type="checkbox" style="display: none;" onchange="game.scene.grid.size = 11 - game.scene.grid.size;"></label>
+				<label class="toolbar-item grid" tooltip="[G] Grid"><input type="checkbox" style="display: none;" onchange="game.scene.grid.size = 11 - game.scene.grid.size;"></label>
 				<label class="toolbar-item eraser" tooltip="[E] Eraser"><input type="radio" name="tool" style="display: none;" onchange="game.scene.toolHandler.setTool('eraser')"></label>
 				<button class="toolbar-item wheel" tooltip="[Ctrl + B] Change Vehicle" onclick="game.scene.firstPlayer.switchBike()">
-					<svg xmlns="http://www.w3.org/2000/svg" viewbox="0 0 25 25" style="stroke: #777;">
-						<circle cx="12.5" cy="12.5" r="10"style="fill: none;stroke: var(--text-color);stroke-width: 2.5;" />
-						<line x1="12.5" y1="12.5" x2="20.5" y2="12.5"/>
-						<line x1="12.5" y1="12.5" x2="19.42820323027551" y2="16.5"/>
-						<line x1="12.5" y1="12.5" x2="16.5" y2="19.428203230275507"/>
-						<line x1="12.5" y1="12.5" x2="12.5" y2="20.5"/>
-						<line x1="12.5" y1="12.5" x2="8.500000000000002" y2="19.42820323027551"/>
-						<line x1="12.5" y1="12.5" x2="5.57179676972449" y2="16.5"/>
-						<line x1="12.5" y1="12.5" x2="4.5" y2="12.500000000000002"/>
-						<line x1="12.5" y1="12.5" x2="5.571796769724491" y2="8.5"/>
-						<line x1="12.5" y1="12.5" x2="8.499999999999996" y2="5.571796769724492"/>
-						<line x1="12.5" y1="12.5" x2="12.499999999999998" y2="4.5"/>
-						<line x1="12.5" y1="12.5" x2="16.5" y2="5.571796769724491"/>
-						<line x1="12.5" y1="12.5" x2="19.428203230275507" y2="8.499999999999996"/>
+					<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 25 25" style="stroke:#777">
+						<circle cx="12.5" cy="12.5" r="10" style="fill:none;stroke:var(--text-color);stroke-width:2.5"/>
+						<path d="M12.5 12.5h8m-8 0 6.928 4m-6.928-4 4 6.928m-4-6.928v8m0-8-4 6.928m4-6.928-6.928 4m6.928-4h-8m8 0-6.928-4m6.928 4-4-6.928m4 6.928v-8m0 8 4-6.928m-4 6.928 6.928-4"/>
 					</svg>
 				</button>
 				<label class="toolbar-item camera" tooltip="[R] Camera"><input type="radio" name="tool" style="display: none;" onchange="game.scene.toolHandler.setTool('camera')"></label>
@@ -314,6 +303,8 @@
 					<label>Light<input type="radio" name="bhr-theme" id="game-settings.light" onchange="game.settings.theme = event.target.id"></label>
 					<label>Midnight<input type="radio" name="bhr-theme" id="game-settings.midnight" onchange="game.settings.theme = event.target.id"></label>
 					<label>Brightness<input type="range" id="game-settings.brightness" min="1" value="100" max="100" onchange="game.settings.brightness = event.target.value"></label>
+					<!-- Add option to scale islands on hover -->
+					<!-- Add option to hide islands until hover -- should not work with previous option (scale) -->
 				</section>
 				<section title="Miscellaneous">
 					<label>Discord Rich Presence<input type="checkbox" id="discord-rich-presence" onchange="/* electron api post message*/ event.target.checked" checked></label>
