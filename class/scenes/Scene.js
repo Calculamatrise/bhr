@@ -154,7 +154,6 @@ export default class {
 
 			for (const playerGhost of this.ghosts.filter(ghostPlayer => ghostPlayer.targetsCollected !== this.track.targets)) {
 				playerGhost.playbackIterator.next();
-				// playerGhost.fixedUpdate();
 			}
 
 			this.currentTime += this.parent.max;
@@ -294,8 +293,8 @@ export default class {
 				const maxWidth = progressWidth - 4;
 				const valueWidth = maxWidth * (this.firstPlayer.targetsCollected / this.track.targets);
 				const targets = this.track.powerupTypes['T'];
-				const quadrantWidth = maxWidth / targets.length;
-				const calculatedDistanceRemaining = targets.length > 0 && playerInFocus && this.calculateRemainingDistance(playerInFocus);
+				const quadrantWidth = targets && maxWidth / targets.length;
+				const calculatedDistanceRemaining = targets && targets.length > 0 && playerInFocus && this.calculateRemainingDistance(playerInFocus);
 				const predictedAdditionalValueWidth = calculatedDistanceRemaining && Math.max(0, Math.min(quadrantWidth, quadrantWidth - calculatedDistanceRemaining * quadrantWidth));
 				ctx.beginPath();
 				ctx.roundRect(ctx.canvas.width / 2 - progressWidth / 2 + rectPadding / 2, 14 - rectPadding, valueWidth + predictedAdditionalValueWidth, progressHeight - 4 + rectPadding * 2, 40);
