@@ -21,7 +21,7 @@ export default class extends EventEmitter {
 	#matchMediaChangeListener = null;
 	#openFile = null;
 	accentColor = '#000000'; // for themes
-	debug = true;
+	debug = false;
 	lastFrame = null;
 	lastTime = performance.now();
 	progress = 0;
